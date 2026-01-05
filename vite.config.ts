@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  base: "/cruzewebsite/",
+  base: "./",
   plugins: [react()],
   resolve: {
     alias: {
