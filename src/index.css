@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -15,7 +15,7 @@
     --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 186 100% 50%;
+    --primary: 25 100% 55%;
     --primary-foreground: 222 47% 6%;
 
     --secondary: 222 47% 12%;
@@ -24,7 +24,7 @@
     --muted: 222 30% 15%;
     --muted-foreground: 215 20% 55%;
 
-    --accent: 186 80% 40%;
+    --accent: 30 100% 50%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84.2% 60.2%;
@@ -32,20 +32,20 @@
 
     --border: 222 30% 18%;
     --input: 222 30% 18%;
-    --ring: 186 100% 50%;
+    --ring: 25 100% 55%;
 
     --radius: 0.75rem;
 
     /* Custom Cruze tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(186 100% 50%) 0%, hsl(200 100% 60%) 50%, hsl(220 100% 65%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(25 100% 55%) 0%, hsl(35 100% 60%) 50%, hsl(45 100% 55%) 100%);
     --gradient-dark: linear-gradient(180deg, hsl(222 47% 6%) 0%, hsl(222 47% 3%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(222 47% 10%) 0%, hsl(222 47% 6%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(186 100% 50% / 0.15) 0%, transparent 70%);
-    --gradient-flow: linear-gradient(90deg, hsl(186 100% 50%) 0%, hsl(200 100% 60%) 25%, hsl(186 100% 50%) 50%, hsl(200 100% 60%) 75%, hsl(186 100% 50%) 100%);
-    
-    --shadow-glow: 0 0 60px hsl(186 100% 50% / 0.3);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(25 100% 55% / 0.15) 0%, transparent 70%);
+    --gradient-flow: linear-gradient(90deg, hsl(25 100% 55%) 0%, hsl(35 100% 60%) 25%, hsl(25 100% 55%) 50%, hsl(35 100% 60%) 75%, hsl(25 100% 55%) 100%);
+
+    --shadow-glow: 0 0 60px hsl(25 100% 55% / 0.3);
     --shadow-card: 0 25px 50px -12px hsl(0 0% 0% / 0.5);
-    --shadow-button: 0 10px 40px hsl(186 100% 50% / 0.4);
+    --shadow-button: 0 10px 40px hsl(25 100% 55% / 0.4);
 
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
