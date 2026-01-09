@@ -15,7 +15,7 @@ const HeroSection = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full border border-border bg-card/50 backdrop-blur-sm mb-6 sm:mb-8 animate-slide-up">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full border border-primary/20 bg-primary/10 backdrop-blur-md mb-6 sm:mb-8 animate-slide-up shadow-glow">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-xs sm:text-sm text-muted-foreground font-medium">
               Revolutionary Traffic Intelligence

@@ -3,17 +3,17 @@ const HowItWorksSection = () => {
     {
       number: "01",
       title: "Detect & Analyze",
-      description: "YOLO-v11 processes real-time telemetry and camera feeds to detect congestion transitions in milliseconds.",
+      description: "Advanced computer vision processes real-time telemetry and camera feeds to detect congestion transitions in milliseconds.",
     },
     {
       number: "02",
       title: "Predict & Model",
-      description: "Physics-informed neural networks model traffic as fluid dynamics, predicting shockwave propagation with 73% higher accuracy.",
+      description: "Our AI models traffic like a fluid, predicting shockwaves and slowdowns before they propagate with 73% higher accuracy.",
     },
     {
       number: "03",
       title: "Coordinate & Pace",
-      description: "MAPPO-LCE algorithm calculates precise micro-adjustments in velocity and communicates them to drivers in real-time.",
+      description: "Cruze's intelligent pacing algorithm calculates precise micro-adjustments in velocity and communicates them to drivers in real-time.",
     },
     {
       number: "04",
@@ -25,7 +25,7 @@ const HowItWorksSection = () => {
   return (
     <section id="how-it-works" className="py-24 relative overflow-hidden">
       <div className="absolute left-1/2 top-32 bottom-32 w-px bg-gradient-to-b from-transparent via-primary/30 to-transparent hidden lg:block" />
-      
+
       <div className="container mx-auto px-6">
         <div className="text-center mb-20">
           <span className="text-primary text-sm font-semibold uppercase tracking-wider">The Process</span>
@@ -41,9 +41,8 @@ const HowItWorksSection = () => {
           {steps.map((step, index) => (
             <div
               key={step.number}
-              className={`flex items-center gap-8 mb-12 last:mb-0 ${
-                index % 2 === 1 ? "lg:flex-row-reverse" : ""
-              }`}
+              className={`flex items-center gap-8 mb-12 last:mb-0 ${index % 2 === 1 ? "lg:flex-row-reverse" : ""
+                }`}
             >
               <div className={`flex-1 ${index % 2 === 1 ? "lg:text-right" : ""}`}>
                 <div className="p-8 rounded-2xl bg-gradient-card border border-border/50 hover:border-primary/30 transition-all duration-500 group shadow-card">
@@ -58,13 +57,13 @@ const HowItWorksSection = () => {
                   </p>
                 </div>
               </div>
-              
+
               <div className="hidden lg:flex w-16 h-16 flex-shrink-0 rounded-full bg-gradient-primary items-center justify-center shadow-glow z-10">
                 <span className="text-primary-foreground font-display font-bold text-xl">
                   {index + 1}
                 </span>
               </div>
-              
+
               <div className="hidden lg:block flex-1" />
             </div>
           ))}
