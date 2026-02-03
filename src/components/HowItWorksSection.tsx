@@ -28,12 +28,11 @@ const HowItWorksSection = () => {
 
       <div className="container mx-auto px-6">
         <div className="text-center mb-20">
-          <span className="text-primary text-sm font-semibold uppercase tracking-wider">The Process</span>
           <h2 className="text-4xl md:text-5xl font-display font-bold mt-4 mb-6">
-            How <span className="text-gradient">Cruze Works</span>
+            How it works?
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Four seamless steps transform your smartphone into an active traffic actuator.
+            Break down your product's functionality into 3-5 easy steps.
           </p>
         </div>
 

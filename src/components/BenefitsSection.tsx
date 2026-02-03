@@ -39,17 +39,15 @@ const BenefitsSection = () => {
       
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
-          <span className="text-primary text-sm font-semibold uppercase tracking-wider">Real Impact</span>
           <h2 className="text-4xl md:text-5xl font-display font-bold mt-4 mb-6">
-            Benefits That <span className="text-gradient">Drive Results</span>
+            Benefits
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Cruze delivers measurable ROI for drivers, fleets, and insurers—turning 
-            the congestion crisis into a competitive advantage.
+            Features tell, but benefits sell.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {benefits.map((benefit, index) => (
             <div
               key={benefit.title}

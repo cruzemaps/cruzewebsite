@@ -35,32 +35,50 @@ const HeroSection = () => {
             coordinates driver speeds to eliminate phantom jams—saving fuel, time, and lives.
           </p>
 
-          {/* CTAs */}
+          {/* CTA */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0 animate-slide-up" style={{ animationDelay: "0.3s" }}>
             <Button variant="hero" size="xl" className="group w-full sm:w-auto">
               Join the Revolution
               <ArrowRight className="group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="heroOutline" size="xl" className="group w-full sm:w-auto">
-              <Play className="w-4 h-4" />
-              Watch Demo
-            </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 sm:gap-8 mt-12 sm:mt-20 max-w-2xl mx-auto px-4 sm:px-0 animate-slide-up" style={{ animationDelay: "0.4s" }}>
-            {[
-              { value: "73%", label: "Higher Accuracy" },
-              { value: "60%", label: "Jams Eliminated" },
-              { value: "24%", label: "Fuel Savings" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gradient mb-1 sm:mb-2">
-                  {stat.value}
+          {/* Video Placeholder */}
+          <div className="mt-8 sm:mt-12 max-w-4xl mx-auto px-4 sm:px-0 animate-slide-up" style={{ animationDelay: "0.4s" }}>
+            <div className="relative aspect-video rounded-2xl bg-gradient-card border border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-glow opacity-50" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center group-hover:bg-primary/30 transition-colors shadow-glow">
+                  <Play className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
               </div>
-            ))}
+              <div className="absolute bottom-4 left-4 right-4 text-center">
+                <p className="text-xs sm:text-sm text-muted-foreground bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
+                  Watch how Cruze works (2-3 minutes)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Company Logos for Social Proof */}
+          <div className="mt-12 sm:mt-16 max-w-4xl mx-auto px-4 sm:px-0 animate-slide-up" style={{ animationDelay: "0.5s" }}>
+            <p className="text-xs sm:text-sm text-muted-foreground text-center mb-6">Trusted by leading companies</p>
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 opacity-60">
+              {[
+                "Company 1",
+                "Company 2",
+                "Company 3",
+                "Company 4",
+                "Company 5",
+              ].map((company, index) => (
+                <div
+                  key={index}
+                  className="h-8 sm:h-10 w-24 sm:w-32 rounded-lg bg-muted/50 flex items-center justify-center text-xs sm:text-sm text-muted-foreground font-medium"
+                >
+                  {company}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
