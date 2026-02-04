@@ -9,8 +9,6 @@ const HeroSection = () => {
       <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-96 sm:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse-glow" />
       <div className="absolute bottom-1/4 right-1/4 w-40 h-40 sm:w-80 sm:h-80 bg-accent/10 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: "1s" }} />
 
-      {/* Animated Flow Line */}
-      <div className="absolute top-1/2 left-0 right-0 h-px animate-flow opacity-30" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
@@ -32,7 +30,7 @@ const HeroSection = () => {
           {/* Subheadline */}
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-4 sm:px-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>
             Cruze transforms every smartphone into an active traffic actuator. Our swarm intelligence
-            coordinates driver speeds to eliminate phantom jams—saving fuel, time, and lives.
+            coordinates driver speeds to eliminate phantom jams saving fuel, time, and lives.
           </p>
 
           {/* CTA */}
@@ -61,33 +59,34 @@ const HeroSection = () => {
           </div>
 
           {/* Company Logos for Social Proof */}
-          <div className="mt-12 sm:mt-16 max-w-4xl mx-auto px-4 sm:px-0 animate-slide-up" style={{ animationDelay: "0.5s" }}>
+          <div className="mt-12 sm:mt-16 max-w-4xl mx-auto px-4 sm:px-0 animate-slide-up relative" style={{ animationDelay: "0.5s" }}>
             <p className="text-xs sm:text-sm text-muted-foreground text-center mb-6">Trusted by leading companies</p>
-            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 opacity-60">
-              {[
-                "Company 1",
-                "Company 2",
-                "Company 3",
-                "Company 4",
-                "Company 5",
-              ].map((company, index) => (
-                <div
-                  key={index}
-                  className="h-8 sm:h-10 w-24 sm:w-32 rounded-lg bg-muted/50 flex items-center justify-center text-xs sm:text-sm text-muted-foreground font-medium"
-                >
-                  {company}
-                </div>
-              ))}
+            <div className="logo-sphere-mask py-4 overflow-hidden perspective-1000">
+              <div className="flex items-center gap-8 animate-infinite-scroll preserve-3d">
+                {[
+                  "Company 1", "Company 2", "Company 3", "Company 4", "Company 5",
+                  "Company 1", "Company 2", "Company 3", "Company 4", "Company 5",
+                  "Company 1", "Company 2", "Company 3", "Company 4", "Company 5"
+                ].map((company, index) => (
+                  <div
+                    key={index}
+                    className="h-8 sm:h-10 w-24 sm:w-32 rounded-lg bg-muted/20 backdrop-blur-sm border border-border/30 flex items-center justify-center text-xs sm:text-sm text-muted-foreground font-medium hover:text-primary transition-all duration-500 hover:scale-110 shadow-sm"
+                  >
+                    {company}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="hidden sm:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 animate-bounce">
-        <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2">
-          <div className="w-1 h-2 bg-primary rounded-full animate-pulse" />
+      {/* Scroll Indicator - Positioned to avoid overlap */}
+      <div className="hidden sm:flex absolute bottom-24 right-8 flex-col items-center gap-2 animate-bounce opacity-40 hover:opacity-100 transition-opacity z-20">
+        <div className="w-5 h-8 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-1.5">
+          <div className="w-1 h-1.5 bg-primary rounded-full" />
         </div>
+        <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium vertical-text">Scroll</span>
       </div>
     </section>
   );

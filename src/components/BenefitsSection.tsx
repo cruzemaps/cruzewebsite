@@ -35,8 +35,7 @@ const BenefitsSection = () => {
   return (
     <section id="benefits" className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-glow opacity-20" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-primary opacity-30" />
-      
+
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-display font-bold mt-4 mb-6">
@@ -58,7 +57,7 @@ const BenefitsSection = () => {
                   <benefit.icon className="w-8 h-8 text-primary" />
                 </div>
               </div>
-              
+
               <div className="flex-1">
                 <div className="flex items-baseline gap-3 mb-2">
                   <span className="text-5xl font-display font-bold text-gradient">
@@ -68,11 +67,11 @@ const BenefitsSection = () => {
                     {benefit.highlightLabel}
                   </span>
                 </div>
-                
+
                 <h3 className="text-xl font-display font-semibold text-foreground mb-2">
                   {benefit.title}
                 </h3>
-                
+
                 <p className="text-muted-foreground">
                   {benefit.description}
                 </p>

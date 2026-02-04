@@ -3,6 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Footer = () => {
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <footer className="py-12 border-t border-border/50">
       <div className="container mx-auto px-6">
@@ -26,8 +34,24 @@ const Footer = () => {
               <div>
                 <h3 className="font-semibold text-foreground mb-3">Product</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li><a href="#benefits" className="hover:text-foreground transition-colors">Features</a></li>
-                  <li><a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a></li>
+                  <li>
+                    <a
+                      href="#benefits"
+                      onClick={(e) => scrollToSection(e, "benefits")}
+                      className="hover:text-foreground transition-colors"
+                    >
+                      Benefits
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#how-it-works"
+                      onClick={(e) => scrollToSection(e, "how-it-works")}
+                      className="hover:text-foreground transition-colors"
+                    >
+                      How It Works
+                    </a>
+                  </li>
                   <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
                 </ul>
               </div>
@@ -78,7 +102,7 @@ const Footer = () => {
           <div className="text-sm text-muted-foreground">
             © 2026 Cruze Technologies. All rights reserved.
           </div>
-          
+
           <div className="flex items-center gap-4">
             <a href="#" className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors">
               <Twitter className="w-5 h-5 text-muted-foreground hover:text-primary" />

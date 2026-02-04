@@ -6,10 +6,18 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { label: "Features", href: "#technology" },
-    { label: "Benefits", href: "#benefits" },
-    { label: "How It Works", href: "#how-it-works" },
+    { label: "Benefits", href: "benefits" },
+    { label: "How It Works", href: "how-it-works" },
   ];
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      setIsOpen(false);
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
@@ -28,7 +36,8 @@ const Navbar = () => {
             {navLinks.map((link) => (
               <a
                 key={link.label}
-                href={link.href}
+                href={`#${link.href}`}
+                onClick={(e) => scrollToSection(e, link.href)}
                 className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium"
               >
                 {link.label}
@@ -38,7 +47,7 @@ const Navbar = () => {
 
           {/* CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="heroOutline" size="sm">
+            <Button variant="heroOutline" size="sm" onClick={(e) => scrollToSection(e as any, "how-it-works")}>
               Learn More
             </Button>
             <Button variant="hero" size="sm">
@@ -62,15 +71,15 @@ const Navbar = () => {
               {navLinks.map((link) => (
                 <a
                   key={link.label}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
+                  href={`#${link.href}`}
+                  onClick={(e) => scrollToSection(e, link.href)}
                   className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium"
                 >
                   {link.label}
                 </a>
               ))}
               <div className="flex flex-col gap-2 pt-4">
-                <Button variant="heroOutline" size="sm">
+                <Button variant="heroOutline" size="sm" onClick={(e) => scrollToSection(e as any, "how-it-works")}>
                   Learn More
                 </Button>
                 <Button variant="hero" size="sm">

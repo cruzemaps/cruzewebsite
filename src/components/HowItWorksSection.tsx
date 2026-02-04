@@ -24,7 +24,6 @@ const HowItWorksSection = () => {
 
   return (
     <section id="how-it-works" className="py-24 relative overflow-hidden">
-      <div className="absolute left-1/2 top-32 bottom-32 w-px bg-gradient-to-b from-transparent via-primary/30 to-transparent hidden lg:block" />
 
       <div className="container mx-auto px-6">
         <div className="text-center mb-20">
@@ -32,7 +31,7 @@ const HowItWorksSection = () => {
             How it works?
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Break down your product's functionality into 3-5 easy steps.
+            Experience a smoother, safer journey with Cruze in just a few simple steps.
           </p>
         </div>
 
