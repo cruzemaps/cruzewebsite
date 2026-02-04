@@ -33,13 +33,6 @@ const HeroSection = () => {
             coordinates driver speeds to eliminate phantom jams saving fuel, time, and lives.
           </p>
 
-          {/* CTA */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0 animate-slide-up" style={{ animationDelay: "0.3s" }}>
-            <Button variant="hero" size="xl" className="group w-full sm:w-auto">
-              Join the Revolution
-              <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </div>
 
           {/* Video Placeholder */}
           <div className="mt-8 sm:mt-12 max-w-4xl mx-auto px-4 sm:px-0 animate-slide-up" style={{ animationDelay: "0.4s" }}>
@@ -57,7 +50,6 @@ const HeroSection = () => {
               </div>
             </div>
           </div>
-
           {/* Company Logos for Social Proof */}
           <div className="mt-12 sm:mt-16 max-w-4xl mx-auto px-4 sm:px-0 animate-slide-up relative" style={{ animationDelay: "0.5s" }}>
             <p className="text-xs sm:text-sm text-muted-foreground text-center mb-6">Trusted by leading companies</p>

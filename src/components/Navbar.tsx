@@ -7,7 +7,6 @@ const Navbar = () => {
 
   const navLinks = [
     { label: "Benefits", href: "benefits" },
-    { label: "How It Works", href: "how-it-works" },
   ];
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -22,17 +21,19 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <a href="#" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-lg">C</span>
-            </div>
-            <span className="font-display font-bold text-xl text-foreground">Cruze</span>
-          </a>
+        <div className="flex items-center h-16">
+          {/* Logo Container */}
+          <div className="flex-1 flex justify-start">
+            <a href="#" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-display font-bold text-lg">C</span>
+              </div>
+              <span className="font-display font-bold text-xl text-foreground">Cruze</span>
+            </a>
+          </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Desktop Navigation Container - Centered */}
+          <div className="hidden md:flex flex-none items-center gap-8 px-4">
             {navLinks.map((link) => (
               <a
                 key={link.label}
@@ -45,23 +46,25 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* CTA */}
-          <div className="hidden md:flex items-center gap-4">
-            <Button variant="heroOutline" size="sm" onClick={(e) => scrollToSection(e as any, "how-it-works")}>
-              Learn More
-            </Button>
-            <Button variant="hero" size="sm">
-              Get Started
-            </Button>
-          </div>
+          {/* CTA Container */}
+          <div className="flex-1 flex justify-end items-center gap-4">
+            <div className="hidden md:flex items-center gap-4">
+              <Button variant="heroOutline" size="sm" onClick={(e) => scrollToSection(e as any, "how-it-works")}>
+                Learn More
+              </Button>
+              <Button variant="hero" size="sm">
+                Get Started
+              </Button>
+            </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-foreground p-2"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden text-foreground p-2"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
