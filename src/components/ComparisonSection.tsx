@@ -17,11 +17,11 @@ const ComparisonSection = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <span className="text-primary text-sm font-semibold uppercase tracking-wider">The Difference</span>
-          <h2 className="text-4xl md:text-5xl font-display font-bold mt-4 mb-6">
-            Actuator vs. <span className="text-gradient">Observer</span>
+          <h2 className="text-4xl md:text-5xl font-serif font-medium mt-4 mb-6 text-foreground">
+            Actuator vs. <span className="text-gradient font-serif">Observer</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Google and Waze are passive observers that merely redistribute congestion. 
+            Google and Waze are passive observers that merely redistribute congestion.
             Cruze is an active actuator that dissolves it at the source.
           </p>
         </div>
@@ -43,9 +43,8 @@ const ComparisonSection = () => {
             {features.map((item, index) => (
               <div
                 key={item.feature}
-                className={`grid grid-cols-3 gap-4 p-6 ${
-                  index !== features.length - 1 ? "border-b border-border/50" : ""
-                } hover:bg-secondary/20 transition-colors`}
+                className={`grid grid-cols-3 gap-4 p-6 ${index !== features.length - 1 ? "border-b border-border/50" : ""
+                  } hover:bg-secondary/20 transition-colors`}
               >
                 <div className="text-foreground font-medium">{item.feature}</div>
                 <div className="flex justify-center">

@@ -6,7 +6,9 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
+    { label: "How it works", href: "how-it-works" },
     { label: "Benefits", href: "benefits" },
+    { label: "Live Lab", href: "simulator" },
   ];
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -24,10 +26,12 @@ const Navbar = () => {
         <div className="flex items-center h-16">
           {/* Logo Container */}
           <div className="flex-1 flex justify-start">
-            <a href="#" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-display font-bold text-lg">C</span>
-              </div>
+            <a href="#" className="flex items-center gap-3">
+              <img
+                src={`${import.meta.env.BASE_URL}logo.png`}
+                alt="Cruze Logo"
+                className="h-10 w-auto object-contain"
+              />
               <span className="font-display font-bold text-xl text-foreground">Cruze</span>
             </a>
           </div>
@@ -49,8 +53,8 @@ const Navbar = () => {
           {/* CTA Container */}
           <div className="flex-1 flex justify-end items-center gap-4">
             <div className="hidden md:flex items-center gap-4">
-              <Button variant="heroOutline" size="sm" onClick={(e) => scrollToSection(e as any, "how-it-works")}>
-                Learn More
+              <Button variant="heroOutline" size="sm" onClick={(e) => scrollToSection(e as any, "simulator")}>
+                Try Live Lab
               </Button>
               <Button variant="hero" size="sm">
                 Get Started

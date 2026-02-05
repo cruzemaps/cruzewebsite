@@ -17,10 +17,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Logo and Description */}
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-display font-bold text-lg">C</span>
-              </div>
+            <div className="flex items-center gap-3 mb-4">
+              <img
+                src={`${import.meta.env.BASE_URL}logo.png`}
+                alt="Cruze Logo"
+                className="h-12 w-auto object-contain"
+              />
               <span className="font-display font-bold text-xl text-foreground">Cruze</span>
             </div>
             <p className="text-sm text-muted-foreground">

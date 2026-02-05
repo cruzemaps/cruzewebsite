@@ -6,8 +6,25 @@ const HeroSection = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 sm:pt-20">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-glow opacity-50" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-96 sm:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse-glow" />
       <div className="absolute bottom-1/4 right-1/4 w-40 h-40 sm:w-80 sm:h-80 bg-accent/10 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: "1s" }} />
+
+      {/* Decorative Swarm Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-primary rounded-full animate-float shadow-glow"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${i * 1.5}s`,
+              animationDuration: `${10 + Math.random() * 20}s`
+            }}
+          />
+        ))}
+      </div>
 
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -21,11 +38,22 @@ const HeroSection = () => {
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-4 sm:mb-6 leading-tight px-4 sm:px-0 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-medium mb-4 sm:mb-6 leading-[1.1] px-4 sm:px-0 animate-slide-up tracking-tight" style={{ animationDelay: "0.1s" }}>
             Stop Avoiding Jams.
             <br />
             <span className="text-gradient">Start Dissolving Them.</span>
           </h1>
+
+          {/* Social Proof Tech Strip */}
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 mb-8 sm:mb-10 animate-slide-up opacity-60 grayscale hover:grayscale-0 transition-all duration-700" style={{ animationDelay: "0.15s" }}>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-bold w-full sm:w-auto mb-2 sm:mb-0">Engineered with</span>
+            {["OpenStreetMap", "NeuralSwarm AI", "Rust Engine", "Real-time Mesh"].map((tech) => (
+              <div key={tech} className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+                <span className="text-[11px] font-semibold tracking-wider font-display">{tech}</span>
+              </div>
+            ))}
+          </div>
 
           {/* Subheadline */}
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-4 sm:px-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>

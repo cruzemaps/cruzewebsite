@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProblemSection from "@/components/ProblemSection";
+import SwarmSimulator from "@/components/SwarmSimulator";
 import ComparisonSection from "@/components/ComparisonSection";
 import BenefitsSection from "@/components/BenefitsSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
@@ -11,12 +12,13 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <HeroSection />
+      <SwarmSimulator />
       <ProblemSection />
-      <BenefitsSection />
       <HowItWorksSection />
+      <BenefitsSection />
       <ComparisonSection />
       <TestimonialsSection />
       <FAQSection />
