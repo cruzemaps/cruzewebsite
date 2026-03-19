@@ -1,14 +1,14 @@
-import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
-import ProblemSection from "@/components/ProblemSection";
-import SwarmSimulator from "@/components/SwarmSimulator";
-import ComparisonSection from "@/components/ComparisonSection";
-import BenefitsSection from "@/components/BenefitsSection";
-import HowItWorksSection from "@/components/HowItWorksSection";
-import TestimonialsSection from "@/components/TestimonialsSection";
-import FAQSection from "@/components/FAQSection";
-import CTASection from "@/components/CTASection";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/v1/Navbar";
+import HeroSection from "@/components/v1/HeroSection";
+import ProblemSection from "@/components/v1/ProblemSection";
+import SwarmSimulator from "@/components/v1/SwarmSimulator";
+import ComparisonSection from "@/components/v1/ComparisonSection";
+import BenefitsSection from "@/components/v1/BenefitsSection";
+import HowItWorksSection from "@/components/v1/HowItWorksSection";
+import TestimonialsSection from "@/components/v1/TestimonialsSection";
+import FAQSection from "@/components/v1/FAQSection";
+import CTASection from "@/components/v1/CTASection";
+import Footer from "@/components/v1/Footer";
 
 const Index = () => {
   return (
