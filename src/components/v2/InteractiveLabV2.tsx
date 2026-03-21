@@ -22,7 +22,7 @@ const InteractiveLabV2 = () => {
     const [isJamming, setIsJamming] = useState(false);
     
     // V2 specific state
-    const [savingsCounter, setSavingsCounter] = useState(0);
+    const [savingsCounter, setSavingsCounter] = useState(12845920);
 
     const frameCountRef = useRef(0);
     const pacerRef = useRef(false);
@@ -368,7 +368,7 @@ const InteractiveLabV2 = () => {
 
                         </div>
 
-                        <Button className="w-full py-6 rounded-2xl bg-white text-[#0B0E14] hover:bg-white/90 font-bold text-lg group">
+                        <Button onClick={() => window.location.href='mailto:cruzemaps@gmail.com'} className="w-full py-6 rounded-2xl bg-white text-[#0B0E14] hover:bg-white/90 font-bold text-lg group">
                             Want these results? Talk to an Expert
                             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>

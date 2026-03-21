@@ -11,7 +11,8 @@ const NavbarV2 = () => {
         <div className="flex items-center h-20">
           {/* Logo Container - Left */}
           <div className="flex-1 flex justify-start">
-            <a href="/#/v2" className="flex items-center gap-3">
+            <a href="/" className="flex items-center gap-3">
+              <img src="/logo.png" alt="Cruze Logo" className="h-10 w-auto" />
               <span className="font-display font-bold text-2xl text-white tracking-wide">
                 CRUZE
               </span>
@@ -45,7 +46,7 @@ const NavbarV2 = () => {
               <Button variant="ghost" className="text-white hover:text-brand-orange hover:bg-transparent tracking-wide">
                 Login
               </Button>
-              <Button className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6">
+              <Button onClick={() => window.location.href='mailto:cruzemaps@gmail.com'} className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6">
                 Book a Demo
               </Button>
             </div>
