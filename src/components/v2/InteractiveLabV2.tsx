@@ -271,7 +271,7 @@ const InteractiveLabV2 = () => {
                 
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
-                        See the "Cruze Effect" in Real-Time.
+                        Cruze Lab
                     </h2>
                 </div>
 

@@ -1,7 +1,6 @@
 import React from "react";
 import NavbarV2 from "@/components/v2/NavbarV2";
 import HeroSectionV2 from "@/components/v2/HeroSectionV2";
-import SocialProofV2 from "@/components/v2/SocialProofV2";
 import SegmentSolutionsV2 from "@/components/v2/SegmentSolutionsV2";
 import InteractiveLabV2 from "@/components/v2/InteractiveLabV2";
 import HowItWorksV2 from "@/components/v2/HowItWorksV2";
@@ -14,7 +13,6 @@ const V2 = () => {
     <div className="min-h-screen bg-brand-charcoal text-white font-body selection:bg-brand-cyan/30">
       <NavbarV2 />
       <HeroSectionV2 />
-      <SocialProofV2 />
       <SegmentSolutionsV2 />
       <InteractiveLabV2 />
       <HowItWorksV2 />

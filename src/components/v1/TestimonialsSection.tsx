@@ -5,14 +5,14 @@ const TestimonialsSection = () => {
     {
       quote: "Cruze has transformed our fleet operations. We've seen a 24% reduction in fuel costs and our drivers report significantly less stress on long hauls.",
       author: "Sarah Johnson",
-      role: "Fleet Manager, Transport Solutions Inc.",
-      company: "Transport Solutions Inc.",
+      role: "Fleet Manager, Company 1",
+      company: "Company 1",
     },
     {
       quote: "The science behind Cruze is remarkable. As a traffic engineer, I've never seen a solution that actively prevents congestion rather than just reporting it.",
       author: "Dr. Michael Chen",
       role: "Traffic Engineering Consultant",
-      company: "Urban Mobility Group",
+      company: "Company 2",
     },
   ];
 

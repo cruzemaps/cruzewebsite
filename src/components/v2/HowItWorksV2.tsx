@@ -19,7 +19,7 @@ const HowItWorksV2 = () => {
     },
     {
       title: "The Logic",
-      description: "Physics-based prediction models—73% more accurate than standard mapping applications—determine the optimal pacing speed.",
+      description: "Physics-based prediction models—more accurate than standard mapping applications—determine the optimal pacing speed.",
       icon: Cpu,
       color: "text-brand-cyan",
       bgOverlay: "from-brand-cyan/10 via-transparent to-transparent",

@@ -2,11 +2,11 @@ import React from "react";
 
 const SocialProofV2 = () => {
   const logos = [
-    { name: "Transport Solutions Inc", icon: "🏢" },
-    { name: "Dr. Chen Consulting", icon: "📊" },
-    { name: "Global Logistics", icon: "🌍" },
-    { name: "Metro Transit Auth", icon: "🚌" },
-    { name: "Fortune 500 Retailer", icon: "🛒" },
+    { name: "Company 1", icon: "🏢" },
+    { name: "Company 2", icon: "📊" },
+    { name: "Company 3", icon: "🌍" },
+    { name: "Company 4", icon: "🚌" },
+    { name: "Company 5", icon: "🛒" },
   ];
 
   return (
