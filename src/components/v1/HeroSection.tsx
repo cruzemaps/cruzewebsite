@@ -38,7 +38,7 @@ const HeroSection = () => {
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-medium mb-4 sm:mb-6 leading-[1.1] px-4 sm:px-0 animate-slide-up tracking-tight" style={{ animationDelay: "0.1s" }}>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-medium mb-4 sm:mb-6 leading-[1.1] px-4 sm:px-0 animate-slide-up tracking-tight" style={{ animationDelay: "0.1s" }}>
             Stop Avoiding Jams.
             <br />
             <span className="text-gradient">Start Dissolving Them.</span>
@@ -57,8 +57,8 @@ const HeroSection = () => {
 
           {/* Subheadline */}
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-4 sm:px-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-            Cruze transforms every smartphone into an active traffic actuator. Our swarm intelligence
-            coordinates driver speeds to eliminate phantom jams saving fuel, time, and lives.
+            Cruze transforms every smartphone into a smart co-pilot. Our community power
+            coordinates driver speeds to eliminate stop-and-go traffic saving fuel, time, and lives.
           </p>
 
 

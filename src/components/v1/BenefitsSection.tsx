@@ -42,7 +42,7 @@ const BenefitsSection = () => {
       highlight: "8000",
       highlightSuffix: "+",
       highlightLabel: "Saved Per Truck",
-      description: "Trucking fleets see massive annual savings through optimized speed pacing and reduced stop-and-go cycles.",
+      description: "Drivers save up to 20% on fuel through the perfect pace and reduced stop-and-go traffic.",
     },
     {
       icon: Shield,
@@ -62,11 +62,11 @@ const BenefitsSection = () => {
     },
     {
       icon: Zap,
-      title: "60% Jam Dissolution",
+      title: "60% Jam Elimination",
       highlight: "60",
       highlightSuffix: "%",
       highlightLabel: "Delay Elimination",
-      description: "Phantom jams—the invisible enemy of highway efficiency—are systematically eliminated by swarm pacing.",
+      description: "Phantom jams—the invisible enemy of highway efficiency—are systematically eliminated by community power.",
     },
   ];
 

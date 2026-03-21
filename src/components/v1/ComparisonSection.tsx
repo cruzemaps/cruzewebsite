@@ -2,9 +2,9 @@ import { Check, X } from "lucide-react";
 
 const ComparisonSection = () => {
   const features = [
-    { feature: "Active Traffic Dissolution", cruze: true, others: false },
-    { feature: "Swarm Intelligence Coordination", cruze: true, others: false },
-    { feature: "Physics-Based Prediction", cruze: true, others: false },
+    { feature: "Stops Stop-and-Go Traffic", cruze: true, others: false },
+    { feature: "Community Power Coordination", cruze: true, others: false },
+    { feature: "Traffic Prediction", cruze: true, others: false },
     { feature: "Real-Time Shockwave Prevention", cruze: true, others: false },
     { feature: "5% Control Network Effect", cruze: true, others: false },
     { feature: "Basic Route Guidance", cruze: true, others: true },
@@ -18,11 +18,11 @@ const ComparisonSection = () => {
         <div className="text-center mb-16">
           <span className="text-primary text-sm font-semibold uppercase tracking-wider">The Difference</span>
           <h2 className="text-4xl md:text-5xl font-serif font-medium mt-4 mb-6 text-foreground">
-            Actuator vs. <span className="text-gradient font-serif">Observer</span>
+            Co-pilot vs. <span className="text-gradient font-serif">Map</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Google and Waze are passive observers that merely redistribute congestion.
-            Cruze is an active actuator that dissolves it at the source.
+            Google and Waze are passive maps that merely redistribute congestion.
+            Cruze is a smart co-pilot that dissolves it at the source.
           </p>
         </div>
 

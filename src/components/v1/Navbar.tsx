@@ -53,11 +53,11 @@ const Navbar = () => {
           {/* CTA Container */}
           <div className="flex-1 flex justify-end items-center gap-4">
             <div className="hidden md:flex items-center gap-4">
-              <Button variant="heroOutline" size="sm" onClick={(e) => scrollToSection(e as any, "simulator")}>
-                Try Live Lab
+              <Button variant="ghost" size="sm" onClick={() => window.location.hash = '#/calculator'}>
+                Savings
               </Button>
-              <Button variant="hero" size="sm">
-                Get Started
+              <Button variant="hero" size="sm" onClick={() => document.getElementById('footer')?.scrollIntoView({ behavior: 'smooth' })}>
+                Download App
               </Button>
             </div>
 
