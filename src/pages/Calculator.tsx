@@ -1,6 +1,6 @@
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/v1/Navbar";
 import SavingsCalculator from "@/components/SavingsCalculator";
-import Footer from "@/components/Footer";
+import Footer from "@/components/v1/Footer";
 
 const Calculator = () => {
     return (
