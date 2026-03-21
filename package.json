@@ -2,7 +2,7 @@
   "name": "vite_react_shadcn_ts",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://cruzemaps.github.io/cruzewebsite/",
+  "homepage": "https://cruzemaps.com",
   "type": "module",
   "scripts": {
     "dev": "vite",
