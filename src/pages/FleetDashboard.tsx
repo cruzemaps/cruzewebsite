@@ -26,6 +26,18 @@ const FleetDashboard = () => {
   useEffect(() => {
     const fetchApplication = async () => {
       if (!user) return;
+      
+      // Complete short-circuit for Demo Simulation Mode
+      if (localStorage.getItem("demo_role")) {
+        // Mock a pending status after 1.5s to simulate loading if they previously submitted in this session
+        const demoStatus = localStorage.getItem("demo_status") as AppStatus;
+        if (demoStatus) {
+           setStatus(demoStatus);
+        }
+        setLoading(false);
+        return;
+      }
+      
       try {
         const { data, error } = await supabase
           .from('pilot_applications')
@@ -48,6 +60,16 @@ const FleetDashboard = () => {
     e.preventDefault();
     if (!user) return;
     setSubmitting(true);
+    
+    if (localStorage.getItem("demo_role")) {
+      setTimeout(() => {
+        toast.success("Demo Application submitted successfully.");
+        localStorage.setItem("demo_status", "pending");
+        setStatus("pending");
+        setSubmitting(false);
+      }, 800);
+      return;
+    }
     
     // Optimistic fallback for frontend simulation if DB not configured yet
     try {

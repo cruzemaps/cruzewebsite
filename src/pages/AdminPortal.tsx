@@ -12,6 +12,18 @@ const AdminPortal = () => {
 
   const fetchApplications = async () => {
     setLoading(true);
+    
+    if (localStorage.getItem("demo_role")) {
+      setTimeout(() => {
+        setApplications([
+          { id: "mock-123", user_id: "demo-fleet-owner", company_name: "Swift Transport Logistics", truck_size: "Class 8 (80,000 lbs)", fleet_size: "1500" },
+          { id: "mock-456", user_id: "demo-fleet-owner-2", company_name: "National Carrier Partners", truck_size: "Class 6", fleet_size: "350" }
+        ]);
+        setLoading(false);
+      }, 500);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('pilot_applications')
