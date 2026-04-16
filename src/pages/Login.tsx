@@ -177,8 +177,9 @@ const Login = () => {
                      variant="ghost" 
                      className="text-white hover:text-brand-cyan text-xs w-full"
                      onClick={() => {
-                       localStorage.setItem("demo_role", role || "fleet_owner");
-                       window.location.reload();
+                       const selectedRole = role || "fleet_owner";
+                       localStorage.setItem("demo_role", selectedRole);
+                       window.location.href = selectedRole === "city_operator" ? "/dashboard" : "/fleet-dashboard";
                      }}
                    >
                      Test {role === 'fleet_owner' ? 'Fleet Owner' : 'City Operator'} Dashboard
@@ -188,7 +189,7 @@ const Login = () => {
                      className="text-white hover:text-red-400 text-xs w-full mt-1"
                      onClick={() => {
                        localStorage.setItem("demo_role", "admin");
-                       window.location.reload();
+                       window.location.href = "/admin";
                      }}
                    >
                      Test Admin Portal
