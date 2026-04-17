@@ -1,7 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { ArrowRight, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const FinalConversionV2 = () => {
+  const navigate = useNavigate();
   return (
     <section className="py-32 bg-brand-charcoal relative overflow-hidden">
       
@@ -27,15 +28,24 @@ const FinalConversionV2 = () => {
            <p className="text-xl md:text-2xl text-white/90 font-serif leading-relaxed mb-6 italic">
              "Cruze completely changed how we dispatch. Our drivers spend less time braking and more time earning. It paid for itself in week two."
            </p>
-           <div className="flex flex-col items-center">
-             <div className="font-bold text-white">Sarah Johnson</div>
-             <div className="text-sm text-white/50 mb-4">Operations Director, TX Freight</div>
-             <a href="#" className="text-sm font-bold text-brand-cyan hover:underline uppercase tracking-wider">Read the Case Study &rarr;</a>
-           </div>
+            <div className="flex flex-col items-center">
+              <div className="font-bold text-white">Sarah Johnson</div>
+              <div className="text-sm text-white/50 mb-4">Operations Director, TX Freight</div>
+              <button 
+                onClick={() => document.getElementById('impact-map')?.scrollIntoView({ behavior: 'smooth' })}
+                className="text-sm font-bold text-brand-cyan hover:underline uppercase tracking-wider"
+              >
+                Read the Case Study &rarr;
+              </button>
+            </div>
         </div>
 
         {/* Huge CTA */}
-        <Button size="lg" className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] rounded-full font-bold text-xl px-12 py-8 flex items-center gap-3 group tracking-wide shadow-[0_0_40px_rgba(255,140,0,0.4)] hover:shadow-[0_0_60px_rgba(255,140,0,0.6)] transition-all transform hover:scale-105">
+        <Button 
+          onClick={() => navigate('/login')}
+          size="lg" 
+          className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] rounded-full font-bold text-xl px-12 py-8 flex items-center gap-3 group tracking-wide shadow-[0_0_40px_rgba(255,140,0,0.4)] hover:shadow-[0_0_60px_rgba(255,140,0,0.6)] transition-all transform hover:scale-105"
+        >
           Start Your Pilot Program
           <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
         </Button>

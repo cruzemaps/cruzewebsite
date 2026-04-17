@@ -87,13 +87,28 @@ const NavbarV2 = () => {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-[#0B0E14] border-b border-white/10 px-6 py-4 flex flex-col gap-4 shadow-xl">
-             <Link to="/route-planner" className="text-white/80 hover:text-white" onClick={() => setIsOpen(false)}>Route Planner</Link>
-             <a href="#how-it-works" className="text-white/80 hover:text-white" onClick={() => setIsOpen(false)}>Technology</a>
+             <Link to="/route-planner" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Route Planner</Link>
+             <a href="#interactive-lab" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Logistics & Fleets</a>
+             <a href="#how-it-works" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Technology</a>
+             <a href="#impact-map" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Impact Maps</a>
              {user ? (
-               <button onClick={() => { signOut(); setIsOpen(false); }} className="text-left text-brand-orange hover:text-white">Sign Out</button>
+               <button 
+                 onClick={() => { 
+                   localStorage.removeItem("demo_role");
+                   localStorage.removeItem("demo_status");
+                   signOut(); 
+                   setIsOpen(false); 
+                 }} 
+                 className="text-left text-brand-orange hover:text-white font-medium"
+               >
+                 Sign Out
+               </button>
              ) : (
-               <Link to="/login" className="text-brand-cyan hover:text-white" onClick={() => setIsOpen(false)}>Login</Link>
+               <Link to="/login" className="text-brand-cyan hover:text-white font-medium" onClick={() => setIsOpen(false)}>Login</Link>
              )}
+             <Button onClick={() => { navigate('/login'); setIsOpen(false); }} className="bg-brand-orange text-[#0B0E14] font-bold w-full rounded-full">
+               Start the Pilot
+             </Button>
           </div>
         )}
       </div>

@@ -266,7 +266,7 @@ const InteractiveLabV2 = () => {
     }, []);
 
     return (
-        <section className="py-24 bg-brand-charcoal relative overflow-hidden">
+        <section id="interactive-lab" className="py-24 bg-brand-charcoal relative overflow-hidden">
             <div className="container mx-auto px-6 max-w-6xl">
                 
                 <div className="text-center mb-16">

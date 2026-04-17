@@ -2,9 +2,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { PlayCircle, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const HeroSectionV2 = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -55,11 +57,20 @@ const HeroSectionV2 = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <Button size="lg" className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] rounded-full font-bold text-lg px-8 py-6 flex items-center gap-2 group tracking-wide">
+              <Button 
+                onClick={() => navigate('/route-planner')}
+                size="lg" 
+                className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] rounded-full font-bold text-lg px-8 py-6 flex items-center gap-2 group tracking-wide"
+              >
                 Get a Fleet Savings Estimate
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-full px-8 py-6 font-medium text-lg flex items-center gap-2">
+              <Button 
+                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                size="lg" 
+                variant="outline" 
+                className="border-white/20 text-white hover:bg-white/5 rounded-full px-8 py-6 font-medium text-lg flex items-center gap-2"
+              >
                 <PlayCircle className="w-5 h-5 text-brand-cyan" />
                 Watch the 2-Minute Solution
               </Button>

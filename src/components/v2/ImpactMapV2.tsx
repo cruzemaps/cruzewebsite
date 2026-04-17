@@ -13,7 +13,7 @@ const ImpactMapV2 = () => {
   }, []);
 
   return (
-    <section className="py-32 bg-[#05070A] relative overflow-hidden">
+    <section id="impact-map" className="py-32 bg-[#05070A] relative overflow-hidden">
       
       {/* Map Background Pattern (Stylized Dotted Map Placeholder) */}
       <div className="absolute inset-0 opacity-30" 

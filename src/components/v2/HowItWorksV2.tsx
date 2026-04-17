@@ -34,7 +34,7 @@ const HowItWorksV2 = () => {
   ];
 
   return (
-    <section ref={containerRef} className="py-32 bg-[#0B0E14] relative overflow-hidden">
+    <section id="how-it-works" ref={containerRef} className="py-32 bg-[#0B0E14] relative overflow-hidden">
       <div className="container mx-auto px-6 max-w-6xl">
         
         <div className="text-center mb-20">
