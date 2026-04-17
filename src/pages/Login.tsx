@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Loader2, Building2, Truck, Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +17,19 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false); // To toggle between Sign In and Sign Up if they want to make an account
   const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const demo = params.get('demo');
+    if (demo === 'admin') {
+      localStorage.setItem("demo_role", "admin");
+      window.location.href = "/admin";
+    } else if (demo === 'fleet_owner' || demo === 'city_operator') {
+      localStorage.setItem("demo_role", demo);
+      window.location.href = demo === 'city_operator' ? "/dashboard" : "/fleet-dashboard";
+    }
+  }, [location.search]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,30 +184,7 @@ const Login = () => {
                   </Button>
                 </div>
 
-                <div className="text-center mt-6 p-4 border border-brand-cyan/20 bg-brand-cyan/5 rounded-xl">
-                   <p className="text-xs text-brand-cyan mb-2">Simulation Mode Active</p>
-                   <Button 
-                     variant="ghost" 
-                     className="text-white hover:text-brand-cyan text-xs w-full"
-                     onClick={() => {
-                       const selectedRole = role || "fleet_owner";
-                       localStorage.setItem("demo_role", selectedRole);
-                       window.location.href = selectedRole === "city_operator" ? "/dashboard" : "/fleet-dashboard";
-                     }}
-                   >
-                     Test {role === 'fleet_owner' ? 'Fleet Owner' : 'City Operator'} Dashboard
-                   </Button>
-                   <Button 
-                     variant="ghost" 
-                     className="text-white hover:text-red-400 text-xs w-full mt-1"
-                     onClick={() => {
-                       localStorage.setItem("demo_role", "admin");
-                       window.location.href = "/admin";
-                     }}
-                   >
-                     Test Admin Portal
-                   </Button>
-                </div>
+
               </motion.div>
             )}
           </AnimatePresence>
