@@ -24,13 +24,38 @@ const PRE_SCRIPTED_LOGS = [
   "Node 03 (GA): Throughput optimized by 14%.",
 ];
 
+const LOG_TEMPLATES = [
+  "Agent {id}: Flow stability reaching 94%.",
+  "Node {id}: Shockwave dissolved on I-10.",
+  "Cruze AI: Adjusting target velocity for swarm drift.",
+  "System: Edge pacer synchronized with {id} node.",
+  "Sentinel: No-hardware signal verified. Efficiency +4.2%.",
+  "Central: New telemetry node discovered in {loc}.",
+  "Agent {id}: Pacing instructions transmitted to node {node}.",
+];
+
+const LOCATIONS = ["CA", "TX", "GA", "NY", "IL", "FL", "WA"];
+
 const LiveFlowTab = () => {
   const [logs, setLogs] = useState<string[]>(PRE_SCRIPTED_LOGS);
   const [brakingEvents, setBrakingEvents] = useState(1482);
   const [activeAgents, setActiveAgents] = useState(342);
 
-  // We are pivoting from a fake real-time ops dashboard to a static "Pilot Projection" presentation
-  // The logs and metrics will remain static representations of the case study.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const template = LOG_TEMPLATES[Math.floor(Math.random() * LOG_TEMPLATES.length)];
+      const newLog = template
+        .replace("{id}", Math.floor(Math.random() * 900 + 100).toString())
+        .replace("{node}", Math.floor(Math.random() * 50 + 1).toString())
+        .replace("{loc}", LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)]);
+      
+      setLogs(prev => [newLog, ...prev.slice(0, 15)]);
+      setBrakingEvents(prev => prev + Math.floor(Math.random() * 2));
+      if (Math.random() > 0.8) setActiveAgents(prev => prev + (Math.random() > 0.5 ? 1 : -1));
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

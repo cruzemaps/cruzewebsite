@@ -27,13 +27,11 @@ const FleetDashboard = () => {
     const fetchApplication = async () => {
       if (!user) return;
       
-      // Complete short-circuit for Demo Simulation Mode
-      if (localStorage.getItem("demo_role")) {
-        // Mock a pending status after 1.5s to simulate loading if they previously submitted in this session
+      const isDemo = localStorage.getItem("demo_role");
+      
+      if (isDemo) {
         const demoStatus = localStorage.getItem("demo_status") as AppStatus;
-        if (demoStatus) {
-           setStatus(demoStatus);
-        }
+        if (demoStatus) setStatus(demoStatus);
         setLoading(false);
         return;
       }
@@ -43,17 +41,38 @@ const FleetDashboard = () => {
           .from('pilot_applications')
           .select('status')
           .eq('user_id', user.id)
-          .maybeSingle(); // might not exist
+          .maybeSingle();
 
         if (data && !error) {
           setStatus(data.status as AppStatus);
         }
       } catch (e) {
-        console.error("No profile/app setup yet, showing form fallback");
+        console.error("Fetch error:", e);
       }
       setLoading(false);
     };
+
     fetchApplication();
+
+    // REAL-TIME STATUS LISTENER
+    if (user && !localStorage.getItem("demo_role")) {
+      const channel = supabase
+        .channel(`status_updates_${user.id}`)
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'pilot_applications',
+          filter: `user_id=eq.${user.id}`
+        }, (payload) => {
+          setStatus(payload.new.status as AppStatus);
+          toast.info(`Status Update: Your application is now ${payload.new.status}!`);
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [user]);
 
   const handleSubmitPilot = async (e: React.FormEvent) => {
@@ -103,14 +122,22 @@ const FleetDashboard = () => {
       <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-brand-orange/10 rounded-full blur-[150px] pointer-events-none" />
       
       {/* Navbar */}
-      <nav className="relative z-10 w-full p-6 border-b border-white/5 bg-[#0B0E14]/50 backdrop-blur-md flex items-center justify-between">
+      <nav className="relative z-50 w-full p-6 border-b border-white/5 bg-[#0B0E14]/50 backdrop-blur-md flex items-center justify-between pointer-events-auto">
         <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors group">
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium tracking-wide">Back to Home</span>
         </Link>
         <div className="flex items-center gap-4">
-          <span className="text-white/50 text-sm">{user?.email}</span>
-          <Button variant="ghost" onClick={signOut} className="text-white hover:text-brand-orange hover:bg-transparent">
+          <span className="text-white/50 text-sm hidden sm:block">{user?.email}</span>
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              localStorage.removeItem("demo_role");
+              localStorage.removeItem("demo_status");
+              signOut();
+            }} 
+            className="text-white hover:text-brand-orange hover:bg-transparent"
+          >
             Sign Out
           </Button>
         </div>
