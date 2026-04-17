@@ -97,8 +97,8 @@ const Login = () => {
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-brand-orange/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-brand-cyan/20 rounded-full blur-[150px] pointer-events-none" />
 
-      <nav className="absolute top-0 w-full p-6 z-10 flex items-center justify-between">
-        <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors group">
+      <nav className="absolute top-0 w-full p-6 z-50 flex items-center justify-between pointer-events-auto">
+        <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors group relative">
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium tracking-wide">Back to Home</span>
         </Link>
