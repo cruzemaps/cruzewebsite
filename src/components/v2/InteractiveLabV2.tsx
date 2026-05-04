@@ -6,7 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const CAMERAS = [
   { id: 1, city: 'Dallas', location: 'IH-635', lat: 32.9236, lng: -96.7669, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8' },
   { id: 2, city: 'Houston', location: 'IH-45', lat: 29.7604, lng: -95.3698, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8' },
-  { id: 3, city: 'Austin', location: 'IH-35', lat: 30.2672, lng: -97.7431, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_261/playlist.m3u8' },
+  { id: 3, city: 'Austin', location: 'IH-35', lat: 30.2672, lng: -97.7431, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8' },
   { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8' },
   { id: 5, city: 'Fort Worth', location: 'FM-1709 @ Brock', lat: 32.7254, lng: -97.3208, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8' },
   { id: 6, city: 'El Paso', location: 'IH-10 @ Lee Trevino', lat: 31.7398, lng: -106.3254, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8' },
