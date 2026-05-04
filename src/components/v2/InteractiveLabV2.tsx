@@ -257,13 +257,8 @@ const InteractiveLabV2 = () => {
     }, [selectedCam]);
 
     return (
-<<<<<<< HEAD
         <section id="interactive-lab" className="py-24 bg-brand-charcoal relative overflow-hidden">
-            <div className="container mx-auto px-6 max-w-6xl">
-=======
-        <section className="py-24 bg-brand-charcoal relative overflow-hidden">
             <div className="container mx-auto px-6 max-w-7xl">
->>>>>>> ebf7861 (New website changes - Sujeeth)
                 
                 <div className="text-center mb-16 relative z-10">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 mb-4">
