@@ -2,7 +2,7 @@ import React from "react";
 import NavbarV2 from "@/components/v2/NavbarV2";
 import HeroSectionV2 from "@/components/v2/HeroSectionV2";
 import SegmentSolutionsV2 from "@/components/v2/SegmentSolutionsV2";
-import InteractiveLabV2 from "@/components/v2/InteractiveLabV2";
+import CruzeLab from "@/components/v2/CruzeLab";
 import HowItWorksV2 from "@/components/v2/HowItWorksV2";
 import ComparisonV2 from "@/components/v2/ComparisonV2";
 import ImpactMapV2 from "@/components/v2/ImpactMapV2";
@@ -14,7 +14,7 @@ const V2 = () => {
       <NavbarV2 />
       <HeroSectionV2 />
       <SegmentSolutionsV2 />
-      <InteractiveLabV2 />
+      <CruzeLab />
       <HowItWorksV2 />
       <ComparisonV2 />
       <ImpactMapV2 />

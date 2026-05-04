@@ -14,7 +14,10 @@ import MissionControl from "./pages/MissionControl";
 import FleetDashboard from "./pages/FleetDashboard";
 import AdminPortal from "./pages/AdminPortal";
 import Investors from "./pages/Investors";
+<<<<<<< HEAD
 
+=======
+>>>>>>> d29d2c6 (New Changes to both Investor and main website page?)
 
 const queryClient = new QueryClient();
 
@@ -27,6 +30,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<V2 />} />
+            <Route path="/investor" element={<Investors />} />
+            <Route path="/investors" element={<Investors />} />
             <Route path="/login" element={<Login />} />
             <Route path="/route-planner" element={<RoutePlanner />} />
             
