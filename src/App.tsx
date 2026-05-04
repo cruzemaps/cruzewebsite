@@ -13,6 +13,8 @@ import RoutePlanner from "./pages/RoutePlanner";
 import MissionControl from "./pages/MissionControl";
 import FleetDashboard from "./pages/FleetDashboard";
 import AdminPortal from "./pages/AdminPortal";
+import Investors from "./pages/Investors";
+
 
 const queryClient = new QueryClient();
 
@@ -34,7 +36,9 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminPortal /></ProtectedRoute>} />
             
             <Route path="/uiinterns" element={<UIInterns />} />
+            <Route path="/investors" element={<Investors />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

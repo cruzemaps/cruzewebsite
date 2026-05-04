@@ -45,7 +45,12 @@ const NavbarV2 = () => {
             <a href="#impact-map" className="text-white/80 hover:text-white transition-colors text-sm font-medium tracking-wide">
               Impact Maps
             </a>
+            
+            <Link to="/investors" className="text-white/80 hover:text-white transition-colors text-sm font-medium tracking-wide">
+              Investors
+            </Link>
           </div>
+
 
           {/* CTA Container - Right */}
           <div className="flex-1 flex justify-end items-center gap-4">
@@ -91,7 +96,9 @@ const NavbarV2 = () => {
              <a href="#interactive-lab" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Logistics & Fleets</a>
              <a href="#how-it-works" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Technology</a>
              <a href="#impact-map" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Impact Maps</a>
+             <Link to="/investors" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Investors</Link>
              {user ? (
+
                <button 
                  onClick={() => { 
                    localStorage.removeItem("demo_role");
