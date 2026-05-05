@@ -16,7 +16,7 @@ export default function ForFleets() {
 
   const handleTryDemo = () => {
     track("demo_role_activated", { role: "fleet_owner", from: "/for-fleets" });
-    localStorage.setItem("demo_role", "fleet_owner");
+    sessionStorage.setItem("demo_role", "fleet_owner");
     window.location.href = "/fleet-dashboard";
   };
 

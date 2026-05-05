@@ -55,7 +55,7 @@ const FleetDashboard = () => {
     fetchApplication();
 
     // REAL-TIME STATUS LISTENER
-    if (user && !localStorage.getItem("demo_role")) {
+    if (user && !(sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role"))) {
       const channel = supabase
         .channel(`status_updates_${user.id}`)
         .on('postgres_changes', { 
@@ -80,10 +80,10 @@ const FleetDashboard = () => {
     if (!user) return;
     setSubmitting(true);
     
-    if (localStorage.getItem("demo_role")) {
+    if (sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role")) {
       setTimeout(() => {
         toast.success("Demo Application submitted successfully.");
-        localStorage.setItem("demo_status", "pending");
+        sessionStorage.setItem("demo_status", "pending");
         setStatus("pending");
         setSubmitting(false);
       }, 800);
@@ -129,13 +129,9 @@ const FleetDashboard = () => {
         </Link>
         <div className="flex items-center gap-4">
           <span className="text-white/50 text-sm hidden sm:block">{user?.email}</span>
-          <Button 
-            variant="ghost" 
-            onClick={() => {
-              localStorage.removeItem("demo_role");
-              localStorage.removeItem("demo_status");
-              signOut();
-            }} 
+          <Button
+            variant="ghost"
+            onClick={() => signOut()}
             className="text-white hover:text-brand-orange hover:bg-transparent"
           >
             Sign Out

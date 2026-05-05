@@ -110,13 +110,11 @@ const NavbarV2 = () => {
              <Link to="/investors" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Investors</Link>
              {user ? (
 
-               <button 
-                 onClick={() => { 
-                   localStorage.removeItem("demo_role");
-                   localStorage.removeItem("demo_status");
-                   signOut(); 
-                   setIsOpen(false); 
-                 }} 
+               <button
+                 onClick={() => {
+                   signOut();
+                   setIsOpen(false);
+                 }}
                  className="text-left text-brand-orange hover:text-white font-medium"
                >
                  Sign Out

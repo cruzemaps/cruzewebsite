@@ -12,7 +12,7 @@ export default function ForCities() {
 
   const handleTryDemo = () => {
     track("demo_role_activated", { role: "city_operator", from: "/for-cities" });
-    localStorage.setItem("demo_role", "city_operator");
+    sessionStorage.setItem("demo_role", "city_operator");
     window.location.href = "/dashboard";
   };
 

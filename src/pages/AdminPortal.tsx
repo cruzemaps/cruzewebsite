@@ -14,7 +14,7 @@ import InvitationsTab from "@/components/admin/InvitationsTab";
 const AdminPortal = () => {
   const { user, signOut } = useAuth();
   const [counts, setCounts] = useState({ users: 0, pendingPilots: 0, openInvites: 0 });
-  const isDemo = !!localStorage.getItem("demo_role");
+  const isDemo = !!(sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role"));
 
   useEffect(() => {
     if (isDemo) {
