@@ -1,0 +1,166 @@
+// Programmatic SEO: top US metros by congestion. Each becomes /cities/[slug].
+// Add new entries here — sitemap and prerender pick them up automatically.
+
+export type City = {
+  slug: string;
+  name: string;
+  state: string;
+  metroPopulation: string;
+  congestionRank: number;        // INRIX-style rank, higher = worse
+  hoursLostPerDriver: number;    // annual hours per driver in congestion
+  fuelWastedPerDriverGal: number;
+  primaryCorridors: string[];
+  pilotStatus: "active" | "in_discussion" | "target";
+  notes: string;
+};
+
+export const CITIES: City[] = [
+  {
+    slug: "austin-tx",
+    name: "Austin",
+    state: "TX",
+    metroPopulation: "2.4M",
+    congestionRank: 14,
+    hoursLostPerDriver: 73,
+    fuelWastedPerDriverGal: 31,
+    primaryCorridors: ["I-35", "MoPac/Loop 1", "US-183"],
+    pilotStatus: "active",
+    notes: "Active corridor pilot on I-35. Coordinated with Austin Transportation Department.",
+  },
+  {
+    slug: "los-angeles-ca",
+    name: "Los Angeles",
+    state: "CA",
+    metroPopulation: "13.2M",
+    congestionRank: 1,
+    hoursLostPerDriver: 119,
+    fuelWastedPerDriverGal: 51,
+    primaryCorridors: ["I-405", "I-5", "US-101", "I-10"],
+    pilotStatus: "in_discussion",
+    notes: "Highest US congestion cost per driver. LA Metro discussions ongoing.",
+  },
+  {
+    slug: "houston-tx",
+    name: "Houston",
+    state: "TX",
+    metroPopulation: "7.3M",
+    congestionRank: 6,
+    hoursLostPerDriver: 75,
+    fuelWastedPerDriverGal: 32,
+    primaryCorridors: ["I-45", "I-10", "US-59/I-69", "Beltway 8"],
+    pilotStatus: "target",
+    notes: "Energy corridor freight density makes this a top fleet-pilot target.",
+  },
+  {
+    slug: "dallas-fort-worth-tx",
+    name: "Dallas-Fort Worth",
+    state: "TX",
+    metroPopulation: "8.1M",
+    congestionRank: 8,
+    hoursLostPerDriver: 67,
+    fuelWastedPerDriverGal: 28,
+    primaryCorridors: ["I-35E", "I-35W", "I-30", "US-75"],
+    pilotStatus: "target",
+    notes: "DFW logistics hub: high commercial-vehicle share creates strong swarm density.",
+  },
+  {
+    slug: "atlanta-ga",
+    name: "Atlanta",
+    state: "GA",
+    metroPopulation: "6.1M",
+    congestionRank: 5,
+    hoursLostPerDriver: 82,
+    fuelWastedPerDriverGal: 35,
+    primaryCorridors: ["I-285", "I-75", "I-85", "I-20"],
+    pilotStatus: "target",
+    notes: "Spaghetti Junction is the most-studied recurring-congestion failure in the US.",
+  },
+  {
+    slug: "chicago-il",
+    name: "Chicago",
+    state: "IL",
+    metroPopulation: "9.4M",
+    congestionRank: 3,
+    hoursLostPerDriver: 96,
+    fuelWastedPerDriverGal: 41,
+    primaryCorridors: ["I-90", "I-94", "I-290", "I-55"],
+    pilotStatus: "target",
+    notes: "Dan Ryan corridor; highest cross-country freight throughput.",
+  },
+  {
+    slug: "new-york-ny",
+    name: "New York",
+    state: "NY",
+    metroPopulation: "19.5M",
+    congestionRank: 2,
+    hoursLostPerDriver: 117,
+    fuelWastedPerDriverGal: 50,
+    primaryCorridors: ["I-95 (Cross Bronx)", "FDR Drive", "BQE"],
+    pilotStatus: "target",
+    notes: "Cross Bronx Expressway is the canonical phantom-jam case study.",
+  },
+  {
+    slug: "seattle-wa",
+    name: "Seattle",
+    state: "WA",
+    metroPopulation: "4.0M",
+    congestionRank: 9,
+    hoursLostPerDriver: 78,
+    fuelWastedPerDriverGal: 33,
+    primaryCorridors: ["I-5", "I-405", "SR-520"],
+    pilotStatus: "target",
+    notes: "Geographic chokepoints amplify wave propagation.",
+  },
+  {
+    slug: "boston-ma",
+    name: "Boston",
+    state: "MA",
+    metroPopulation: "4.9M",
+    congestionRank: 4,
+    hoursLostPerDriver: 88,
+    fuelWastedPerDriverGal: 38,
+    primaryCorridors: ["I-93", "I-90 (Mass Pike)", "Route 128/I-95"],
+    pilotStatus: "target",
+    notes: "MassDOT smart-corridor program is a strong organic fit.",
+  },
+  {
+    slug: "miami-fl",
+    name: "Miami",
+    state: "FL",
+    metroPopulation: "6.2M",
+    congestionRank: 7,
+    hoursLostPerDriver: 71,
+    fuelWastedPerDriverGal: 30,
+    primaryCorridors: ["I-95", "Palmetto/SR-826", "Dolphin/SR-836"],
+    pilotStatus: "target",
+    notes: "Port Miami freight share creates ideal fleet density on Palmetto.",
+  },
+  {
+    slug: "denver-co",
+    name: "Denver",
+    state: "CO",
+    metroPopulation: "3.0M",
+    congestionRank: 18,
+    hoursLostPerDriver: 56,
+    fuelWastedPerDriverGal: 24,
+    primaryCorridors: ["I-25", "I-70", "C-470"],
+    pilotStatus: "target",
+    notes: "Recurring weather closures on I-70 mountain corridor.",
+  },
+  {
+    slug: "phoenix-az",
+    name: "Phoenix",
+    state: "AZ",
+    metroPopulation: "5.0M",
+    congestionRank: 22,
+    hoursLostPerDriver: 50,
+    fuelWastedPerDriverGal: 21,
+    primaryCorridors: ["I-10", "I-17", "Loop 101"],
+    pilotStatus: "target",
+    notes: "ADOT smart-highway pilot opportunities on Loop 101.",
+  },
+];
+
+export function findCity(slug: string) {
+  return CITIES.find((c) => c.slug === slug);
+}

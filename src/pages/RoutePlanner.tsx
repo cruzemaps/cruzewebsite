@@ -151,7 +151,7 @@ const RoutePlanner = () => {
                     <span className="text-4xl md:text-5xl font-display font-bold text-white tracking-tighter">
                       ${Math.round(distance * 100 * currentMetrics.perMileRange[0]).toLocaleString()}
                     </span>
-                    <span className="text-xl text-white/50 font-light">—</span>
+                    <span className="text-xl text-white/50 font-light">to</span>
                     <span className="text-4xl md:text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-brand-cyan tracking-tighter">
                       ${Math.round(distance * 100 * currentMetrics.perMileRange[1]).toLocaleString()}
                     </span>

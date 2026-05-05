@@ -1,0 +1,17 @@
+{
+  "name": "cruze-og-image",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "workers-og": "^0.0.27"
+  },
+  "devDependencies": {
+    "wrangler": "^3.99.0",
+    "@cloudflare/workers-types": "^4.20240620.0",
+    "typescript": "^5.8.3"
+  }
+}

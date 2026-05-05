@@ -29,22 +29,31 @@ const NavbarV2 = () => {
               Solutions <ChevronDown size={14} />
               {/* Dropdown */}
               <div className="absolute top-full mt-2 left-0 w-56 bg-[#0B0E14] border border-white/10 rounded-lg p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                <Link className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" to="/route-planner">
-                  Route Planner (Calculator)
+                <Link className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" to="/for-fleets">
+                  For Fleets
                 </Link>
-                <a className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" href="#interactive-lab">
-                  Logistics & Fleets
-                </a>
+                <Link className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" to="/for-cities">
+                  For Cities & DOTs
+                </Link>
+                <Link className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" to="/route-planner">
+                  Route Planner
+                </Link>
+                <Link className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" to="/cameras">
+                  Live Cameras
+                </Link>
+                <Link className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" to="/case-studies">
+                  Case Studies
+                </Link>
               </div>
             </div>
             
-            <a href="#how-it-works" className="text-white/80 hover:text-white transition-colors text-sm font-medium tracking-wide">
-              Technology
-            </a>
-            
-            <a href="#impact-map" className="text-white/80 hover:text-white transition-colors text-sm font-medium tracking-wide">
-              Impact Maps
-            </a>
+            <Link to="/insights" className="text-white/80 hover:text-white transition-colors text-sm font-medium tracking-wide">
+              Insights
+            </Link>
+
+            <Link to="/investors" className="text-white/80 hover:text-white transition-colors text-sm font-medium tracking-wide">
+              Investors
+            </Link>
           </div>
 
 
@@ -88,10 +97,13 @@ const NavbarV2 = () => {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-[#0B0E14] border-b border-white/10 px-6 py-4 flex flex-col gap-4 shadow-xl">
+             <Link to="/for-fleets" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>For Fleets</Link>
+             <Link to="/for-cities" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>For Cities</Link>
              <Link to="/route-planner" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Route Planner</Link>
-             <a href="#interactive-lab" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Logistics & Fleets</a>
-             <a href="#how-it-works" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Technology</a>
-             <a href="#impact-map" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Impact Maps</a>
+             <Link to="/cameras" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Live Cameras</Link>
+             <Link to="/case-studies" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Case Studies</Link>
+             <Link to="/insights" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Insights</Link>
+             <Link to="/investors" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Investors</Link>
              {user ? (
 
                <button 

@@ -242,6 +242,33 @@ const Login = () => {
 
             </motion.div>
           </AnimatePresence>
+
+          {import.meta.env.DEV && (
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <div className="text-xs uppercase tracking-widest text-brand-cyan/80 mb-3 text-center">
+                Dev demo access
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(["admin", "fleet_owner", "city_operator"] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem("demo_role", r);
+                      window.location.href =
+                        r === "admin" ? "/admin" : r === "city_operator" ? "/dashboard" : "/fleet-dashboard";
+                    }}
+                    className="text-xs py-2 px-2 rounded-md border border-brand-cyan/20 bg-brand-cyan/5 hover:bg-brand-cyan/10 hover:border-brand-cyan/40 transition-colors"
+                  >
+                    {r === "fleet_owner" ? "Fleet" : r === "city_operator" ? "City" : "Admin"}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-white/30 text-center mt-2">
+                Local development only. Buttons are hidden in production builds.
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
