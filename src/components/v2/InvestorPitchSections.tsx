@@ -50,7 +50,7 @@ const InvestorPitchSections = () => {
               },
               {
                 title: "Technical status",
-                body: "Hardware-agnostic V2X at Technology Readiness Level 5 (TRL 5)—software-first, built to scale without proprietary roadside units.",
+                body: "Hardware-agnostic V2X at Technology Readiness Level 5 (TRL 5). Software-first, built to scale without proprietary roadside units.",
                 icon: Cpu,
               },
               {
@@ -100,7 +100,7 @@ const InvestorPitchSections = () => {
               },
               {
                 title: "Multi-agent reinforcement learning (MARL)",
-                desc: "Syncs truck fleets as lead particles—dampening shockwaves to preserve throughput.",
+                desc: "Syncs truck fleets as lead particles, dampening shockwaves to preserve throughput.",
                 icon: Network,
               },
               {
@@ -244,9 +244,9 @@ const InvestorPitchSections = () => {
 
           <div className="grid sm:grid-cols-3 gap-4 mb-16">
             {[
-              "1st place — Draper Data Science Business Plan Competition",
-              "1st place — Rice University Goldman Sachs Challenge",
-              "1st place — Undergrad Case Competition World Cup (2026)",
+              "1st place, Draper Data Science Business Plan Competition",
+              "1st place, Rice University Goldman Sachs Challenge",
+              "1st place, Undergrad Case Competition World Cup (2026)",
             ].map((label, i) => (
               <motion.div
                 key={label}
