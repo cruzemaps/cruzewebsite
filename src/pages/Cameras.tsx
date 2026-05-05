@@ -20,21 +20,32 @@ function HlsPlayer({ src }: { src: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    let hls: any = null;
+    // Use a mutable ref-shaped object so the cleanup function reads the
+    // SAME hls instance that init() created, even if init() runs async
+    // after the script tag loads. Without this, the cleanup closes over
+    // the initial null and any hls instance created later leaks.
+    const state: { hls: any; cancelled: boolean } = { hls: null, cancelled: false };
+
     const init = () => {
+      if (state.cancelled) return;
       const video = videoRef.current;
       if (!video) return;
       const Hls = (window as any).Hls;
       if (Hls && Hls.isSupported()) {
-        hls = new Hls({ maxBufferLength: 10, maxMaxBufferLength: 20 });
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+        state.hls = new Hls({ maxBufferLength: 10, maxMaxBufferLength: 20 });
+        state.hls.loadSource(src);
+        state.hls.attachMedia(video);
+        state.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (!state.cancelled) video.play().catch(() => {});
+        });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = src;
-        video.addEventListener("loadedmetadata", () => video.play().catch(() => {}));
+        video.addEventListener("loadedmetadata", () => {
+          if (!state.cancelled) video.play().catch(() => {});
+        });
       }
     };
+
     if (typeof window !== "undefined" && !(window as any).Hls) {
       const script = document.createElement("script");
       script.src = "https://cdn.jsdelivr.net/npm/hls.js@latest";
@@ -44,8 +55,13 @@ function HlsPlayer({ src }: { src: string }) {
     } else {
       init();
     }
+
     return () => {
-      if (hls) hls.destroy();
+      state.cancelled = true;
+      if (state.hls) {
+        state.hls.destroy();
+        state.hls = null;
+      }
     };
   }, [src]);
 

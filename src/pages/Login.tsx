@@ -23,15 +23,20 @@ const Login = () => {
   
   const location = useLocation();
 
-  // Hidden URL bypass mechanism
+  // Hidden URL bypass mechanism. Dev-only: gating behind import.meta.env.DEV
+  // means production builds completely strip this branch — a real user can't
+  // accidentally activate a demo role by visiting a crafted URL. Uses
+  // sessionStorage (per-tab) so demo state can't bleed into other tabs of
+  // the same admin session.
   useEffect(() => {
+    if (!import.meta.env.DEV) return;
     const params = new URLSearchParams(location.search);
     const demo = params.get('demo');
     if (demo === 'admin') {
-      localStorage.setItem("demo_role", "admin");
+      sessionStorage.setItem("demo_role", "admin");
       window.location.href = "/admin";
     } else if (demo === 'fleet_owner' || demo === 'city_operator') {
-      localStorage.setItem("demo_role", demo);
+      sessionStorage.setItem("demo_role", demo);
       window.location.href = demo === 'city_operator' ? "/dashboard" : "/fleet-dashboard";
     }
   }, [location.search]);
@@ -63,16 +68,26 @@ const Login = () => {
         setIsSignUp(false); // Switch back to sign in
       }
     } else {
-      // Standard login
+      // Standard login. We read role from the JWT custom claim (app_role)
+      // not from user_metadata — user_metadata is user-controllable at signup
+      // and trusting it would re-open the privilege-escalation hole that
+      // migration 001 closed. JWT claims come from profiles.role, which
+      // only admins can change.
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast.error(error.message || "Invalid login credentials");
       } else {
         toast.success("Successfully logged in");
-        
-        const userRole = data.user?.user_metadata?.role || 'fleet_owner';
-        if (userRole === 'admin') window.location.href = "/admin";
-        else if (userRole === 'city_operator') window.location.href = "/dashboard";
+        let appRole: string | undefined;
+        try {
+          if (data.session?.access_token) {
+            const payload = JSON.parse(atob(data.session.access_token.split(".")[1]));
+            appRole = payload.app_role;
+          }
+        } catch { /* fall through to default redirect */ }
+
+        if (appRole === 'admin') window.location.href = "/admin";
+        else if (appRole === 'city_operator') window.location.href = "/dashboard";
         else window.location.href = "/fleet-dashboard";
       }
     }
@@ -254,7 +269,7 @@ const Login = () => {
                     key={r}
                     type="button"
                     onClick={() => {
-                      localStorage.setItem("demo_role", r);
+                      sessionStorage.setItem("demo_role", r);
                       window.location.href =
                         r === "admin" ? "/admin" : r === "city_operator" ? "/dashboard" : "/fleet-dashboard";
                     }}

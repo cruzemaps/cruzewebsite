@@ -15,6 +15,8 @@ export function ImpersonationBanner() {
 
   const exit = () => {
     sessionStorage.removeItem("impersonated_user_id");
+    sessionStorage.removeItem("demo_role");
+    sessionStorage.removeItem("demo_status");
     localStorage.removeItem("demo_role");
     localStorage.removeItem("demo_status");
     window.location.href = "/admin";

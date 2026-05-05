@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-type AppStatus = null | "pending" | "approved" | "denied";
+type AppStatus = null | "pending" | "in_review" | "approved" | "onboarding" | "active" | "denied" | "archived";
 
 const FleetDashboard = () => {
   const { user, signOut } = useAuth();
@@ -27,7 +27,7 @@ const FleetDashboard = () => {
     const fetchApplication = async () => {
       if (!user) return;
       
-      const isDemo = localStorage.getItem("demo_role");
+      const isDemo = sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role");
       
       if (isDemo) {
         const demoStatus = localStorage.getItem("demo_status") as AppStatus;
@@ -55,7 +55,7 @@ const FleetDashboard = () => {
     fetchApplication();
 
     // REAL-TIME STATUS LISTENER
-    if (user && !localStorage.getItem("demo_role")) {
+    if (user && !(sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role"))) {
       const channel = supabase
         .channel(`status_updates_${user.id}`)
         .on('postgres_changes', { 
@@ -80,10 +80,10 @@ const FleetDashboard = () => {
     if (!user) return;
     setSubmitting(true);
     
-    if (localStorage.getItem("demo_role")) {
+    if (sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role")) {
       setTimeout(() => {
         toast.success("Demo Application submitted successfully.");
-        localStorage.setItem("demo_status", "pending");
+        sessionStorage.setItem("demo_status", "pending");
         setStatus("pending");
         setSubmitting(false);
       }, 800);
@@ -129,13 +129,9 @@ const FleetDashboard = () => {
         </Link>
         <div className="flex items-center gap-4">
           <span className="text-white/50 text-sm hidden sm:block">{user?.email}</span>
-          <Button 
-            variant="ghost" 
-            onClick={() => {
-              localStorage.removeItem("demo_role");
-              localStorage.removeItem("demo_status");
-              signOut();
-            }} 
+          <Button
+            variant="ghost"
+            onClick={() => signOut()}
             className="text-white hover:text-brand-orange hover:bg-transparent"
           >
             Sign Out
@@ -205,7 +201,7 @@ const FleetDashboard = () => {
           </motion.div>
         )}
 
-        {status === "pending" && (
+        {(status === "pending" || status === "in_review") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center mt-20">
              <Card className="w-full max-w-lg bg-gradient-to-br from-white/10 to-transparent border-white/20 text-white backdrop-blur-xl text-center overflow-hidden">
                <div className="h-2 w-full bg-brand-orange/50 animate-pulse"></div>
@@ -213,25 +209,50 @@ const FleetDashboard = () => {
                   <div className="w-20 h-20 bg-brand-orange/10 rounded-full flex items-center justify-center mb-6">
                     <Clock className="w-10 h-10 text-brand-orange animate-spin-slow" />
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">Application In Review</h2>
-                  <p className="text-white/60">Your fleet application has been received by our mission control team. We are currently verifying your route telemetry and evaluating the pilot alignment.</p>
-                  <p className="mt-8 text-sm text-white/40">We will contact you via email shortly.</p>
+                  <h2 className="text-2xl font-bold mb-2">{status === "in_review" ? "Application Under Review" : "Application Received"}</h2>
+                  <p className="text-white/60">{status === "in_review"
+                    ? "Our mission control team is currently verifying your route telemetry and evaluating pilot alignment."
+                    : "Your fleet application has been received. We will move it into review shortly."}</p>
+                  <p className="mt-8 text-sm text-white/40">We will contact you via email with next steps.</p>
                </CardContent>
              </Card>
           </motion.div>
         )}
-        
-        {status === "approved" && (
+
+        {(status === "approved" || status === "onboarding" || status === "active") && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
              <div className="p-8 bg-green-500/10 border border-green-500/30 rounded-2xl flex flex-col sm:flex-row items-center gap-6">
                <CheckCircle className="w-16 h-16 text-green-400 shrink-0" />
                <div>
-                 <h2 className="text-2xl font-bold text-white mb-2">Pilot Deployment Approved</h2>
-                 <p className="text-white/70">Your fleet is locked in. Click below to begin integrating your routing manifests into the Cruze API.</p>
-                 <Button className="mt-4 bg-brand-cyan text-black hover:bg-brand-cyan/90 font-bold" onClick={() => window.alert("Navigating to setup wizard...")}>
-                   See Next Steps
-                 </Button>
+                 <h2 className="text-2xl font-bold text-white mb-2">
+                   {status === "active" ? "Pilot Active" : status === "onboarding" ? "Onboarding in Progress" : "Pilot Deployment Approved"}
+                 </h2>
+                 <p className="text-white/70">
+                   {status === "active"
+                     ? "Your fleet is live on Cruze coordination. Track impact and route metrics from your dashboard."
+                     : status === "onboarding"
+                     ? "Integration with your FMS is underway. Our team will reach out for kickoff shortly."
+                     : "Your fleet is locked in. Click below to begin integrating your routing manifests into the Cruze API."}
+                 </p>
                </div>
+             </div>
+          </motion.div>
+        )}
+
+        {status === "denied" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+             <div className="p-8 bg-red-500/10 border border-red-500/30 rounded-2xl">
+               <h2 className="text-2xl font-bold text-white mb-2">Application Not Selected for Pilot Cohort</h2>
+               <p className="text-white/70">Your application was reviewed but not selected for the current pilot cohort. Contact us at <a href="mailto:hello@cruzemaps.com" className="text-brand-cyan">hello@cruzemaps.com</a> to discuss alternative paths or future cohorts.</p>
+             </div>
+          </motion.div>
+        )}
+
+        {status === "archived" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+             <div className="p-8 bg-white/5 border border-white/10 rounded-2xl">
+               <h2 className="text-2xl font-bold text-white mb-2">Application Archived</h2>
+               <p className="text-white/70">This application has been archived. To start a new pilot conversation, email <a href="mailto:hello@cruzemaps.com" className="text-brand-cyan">hello@cruzemaps.com</a>.</p>
              </div>
           </motion.div>
         )}
