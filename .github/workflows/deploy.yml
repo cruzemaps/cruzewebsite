@@ -32,6 +32,8 @@ jobs:
 
       - name: Build
         run: npm run build
+                env:
+                          VITE_CALCOM_USER: anudeep-cruze/investor-intro
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
