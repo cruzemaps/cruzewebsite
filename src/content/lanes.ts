@@ -36,7 +36,7 @@ export const LANES: Lane[] = [
     congestionDelayHours: 1.1,
     freightVolumeRank: 4,
     primaryRoute: "I-94 East",
-    metroEndpoints: ["chicago-il", "los-angeles-ca"], // placeholder, no Detroit yet
+    metroEndpoints: ["chicago-il", "detroit-mi"],
     notes: "Auto-industry feeder lane; high reliability requirements.",
   },
   {
@@ -60,7 +60,7 @@ export const LANES: Lane[] = [
     congestionDelayHours: 1.2,
     freightVolumeRank: 6,
     primaryRoute: "I-75 / I-10",
-    metroEndpoints: ["atlanta-ga", "miami-fl"],
+    metroEndpoints: ["atlanta-ga", "jacksonville-fl"],
     notes: "Southeast freight corridor; Atlanta's I-285 outer loop adds the most delay.",
   },
   {
@@ -72,7 +72,7 @@ export const LANES: Lane[] = [
     congestionDelayHours: 0.8,
     freightVolumeRank: 9,
     primaryRoute: "I-5 South",
-    metroEndpoints: ["seattle-wa", "seattle-wa"],
+    metroEndpoints: ["seattle-wa", "portland-or"],
     notes: "Pacific Northwest spine; weather closures dominate variance.",
   },
   {

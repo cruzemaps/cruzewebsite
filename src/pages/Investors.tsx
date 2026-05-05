@@ -125,18 +125,23 @@ function EmailGate({ onSuccess }: { onSuccess: () => void }) {
     e.preventDefault();
     if (!email.includes("@")) return toast.error("Valid email please.");
     setSubmitting(true);
+
     track("investor_cta_click", { tier: "email_gate", firm });
 
-    // Best-effort capture: write to invitations table as a soft lead.
-    // If the table or RPC doesn't exist (early stage), just proceed.
+    // Persist the lead via the SECURITY DEFINER RPC (migration 006).
+    // Failure is non-fatal — the gate experience still proceeds.
     try {
-      await supabase.from("invitations").insert({
-        email,
-        role: "fleet_owner", // placeholder; admin re-categorizes
+      await supabase.rpc("capture_investor_lead", {
+        p_name: name,
+        p_email: email,
+        p_firm: firm,
+        p_user_agent: navigator.userAgent,
+        p_referrer: document.referrer,
       });
     } catch {
-      // ignore — the gate experience matters more than perfect lead capture
+      // ignored
     }
+
     setSubmitting(false);
     onSuccess();
   };

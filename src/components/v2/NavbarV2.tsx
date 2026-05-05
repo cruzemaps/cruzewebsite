@@ -6,8 +6,12 @@ import { useAuth } from "@/hooks/useAuth";
 
 const NavbarV2 = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
+  const dashboardPath =
+    role === "admin" ? "/admin" :
+    role === "city_operator" ? "/dashboard" :
+    "/fleet-dashboard";
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0B0E14]/80 backdrop-blur-xl border-b border-white/10">
@@ -62,7 +66,7 @@ const NavbarV2 = () => {
             <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <div className="relative group cursor-pointer flex items-center">
-                  <Button variant="ghost" onClick={() => navigate("/dashboard")} className="text-white hover:text-brand-cyan hover:bg-transparent tracking-wide gap-2">
+                  <Button variant="ghost" onClick={() => navigate(dashboardPath)} className="text-white hover:text-brand-cyan hover:bg-transparent tracking-wide gap-2">
                     <UserIcon size={16} /> Dashboard
                   </Button>
                   <div className="absolute top-full mt-2 right-0 w-40 bg-[#0B0E14] border border-white/10 rounded-lg p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">

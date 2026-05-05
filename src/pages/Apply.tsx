@@ -64,13 +64,22 @@ export default function Apply() {
   };
 
   const submit = async () => {
-    if (!data.contactEmail) return toast.error("Email required.");
+    // Re-validate every step before submission, not just the final step.
+    // Without this, a user could fill steps 0+3, skip 1+2 via keyboard
+    // navigation, and submit a row with NULL company_name/fleet_size.
+    for (let i = 0; i < STEPS.length; i++) {
+      if (!stepValid(i, data)) {
+        setStep(i);
+        return toast.error(`Please complete step ${i + 1}: ${STEPS[i].label}`);
+      }
+    }
     setSubmitting(true);
 
     if (!user) {
-      // Not logged in — redirect to signup, then they'll resume here.
+      // Not signed in: park the form so we can resume after signup.
       sessionStorage.setItem("pending_application", JSON.stringify(data));
       navigate("/login?role=fleet_owner&apply=1");
+      setSubmitting(false);
       return;
     }
 
@@ -147,7 +156,7 @@ export default function Apply() {
                   ) : (
                     <Button
                       onClick={submit}
-                      disabled={submitting || !data.contactEmail}
+                      disabled={submitting || !STEPS.every((_, i) => stepValid(i, data))}
                       className="bg-brand-orange text-[#0B0E14] hover:bg-brand-orange/90 font-bold"
                     >
                       {submitting && <Loader2 className="animate-spin mr-2" size={14} />}

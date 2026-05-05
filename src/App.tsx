@@ -28,6 +28,7 @@ const Lanes = lazy(() => import("./pages/Lanes"));
 const LaneDetail = lazy(() => import("./pages/LaneDetail"));
 const Apply = lazy(() => import("./pages/Apply"));
 const Cameras = lazy(() => import("./pages/Cameras"));
+const ImpersonateHandoff = lazy(() => import("./pages/ImpersonateHandoff"));
 const UIInterns = lazy(() => import("./pages/UIInterns"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
@@ -80,6 +81,7 @@ const App = () => (
               {/* Auth */}
               <Route path="/login" element={<Login />} />
               <Route path="/invite/:token" element={<InviteAccept />} />
+              <Route path="/impersonate" element={<ImpersonateHandoff />} />
 
               {/* Protected dashboards */}
               <Route

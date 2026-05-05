@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Mail, Plus, Copy, Check } from "lucide-react";
 import { SITE } from "@/lib/seo";
+import { useAuth } from "@/hooks/useAuth";
 
 type Invite = {
   id: string;
@@ -24,6 +25,7 @@ const DEMO_INVITES: Invite[] = [
 ];
 
 export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
+  const { user } = useAuth();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -70,7 +72,13 @@ export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
       toast.success("Demo: invitation created locally.");
       return;
     }
-    const { error } = await supabase.from("invitations").insert({ email, role });
+    if (!user?.id) {
+      setCreating(false);
+      return toast.error("You must be signed in as an admin to create invitations.");
+    }
+    const { error } = await supabase
+      .from("invitations")
+      .insert({ email, role, invited_by: user.id });
     setCreating(false);
     if (error) return toast.error(error.message);
     setEmail("");
@@ -80,10 +88,14 @@ export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
 
   const linkFor = (token: string) => `${SITE.url}/invite/${token}`;
 
-  const copy = (token: string) => {
-    navigator.clipboard.writeText(linkFor(token));
-    setCopied(token);
-    setTimeout(() => setCopied(null), 2000);
+  const copy = async (token: string) => {
+    try {
+      await navigator.clipboard.writeText(linkFor(token));
+      setCopied(token);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      toast.error("Couldn't access clipboard. Copy manually: " + linkFor(token));
+    }
   };
 
   return (

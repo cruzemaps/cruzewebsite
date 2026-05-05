@@ -58,14 +58,9 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
 
   const impersonate = (u: Profile) => {
     if (!confirm(`Impersonate ${u.email}? This opens a new tab acting as them. The action is logged in the audit trail.`)) return;
-    // Tag the demo session as an impersonation so dashboards can warn users.
-    localStorage.setItem("demo_role", u.role);
-    localStorage.setItem("demo_status", u.status);
-    sessionStorage.setItem("impersonated_user_id", u.id);
     track("role_changed", { event: "impersonation", target: u.id });
-    // Best-effort write to role_history (acts as audit). Non-blocking.
+    // Audit row, non-blocking.
     if (!isDemo) {
-      // Best-effort audit row; ignore failures so impersonation never blocks.
       void supabase.rpc("change_user_role", {
         target_user_id: u.id,
         new_role: u.role,
@@ -73,8 +68,19 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
         reason: `Impersonation session opened by admin`,
       }).then(() => {});
     }
-    const target = u.role === "admin" ? "/admin" : u.role === "city_operator" ? "/dashboard" : "/fleet-dashboard";
-    window.open(target, "_blank", "noopener");
+    // CRITICAL: We previously wrote demo_role to localStorage, which is
+    // shared across all tabs of the same origin. That contaminated the
+    // admin's own tab. Now we hand off impersonation context as URL params
+    // to a dedicated /impersonate route. That route reads the params,
+    // writes them to *sessionStorage* (per-tab, isolated), then redirects
+    // to the impersonated user's dashboard. The admin's original tab is
+    // untouched and keeps its real Supabase session.
+    const dashboard =
+      u.role === "admin" ? "/admin" :
+      u.role === "city_operator" ? "/dashboard" :
+      "/fleet-dashboard";
+    const url = `/impersonate?role=${u.role}&status=${u.status}&id=${u.id}&go=${encodeURIComponent(dashboard)}`;
+    window.open(url, "_blank", "noopener");
   };
 
   const load = async () => {
