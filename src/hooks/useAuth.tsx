@@ -53,14 +53,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Helper: re-fetch session from Supabase, which re-runs the JWT hook and
   // returns a token with current claims. Used when an admin updates this
   // user's row remotely so role/status changes propagate immediately.
+  //
+  // GUARDRAILS:
+  //   - On error (e.g., refresh token expired, network failure), DO NOT
+  //     clear local state. Keep the existing session intact. The user
+  //     stays logged in with their current claims; on next manual nav the
+  //     session is re-validated naturally.
+  //   - On a successful refresh that returns no session, also DO NOT clear
+  //     state — that scenario is ambiguous and shouldn't trigger a sign-out.
   const forceRefresh = async () => {
-    const { data, error } = await supabase.auth.refreshSession();
-    if (error) return;
-    setSession(data.session);
-    setUser(data.session?.user ?? null);
-    const { role: r, status: s } = readClaims(data.session);
-    setRole(r);
-    setStatus(s);
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error || !data?.session) return; // keep current session
+      setSession(data.session);
+      setUser(data.session.user ?? null);
+      const { role: r, status: s } = readClaims(data.session);
+      setRole(r);
+      setStatus(s);
+    } catch {
+      // Network failure or unexpected. Keep the existing session.
+    }
   };
 
   useEffect(() => {
@@ -94,6 +106,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Listen for changes to THIS user's profiles row. When admin changes
       // role or status, this fires and forces a token refresh so the UI
       // picks up new claims immediately rather than waiting an hour.
+      //
+      // GUARDRAILS (added after a profile UPDATE caused unexpected sign-outs):
+      //   1. Only act on hard transitions: suspended/archived (sign out),
+      //      role change (notify), or active->non-active status (notify).
+      //      All other updates (last_active_at touches, name edits) are
+      //      explicitly ignored.
+      //   2. Never call signOut() except on suspended/archived. Status moving
+      //      to 'pending' is NOT a sign-out trigger — admins might briefly
+      //      pause a user without intending to fully revoke their session.
+      //   3. forceRefresh() failures are silent: never propagate to a sign-out.
       if (realtimeChannel) supabase.removeChannel(realtimeChannel);
       realtimeChannel = supabase
         .channel(`profile_${userId}`)
@@ -102,25 +124,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
           (payload) => {
             const next = payload.new as { role?: AppRole; status?: AppStatus };
-            // Detect meaningful changes vs. noise (e.g. last_active_at touch)
-            const roleChanged = next.role && next.role !== role;
-            const statusChanged = next.status && next.status !== status;
-            if (roleChanged || statusChanged) {
-              if (statusChanged && next.status === "suspended") {
-                toast.warning("Your account has been suspended. Signing you out.");
-                signOut();
-                return;
-              }
-              if (statusChanged && next.status === "archived") {
-                toast.error("Your account has been archived. Signing you out.");
-                signOut();
-                return;
-              }
-              if (roleChanged) {
-                toast.info(`Your role has been updated to ${next.role}.`);
-              }
-              forceRefresh();
+
+            // Read CURRENT values from local state via closure capture. We
+            // intentionally don't use the React state setters' callbacks here
+            // because we want to compare against the most recent state we've
+            // seen, not stale values.
+            const newRole = next.role ?? null;
+            const newStatus = next.status ?? null;
+
+            // Hard sign-out triggers: explicit suspension or archive only.
+            if (newStatus === "suspended") {
+              toast.warning("Your account has been suspended. Signing you out.");
+              signOut();
+              return;
             }
+            if (newStatus === "archived") {
+              toast.error("Your account has been archived. Signing you out.");
+              signOut();
+              return;
+            }
+
+            // Soft notification: role changed. Refresh JWT so RLS sees new role.
+            if (newRole && newRole !== role) {
+              toast.info(`Your role was updated to ${newRole}.`);
+              forceRefresh();
+              return;
+            }
+
+            // Soft notification: status moved to pending (admin paused).
+            // Do NOT sign out — pending users can still browse public pages.
+            // Refresh so the JWT reflects the new app_status claim, but if
+            // refresh fails we keep the old session rather than dropping it.
+            if (newStatus && newStatus !== status && newStatus !== "active") {
+              toast.warning(`Your account status changed to ${newStatus}. Some features may be limited.`);
+              forceRefresh();
+              return;
+            }
+
+            // Status returned to active — refresh quietly so RLS unblocks.
+            if (newStatus === "active" && status && status !== "active") {
+              forceRefresh();
+              return;
+            }
+
+            // Anything else (last_active_at touch, name edits, etc.): ignore.
           }
         )
         .subscribe();
