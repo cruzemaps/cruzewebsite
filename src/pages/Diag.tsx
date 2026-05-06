@@ -3,11 +3,21 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 // Auth/permissions diagnostic. Visit /diag while signed in to see exactly
 // what the server sees vs. what the client thinks. Helps narrow the
 // "row violates RLS" failures to a specific layer.
+
+function decodeJwt(token?: string | null): any {
+  if (!token) return null;
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+}
+
 export default function Diag() {
   const auth = useAuth();
   const [serverChecks, setServerChecks] = useState<{
@@ -17,6 +27,7 @@ export default function Diag() {
     profileError: string | null;
     insertOk: boolean | null;
     insertError: string | null;
+    insertSkipped: boolean;
     rpcOk: boolean | null;
     rpcError: string | null;
   }>({
@@ -26,10 +37,30 @@ export default function Diag() {
     profileError: null,
     insertOk: null,
     insertError: null,
+    insertSkipped: false,
     rpcOk: null,
     rpcError: null,
   });
   const [running, setRunning] = useState(false);
+  const [decoded, setDecoded] = useState<any>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  // Pull the live access token + decoded JWT once on mount AND every time
+  // the session changes. The previous implementation tried to read an
+  // internal `_currentSession` property synchronously, which doesn't exist
+  // in current versions of supabase-js — that's why even fully-signed-in
+  // users saw "No JWT in client" in the JWT card.
+  useEffect(() => {
+    const refresh = async () => {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token ?? null;
+      setAccessToken(token);
+      setDecoded(decodeJwt(token));
+    };
+    refresh();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => refresh());
+    return () => subscription.unsubscribe();
+  }, []);
 
   const run = async () => {
     setRunning(true);
@@ -66,10 +97,13 @@ export default function Diag() {
       });
       next.insertOk = !error;
       next.insertError = error?.message ?? null;
+      next.insertSkipped = false;
       // Clean up so we don't spam the table
       if (!error) {
         await supabase.from("invitations").delete().eq("email", testEmail);
       }
+    } else {
+      next.insertSkipped = true;
     }
 
     // 5. Try a simple read of invitations (also RLS-gated)
@@ -85,18 +119,6 @@ export default function Diag() {
     console.log("[diag] auth.user:", auth.user);
     console.log("[diag] decoded JWT:", decodeJwt(sessionData?.session?.access_token));
   };
-
-  const decodeJwt = (token?: string | null) => {
-    if (!token) return null;
-    try {
-      return JSON.parse(atob(token.split(".")[1]));
-    } catch {
-      return null;
-    }
-  };
-
-  const session = supabase.auth as any; // for read-only inspection
-  const decoded = decodeJwt((session as any)?._currentSession?.access_token);
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white p-8">
@@ -167,7 +189,11 @@ export default function Diag() {
                 <ResultRow
                   label="invitations insert (the failing op)"
                   ok={serverChecks.insertOk === true}
-                  detail={serverChecks.insertError ?? "OK (test row inserted then deleted)"}
+                  detail={
+                    serverChecks.insertSkipped
+                      ? "(skipped — not signed in, no auth.user.id to use as invited_by)"
+                      : serverChecks.insertError ?? "Test row inserted then deleted — your real invitation create will work."
+                  }
                 />
               </div>
             ) : null}
