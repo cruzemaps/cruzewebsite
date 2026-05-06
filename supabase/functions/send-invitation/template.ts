@@ -260,15 +260,18 @@ export function renderInvitationEmail(vars: InvitationVars): {
             </td>
           </tr>
 
-          <!-- CTA button. Bullet-proof: solid bgcolor + dark text + explicit padding. -->
+          <!-- CTA button — centered, large, full-width on mobile. Bullet-proof:
+               solid bgcolor + dark text + explicit padding so Outlook/Gmail
+               render the same fill. Wrapped in an outer table that aligns
+               center, with a generous min-width so the button has presence. -->
           <tr>
-            <td align="left" style="padding:0 40px 16px 40px; background:${BRAND.cardBg};">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <td align="center" style="padding:8px 40px 24px 40px; background:${BRAND.cardBg};">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                 <tr>
-                  <td style="background:${copy.accentDark}; border-radius:10px;" bgcolor="${copy.accentDark}">
+                  <td align="center" style="background:${copy.accentDark}; border-radius:12px; box-shadow:0 6px 20px rgba(11,14,20,0.10);" bgcolor="${copy.accentDark}">
                     <a href="${escapeAttr(vars.inviteUrl)}"
                        class="button"
-                       style="display:inline-block; padding:14px 32px; color:${BRAND.charcoal} !important; font-weight:700; font-size:15px; text-decoration:none; border-radius:10px; font-family:${BRAND.fontStack}; letter-spacing:0.02em; mso-padding-alt:0; mso-text-raise:14pt;">
+                       style="display:inline-block; min-width:260px; padding:18px 48px; color:${BRAND.charcoal} !important; font-weight:700; font-size:17px; text-decoration:none; border-radius:12px; font-family:${BRAND.fontStack}; letter-spacing:0.02em; text-align:center; mso-padding-alt:0; mso-text-raise:18pt;">
                       Accept invitation →
                     </a>
                   </td>
@@ -292,23 +295,46 @@ export function renderInvitationEmail(vars: InvitationVars): {
             </td>
           </tr>
 
-          <!-- DARK FOOTER BAND -->
+          <!-- DARK FOOTER BAND
+               Three rows with proper hierarchy:
+                 1. Centered brand mark + tagline
+                 2. Thin divider
+                 3. Sent-to + Questions on a single line, smaller, faint -->
           <tr>
-            <td style="background:${BRAND.charcoalDeep}; padding:24px 40px 28px 40px;" bgcolor="${BRAND.charcoalDeep}">
+            <td style="background:${BRAND.charcoalDeep}; padding:36px 40px 32px 40px;" bgcolor="${BRAND.charcoalDeep}" align="center">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+
+                <!-- Brand block, centered -->
                 <tr>
-                  <td style="vertical-align:middle;">
-                    <div style="font-weight:800; letter-spacing:0.10em; font-size:13px; color:${BRAND.darkBandPrimary}; font-family:${BRAND.fontStack}; text-transform:uppercase;">Cruzemaps</div>
-                    <div style="margin-top:4px; font-size:12px; color:${BRAND.darkBandSecondary}; font-family:${BRAND.fontStack};">Dissolve traffic, not just avoid it.</div>
+                  <td align="center" style="padding-bottom:16px;">
+                    <div style="font-weight:800; letter-spacing:0.16em; font-size:15px; color:${BRAND.darkBandPrimary}; font-family:${BRAND.fontStack}; text-transform:uppercase;">Cruzemaps</div>
+                    <div style="margin-top:6px; font-size:13px; color:${BRAND.darkBandSecondary}; font-family:${BRAND.fontStack}; font-style:italic;">Dissolve traffic, not just avoid it.</div>
                   </td>
-                  <td align="right" style="vertical-align:middle; font-size:12px; font-family:${BRAND.fontStack};">
-                    <a href="https://cruzemaps.com" style="color:${copy.accentDark}; text-decoration:none; font-weight:600;">cruzemaps.com</a>
+                </tr>
+
+                <!-- Divider -->
+                <tr>
+                  <td style="padding:8px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr><td style="height:1px; background:rgba(255,255,255,0.10); line-height:1px; font-size:0; mso-line-height-rule:exactly;">&nbsp;</td></tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Compliance + contact line, centered -->
+                <tr>
+                  <td align="center" style="padding-top:12px;">
+                    <div style="font-size:12px; color:${BRAND.darkBandFaint}; line-height:1.6; font-family:${BRAND.fontStack};">
+                      <a href="https://cruzemaps.com" style="color:${copy.accentDark}; text-decoration:none; font-weight:600;">cruzemaps.com</a>
+                      <span style="color:${BRAND.darkBandFaint}; padding:0 8px;">·</span>
+                      <a href="mailto:hello@cruzemaps.com" style="color:${BRAND.darkBandSecondary}; text-decoration:none;">hello@cruzemaps.com</a>
+                    </div>
+                    <div style="margin-top:10px; font-size:11px; color:${BRAND.darkBandFaint}; line-height:1.5; font-family:${BRAND.fontStack};">
+                      Sent to ${escapeHtml(vars.email)}
+                    </div>
                   </td>
                 </tr>
               </table>
-              <p style="margin:18px 0 0; font-size:11px; color:${BRAND.darkBandFaint}; line-height:1.6; font-family:${BRAND.fontStack};">
-                Sent to ${escapeHtml(vars.email)} · Questions: <a href="mailto:hello@cruzemaps.com" style="color:${BRAND.darkBandSecondary}; text-decoration:underline;">hello@cruzemaps.com</a>
-              </p>
             </td>
           </tr>
         </table>
