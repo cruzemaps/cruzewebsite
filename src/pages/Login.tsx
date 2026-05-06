@@ -95,13 +95,17 @@ const Login = () => {
     setLoading(false);
   };
 
-  const handleOAuth = async (provider: 'google' | 'azure') => {
+  const handleOAuth = async (provider: 'google') => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({ 
+    const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { 
-        redirectTo: `${window.location.origin}/dashboard` // Standard redirect fallback
-      } 
+      options: {
+        // After OAuth, land on a generic post-signin route. The Login form
+        // post-signin handler reads JWT app_role and routes by role; for
+        // OAuth we don't have the JWT before the redirect happens, so we
+        // bounce through /admin which ProtectedRoute will reroute by role.
+        redirectTo: `${window.location.origin}/admin`,
+      }
     });
     if (error) toast.error(`Failed to connect to ${provider}: ${error.message}`);
     setLoading(false);
