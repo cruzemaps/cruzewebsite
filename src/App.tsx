@@ -30,6 +30,7 @@ const Apply = lazy(() => import("./pages/Apply"));
 const Cameras = lazy(() => import("./pages/Cameras"));
 const ImpersonateHandoff = lazy(() => import("./pages/ImpersonateHandoff"));
 const Diag = lazy(() => import("./pages/Diag"));
+const LOIView = lazy(() => import("./pages/LOIView"));
 const UIInterns = lazy(() => import("./pages/UIInterns"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
@@ -84,6 +85,7 @@ const App = () => (
               <Route path="/invite/:token" element={<InviteAccept />} />
               <Route path="/impersonate" element={<ImpersonateHandoff />} />
               <Route path="/diag" element={<Diag />} />
+              <Route path="/loi/:id" element={<LOIView />} />
 
               {/* Protected dashboards */}
               <Route

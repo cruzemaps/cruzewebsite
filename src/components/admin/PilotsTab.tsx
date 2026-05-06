@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Building, Truck } from "lucide-react";
+import { Loader2, Building, Truck, FileSignature, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -183,6 +184,22 @@ function ManagePilotDialog({
   const [status, setStatus] = useState<LifecycleState>(app.status);
   const [notes, setNotes] = useState(app.notes || "");
   const [busy, setBusy] = useState(false);
+  const [loi, setLoi] = useState<{ id: string; signed_at: string; initials: string; participant_name: string } | null>(null);
+
+  // Look up the signed LOI tied to this pilot application (if any)
+  useEffect(() => {
+    if (isDemo) return;
+    (async () => {
+      const { data } = await supabase
+        .from("loi_signatures")
+        .select("id, signed_at, initials, participant_name")
+        .eq("pilot_application_id", app.id)
+        .order("signed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) setLoi(data as typeof loi extends null ? never : any);
+    })();
+  }, [app.id, isDemo]);
 
   const save = async () => {
     setBusy(true);
@@ -230,6 +247,24 @@ function ManagePilotDialog({
               placeholder="Disposition, next steps, integration timeline…"
             />
           </div>
+
+          {loi && (
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4 flex items-center gap-3">
+              <FileSignature size={18} className="text-brand-cyan flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">Signed Letter of Intent</div>
+                <div className="text-xs text-white/50 mt-0.5">
+                  Signed by {loi.participant_name} ({loi.initials}) on{" "}
+                  {new Date(loi.signed_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                </div>
+              </div>
+              <Button asChild size="sm" variant="outline" className="border-white/15 text-white hover:bg-white/5">
+                <Link to={`/loi/${loi.id}`} target="_blank" rel="noopener noreferrer">
+                  View <ExternalLink size={12} className="ml-1.5" />
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>

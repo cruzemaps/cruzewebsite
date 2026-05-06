@@ -1,19 +1,28 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import SEO from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Building, Truck, Cable, User, Check, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Building, Truck, Cable, User, Check, Loader2, FileSignature, Download } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
+import {
+  LOI_VERSION,
+  PERFORMANCE_FEE_MIN_PCT,
+  PERFORMANCE_FEE_MAX_PCT,
+  LOI_SUMMARY_BULLETS,
+  renderLOIText,
+  suggestInitials,
+} from "@/lib/loi";
 
 type WizardData = {
   companyName: string;
@@ -25,7 +34,11 @@ type WizardData = {
   contactEmail: string;
   contactName: string;
   contactPhone: string;
+  contactTitle: string;
   notes: string;
+  // LOI
+  loiAgreed: boolean;
+  loiInitials: string;
 };
 
 const STEPS = [
@@ -33,6 +46,7 @@ const STEPS = [
   { key: "fleet", label: "Fleet specs", icon: Truck },
   { key: "integration", label: "Integration", icon: Cable },
   { key: "contact", label: "Contact", icon: User },
+  { key: "loi", label: "Sign LOI", icon: FileSignature },
 ] as const;
 
 export default function Apply() {
@@ -52,8 +66,19 @@ export default function Apply() {
     contactEmail: user?.email || "",
     contactName: "",
     contactPhone: "",
+    contactTitle: "",
     notes: "",
+    loiAgreed: false,
+    loiInitials: "",
   });
+
+  // Auto-suggest initials from contactName when LOI step opens, but let
+  // the user override.
+  useEffect(() => {
+    if (step === 4 && !data.loiInitials && data.contactName) {
+      setData((prev) => ({ ...prev, loiInitials: suggestInitials(data.contactName) }));
+    }
+  }, [step, data.contactName, data.loiInitials]);
 
   const update = <K extends keyof WizardData>(key: K, value: WizardData[K]) =>
     setData((prev) => ({ ...prev, [key]: value }));
@@ -83,26 +108,68 @@ export default function Apply() {
       return;
     }
 
-    const { error } = await supabase.from("pilot_applications").insert({
+    // 1. Insert pilot_applications row first; capture id so we can link the LOI to it.
+    const { data: pilotRow, error: pilotErr } = await supabase
+      .from("pilot_applications")
+      .insert({
+        user_id: user.id,
+        company_name: data.companyName,
+        truck_size: data.truckSize,
+        fleet_size: data.fleetSize,
+        notes: [
+          data.website && `Website: ${data.website}`,
+          data.primaryLanes && `Primary lanes: ${data.primaryLanes}`,
+          data.fmsProvider && `FMS provider: ${data.fmsProvider}`,
+          data.contactName && `Contact: ${data.contactName}`,
+          data.contactTitle && `Title: ${data.contactTitle}`,
+          data.contactPhone && `Phone: ${data.contactPhone}`,
+          data.notes && `Notes: ${data.notes}`,
+        ].filter(Boolean).join("\n"),
+      })
+      .select("id")
+      .single();
+
+    if (pilotErr) {
+      setSubmitting(false);
+      return toast.error(pilotErr.message);
+    }
+
+    // 2. Snapshot the rendered LOI text and insert the signature row.
+    const signedDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const loiFullText = renderLOIText({
+      participantName: data.contactName,
+      participantCompany: data.companyName,
+      participantTitle: data.contactTitle || undefined,
+      fleetSize: data.fleetSize,
+      signedDate,
+      initials: data.loiInitials,
+    });
+
+    const { error: loiErr } = await supabase.from("loi_signatures").insert({
       user_id: user.id,
-      company_name: data.companyName,
-      truck_size: data.truckSize,
+      pilot_application_id: pilotRow?.id ?? null,
+      participant_name: data.contactName,
+      participant_company: data.companyName,
+      participant_title: data.contactTitle || null,
       fleet_size: data.fleetSize,
-      notes: [
-        data.website && `Website: ${data.website}`,
-        data.primaryLanes && `Primary lanes: ${data.primaryLanes}`,
-        data.fmsProvider && `FMS provider: ${data.fmsProvider}`,
-        data.contactName && `Contact: ${data.contactName}`,
-        data.contactPhone && `Phone: ${data.contactPhone}`,
-        data.notes && `Notes: ${data.notes}`,
-      ].filter(Boolean).join("\n"),
+      agreed: true,
+      initials: data.loiInitials.trim().toUpperCase(),
+      loi_version: LOI_VERSION,
+      loi_full_text: loiFullText,
+      performance_fee_min_pct: PERFORMANCE_FEE_MIN_PCT,
+      performance_fee_max_pct: PERFORMANCE_FEE_MAX_PCT,
+      user_agent: navigator.userAgent,
     });
 
     setSubmitting(false);
-    if (error) return toast.error(error.message);
-    track("application_submitted", { fleet_size: data.fleetSize, fms: data.fmsProvider });
+    if (loiErr) {
+      toast.error("Application saved but the LOI signature failed: " + loiErr.message);
+      return;
+    }
+
+    track("application_submitted", { fleet_size: data.fleetSize, fms: data.fmsProvider, loi_signed: true });
     setDone(true);
-    setTimeout(() => navigate("/fleet-dashboard"), 1500);
+    setTimeout(() => navigate("/fleet-dashboard"), 1800);
   };
 
   return (
@@ -132,6 +199,7 @@ export default function Apply() {
                     {step === 1 && <FleetStep data={data} update={update} />}
                     {step === 2 && <IntegrationStep data={data} update={update} />}
                     {step === 3 && <ContactStep data={data} update={update} />}
+                    {step === 4 && <LOIStep data={data} update={update} />}
                   </motion.div>
                 </AnimatePresence>
 
@@ -160,7 +228,7 @@ export default function Apply() {
                       className="bg-brand-orange text-[#0B0E14] hover:bg-brand-orange/90 font-bold"
                     >
                       {submitting && <Loader2 className="animate-spin mr-2" size={14} />}
-                      Submit application
+                      Sign &amp; submit
                     </Button>
                   )}
                 </div>
@@ -190,7 +258,8 @@ function stepValid(step: number, data: WizardData): boolean {
     case 0: return !!data.companyName;
     case 1: return !!data.fleetSize && !!data.truckSize;
     case 2: return true; // optional
-    case 3: return !!data.contactEmail;
+    case 3: return !!data.contactEmail && !!data.contactName;
+    case 4: return data.loiAgreed && data.loiInitials.trim().length >= 1;
     default: return false;
   }
 }
@@ -306,22 +375,134 @@ function ContactStep({ data, update }: { data: WizardData; update: <K extends ke
       <h2 className="font-display text-xl font-bold mb-4">Where can we reach you?</h2>
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <Label className="text-white/70 text-sm mb-1 block">Name</Label>
-          <Input value={data.contactName} onChange={(e) => update("contactName", e.target.value)} className="bg-white/5 border-white/10 text-white" />
+          <Label className="text-white/70 text-sm mb-1 block">Name *</Label>
+          <Input value={data.contactName} onChange={(e) => update("contactName", e.target.value)} className="bg-white/5 border-white/10 text-white" placeholder="Full name (used on your LOI)" />
         </div>
         <div>
           <Label className="text-white/70 text-sm mb-1 block">Email *</Label>
           <Input type="email" value={data.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} className="bg-white/5 border-white/10 text-white" />
         </div>
       </div>
-      <div>
-        <Label className="text-white/70 text-sm mb-1 block">Phone</Label>
-        <Input type="tel" value={data.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} className="bg-white/5 border-white/10 text-white" />
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <Label className="text-white/70 text-sm mb-1 block">Job title</Label>
+          <Input value={data.contactTitle} onChange={(e) => update("contactTitle", e.target.value)} className="bg-white/5 border-white/10 text-white" placeholder="e.g. VP Operations" />
+        </div>
+        <div>
+          <Label className="text-white/70 text-sm mb-1 block">Phone</Label>
+          <Input type="tel" value={data.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} className="bg-white/5 border-white/10 text-white" />
+        </div>
       </div>
       <div>
         <Label className="text-white/70 text-sm mb-1 block">Anything else we should know?</Label>
         <Textarea value={data.notes} onChange={(e) => update("notes", e.target.value)} rows={3} className="bg-white/5 border-white/10 text-white" />
       </div>
+    </div>
+  );
+}
+
+function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof WizardData>(k: K, v: WizardData[K]) => void }) {
+  const [showFullText, setShowFullText] = useState(false);
+  const signedDate = useMemo(() => new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }), []);
+  const fullText = useMemo(
+    () =>
+      renderLOIText({
+        participantName: data.contactName || "[your name]",
+        participantCompany: data.companyName || "[your company]",
+        participantTitle: data.contactTitle || undefined,
+        fleetSize: data.fleetSize || "[fleet size]",
+        signedDate,
+        initials: data.loiInitials || "—",
+      }),
+    [data.contactName, data.companyName, data.contactTitle, data.fleetSize, data.loiInitials, signedDate]
+  );
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="font-display text-xl font-bold mb-1">Sign your Letter of Intent</h2>
+        <p className="text-white/55 text-sm">
+          Standard 30-day pilot terms. Non-binding. We pre-filled everything from your previous answers.
+        </p>
+      </div>
+
+      {/* The plain-English summary card */}
+      <div className="rounded-xl border border-brand-cyan/25 bg-brand-cyan/5 p-5">
+        <div className="text-[11px] uppercase tracking-widest text-brand-cyan font-semibold mb-3">The plain-English version</div>
+        <ul className="space-y-2.5">
+          {LOI_SUMMARY_BULLETS.map((b) => (
+            <li key={b} className="flex items-start gap-2 text-sm text-white/80 leading-relaxed">
+              <Check size={14} className="text-brand-cyan flex-shrink-0 mt-1" />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Pre-filled key fields */}
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
+        <div className="text-[11px] uppercase tracking-widest text-white/50 font-semibold mb-3">Filled from your previous answers</div>
+        <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          <PreFill label="Company" value={data.companyName} />
+          <PreFill label="Participant" value={data.contactName} />
+          <PreFill label="Title" value={data.contactTitle || "(none)"} />
+          <PreFill label="Fleet size" value={data.fleetSize} />
+        </dl>
+      </div>
+
+      {/* Full LOI text (collapsible) */}
+      <div className="rounded-xl border border-white/10 bg-[#0B0E14]">
+        <button
+          type="button"
+          onClick={() => setShowFullText((v) => !v)}
+          className="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-white/80 hover:text-white"
+        >
+          <span>{showFullText ? "Hide" : "Read"} the full LOI text</span>
+          <ArrowRight size={14} className={`transition-transform ${showFullText ? "rotate-90" : ""}`} />
+        </button>
+        {showFullText && (
+          <div className="border-t border-white/10 px-5 py-4 max-h-72 overflow-y-auto">
+            <pre className="text-xs text-white/70 leading-relaxed whitespace-pre-wrap font-sans">{fullText}</pre>
+          </div>
+        )}
+      </div>
+
+      {/* Sign block */}
+      <div className="rounded-xl border border-brand-orange/30 bg-brand-orange/5 p-5 space-y-4">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <Checkbox
+            checked={data.loiAgreed}
+            onCheckedChange={(v) => update("loiAgreed", !!v)}
+            className="mt-0.5 border-white/30 data-[state=checked]:bg-brand-orange data-[state=checked]:text-[#0B0E14] data-[state=checked]:border-brand-orange"
+          />
+          <span className="text-sm text-white/85 leading-relaxed">
+            I have read and agree to the Letter of Intent above. I understand this is a 30-day non-binding pilot
+            with a {PERFORMANCE_FEE_MIN_PCT}–{PERFORMANCE_FEE_MAX_PCT}% performance fee charged only on documented savings.
+          </span>
+        </label>
+
+        <div>
+          <Label className="text-white/70 text-sm mb-1 block">Type your initials to sign</Label>
+          <Input
+            value={data.loiInitials}
+            onChange={(e) => update("loiInitials", e.target.value.toUpperCase().slice(0, 4))}
+            placeholder="e.g. AB"
+            className="bg-white/5 border-white/10 text-white font-display text-lg tracking-widest max-w-[180px]"
+          />
+          <p className="text-xs text-white/40 mt-2">
+            Your typed initials act as an electronic signature, timestamped {signedDate}. You'll be able to download a PDF copy from your dashboard after submitting.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PreFill({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-white/40 text-xs uppercase tracking-wider mb-1">{label}</dt>
+      <dd className="text-white/90">{value || <span className="text-yellow-400/80">missing</span>}</dd>
     </div>
   );
 }

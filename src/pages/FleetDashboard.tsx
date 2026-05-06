@@ -5,17 +5,20 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, FileText, MessageCircle, Truck, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, FileText, MessageCircle, Truck, Clock, CheckCircle, FileSignature, Download } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type AppStatus = null | "pending" | "in_review" | "approved" | "onboarding" | "active" | "denied" | "archived";
 
+type LOISummary = { id: string; signed_at: string; participant_company: string };
+
 const FleetDashboard = () => {
   const { user, signOut } = useAuth();
   const [status, setStatus] = useState<AppStatus>(null);
   const [loading, setLoading] = useState(true);
+  const [loi, setLoi] = useState<LOISummary | null>(null);
 
   // Form State
   const [companyName, setCompanyName] = useState("");
@@ -48,6 +51,20 @@ const FleetDashboard = () => {
         }
       } catch (e) {
         console.error("Fetch error:", e);
+      }
+
+      // Fetch latest signed LOI for the "Your LOI" card.
+      try {
+        const { data: loiRow } = await supabase
+          .from("loi_signatures")
+          .select("id, signed_at, participant_company")
+          .eq("user_id", user.id)
+          .order("signed_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (loiRow) setLoi(loiRow as LOISummary);
+      } catch {
+        // ignore — card just won't render
       }
       setLoading(false);
     };
@@ -198,6 +215,30 @@ const FleetDashboard = () => {
                  </Card>
                </div>
             </div>
+          </motion.div>
+        )}
+
+        {loi && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <Card className="bg-[#0F131C] border-white/10">
+              <CardContent className="p-5 flex flex-wrap items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-brand-cyan/10 text-brand-cyan flex items-center justify-center flex-shrink-0">
+                  <FileSignature size={18} />
+                </div>
+                <div className="flex-1 min-w-[220px]">
+                  <div className="font-display font-semibold">Your signed Letter of Intent</div>
+                  <div className="text-xs text-white/50 mt-0.5">
+                    {loi.participant_company} · signed{" "}
+                    {new Date(loi.signed_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                  </div>
+                </div>
+                <Button asChild variant="outline" size="sm" className="border-white/15 text-white hover:bg-white/5">
+                  <Link to={`/loi/${loi.id}`}>
+                    <Download size={14} className="mr-2" /> View / Download
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
 
