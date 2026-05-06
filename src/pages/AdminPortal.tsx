@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { ArrowLeft, ShieldAlert, Users, FileCheck, History, Mail, FileSignature } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Users, FileCheck, History, Mail, FileSignature, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import PilotsTab from "@/components/admin/PilotsTab";
 import AuditTab from "@/components/admin/AuditTab";
 import InvitationsTab from "@/components/admin/InvitationsTab";
 import LOIsTab from "@/components/admin/LOIsTab";
+import ArchiveLibraryTab from "@/components/admin/ArchiveLibraryTab";
 
 const AdminPortal = () => {
   const { user, signOut } = useAuth();
@@ -89,6 +90,9 @@ const AdminPortal = () => {
             <TabsTrigger value="lois" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
               <FileSignature size={14} className="mr-2" /> LOIs
             </TabsTrigger>
+            <TabsTrigger value="archive" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
+              <Archive size={14} className="mr-2" /> Archive
+            </TabsTrigger>
             <TabsTrigger value="audit" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
               <History size={14} className="mr-2" /> Audit
             </TabsTrigger>
@@ -105,6 +109,9 @@ const AdminPortal = () => {
           </TabsContent>
           <TabsContent value="lois" className="mt-6">
             <LOIsTab isDemo={isDemo} />
+          </TabsContent>
+          <TabsContent value="archive" className="mt-6">
+            <ArchiveLibraryTab isDemo={isDemo} />
           </TabsContent>
           <TabsContent value="audit" className="mt-6">
             <AuditTab isDemo={isDemo} />

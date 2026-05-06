@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Download, ArrowLeft, Printer, Plus, FileEdit } from "lucide-react";
+import { Loader2, Download, ArrowLeft, Printer, Plus, FileEdit, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -164,13 +164,29 @@ export default function LOIView() {
             </Link>
             <div className="flex items-center gap-2">
               {isAdmin && (
-                <Button
-                  variant="outline"
-                  onClick={() => setAmendOpen(true)}
-                  className="border-brand-orange/30 text-brand-orange hover:bg-brand-orange/10"
-                >
-                  <Plus size={14} className="mr-2" /> Add amendment
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setAmendOpen(true)}
+                    className="border-brand-orange/30 text-brand-orange hover:bg-brand-orange/10"
+                  >
+                    <Plus size={14} className="mr-2" /> Add amendment
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      const reason = prompt("Reason for archiving this LOI? (Min 3 characters)");
+                      if (!reason || reason.trim().length < 3) return;
+                      const { error } = await supabase.rpc("archive_loi", { p_loi_id: loi.id, p_reason: reason });
+                      if (error) return toast.error(error.message);
+                      toast.success("LOI archived. Find it in the Archive Library.");
+                      window.location.href = "/admin";
+                    }}
+                    className="border-white/15 text-white/70 hover:bg-white/5"
+                  >
+                    <Archive size={14} className="mr-2" /> Archive
+                  </Button>
+                </>
               )}
               <Button
                 onClick={() => window.print()}

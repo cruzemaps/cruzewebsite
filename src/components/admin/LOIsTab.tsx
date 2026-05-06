@@ -46,11 +46,14 @@ export default function LOIsTab({ isDemo }: { isDemo: boolean }) {
         setLoading(false);
         return;
       }
+      // Only show LOIs that are NOT archived. Archived LOIs live in the
+      // Archive Library tab where admins can restore or permanently delete.
       const { data, error } = await supabase
         .from("loi_signatures")
         .select(
           "id, user_id, pilot_application_id, participant_name, participant_company, participant_title, fleet_size, initials, signed_at, loi_version"
         )
+        .is("archived_at", null)
         .order("signed_at", { ascending: false });
       if (!error && data) setLois(data as LOIRow[]);
       setLoading(false);
