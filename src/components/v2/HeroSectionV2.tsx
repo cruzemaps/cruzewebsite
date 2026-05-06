@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { PlayCircle, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { track } from "@/lib/analytics";
 
 const HeroSectionV2 = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -57,18 +58,24 @@ const HeroSectionV2 = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <Button 
-                onClick={() => navigate('/route-planner')}
-                size="lg" 
+              <Button
+                onClick={() => {
+                  track("hero_cta_click", { cta: "fleet_savings_estimate", destination: "/route-planner" });
+                  navigate('/route-planner');
+                }}
+                size="lg"
                 className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] rounded-full font-bold text-lg px-8 py-6 flex items-center gap-2 group tracking-wide"
               >
                 Get a Fleet Savings Estimate
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button 
-                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-                size="lg" 
-                variant="outline" 
+              <Button
+                onClick={() => {
+                  track("hero_cta_click", { cta: "watch_solution", destination: "#how-it-works" });
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                size="lg"
+                variant="outline"
                 className="border-white/20 text-white hover:bg-white/5 rounded-full px-8 py-6 font-medium text-lg flex items-center gap-2"
               >
                 <PlayCircle className="w-5 h-5 text-brand-cyan" />

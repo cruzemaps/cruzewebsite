@@ -7,6 +7,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Loader2, Building2, Truck, Route } from "lucide-react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 
 type RoleType = "fleet_owner" | "city_operator";
 
@@ -64,6 +65,7 @@ const Login = () => {
       });
       if (error) toast.error(error.message);
       else {
+        track("signup_completed", { requested_role: role });
         toast.success("Pilot application initiated! Check your email to verify (or sign in if confirm email is off).");
         setIsSignUp(false); // Switch back to sign in
       }
@@ -79,6 +81,7 @@ const Login = () => {
       } else {
         toast.success("Successfully logged in");
         let appRole: string | undefined;
+        track("login_succeeded", { method: "password" });
         try {
           if (data.session?.access_token) {
             const payload = JSON.parse(atob(data.session.access_token.split(".")[1]));
