@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { ArrowLeft, ShieldAlert, Users, FileCheck, History, Mail } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Users, FileCheck, History, Mail, FileSignature } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,24 +10,26 @@ import UsersTab from "@/components/admin/UsersTab";
 import PilotsTab from "@/components/admin/PilotsTab";
 import AuditTab from "@/components/admin/AuditTab";
 import InvitationsTab from "@/components/admin/InvitationsTab";
+import LOIsTab from "@/components/admin/LOIsTab";
 
 const AdminPortal = () => {
   const { user, signOut } = useAuth();
-  const [counts, setCounts] = useState({ users: 0, pendingPilots: 0, openInvites: 0 });
+  const [counts, setCounts] = useState({ users: 0, pendingPilots: 0, openInvites: 0, lois: 0 });
   const isDemo = !!(sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role"));
 
   useEffect(() => {
     if (isDemo) {
-      setCounts({ users: 42, pendingPilots: 7, openInvites: 3 });
+      setCounts({ users: 42, pendingPilots: 7, openInvites: 3, lois: 12 });
       return;
     }
     (async () => {
-      const [{ count: users }, { count: pendingPilots }, { count: openInvites }] = await Promise.all([
+      const [{ count: users }, { count: pendingPilots }, { count: openInvites }, { count: lois }] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("pilot_applications").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("invitations").select("*", { count: "exact", head: true }).is("accepted_at", null),
+        supabase.from("loi_signatures").select("*", { count: "exact", head: true }),
       ]);
-      setCounts({ users: users || 0, pendingPilots: pendingPilots || 0, openInvites: openInvites || 0 });
+      setCounts({ users: users || 0, pendingPilots: pendingPilots || 0, openInvites: openInvites || 0, lois: lois || 0 });
     })();
   }, [isDemo]);
 
@@ -66,10 +68,11 @@ const AdminPortal = () => {
           </div>
         )}
 
-        <div className="grid sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Stat icon={<Users size={18} />} label="Users" value={counts.users} />
-          <Stat icon={<FileCheck size={18} />} label="Pending pilot applications" value={counts.pendingPilots} />
+          <Stat icon={<FileCheck size={18} />} label="Pending pilots" value={counts.pendingPilots} />
           <Stat icon={<Mail size={18} />} label="Open invitations" value={counts.openInvites} />
+          <Stat icon={<FileSignature size={18} />} label="Signed LOIs" value={counts.lois} />
         </div>
 
         <Tabs defaultValue="users" className="w-full">
@@ -82,6 +85,9 @@ const AdminPortal = () => {
             </TabsTrigger>
             <TabsTrigger value="invitations" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
               <Mail size={14} className="mr-2" /> Invitations
+            </TabsTrigger>
+            <TabsTrigger value="lois" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
+              <FileSignature size={14} className="mr-2" /> LOIs
             </TabsTrigger>
             <TabsTrigger value="audit" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
               <History size={14} className="mr-2" /> Audit
@@ -96,6 +102,9 @@ const AdminPortal = () => {
           </TabsContent>
           <TabsContent value="invitations" className="mt-6">
             <InvitationsTab isDemo={isDemo} />
+          </TabsContent>
+          <TabsContent value="lois" className="mt-6">
+            <LOIsTab isDemo={isDemo} />
           </TabsContent>
           <TabsContent value="audit" className="mt-6">
             <AuditTab isDemo={isDemo} />

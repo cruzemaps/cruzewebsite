@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import SEO from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,6 +31,7 @@ type WizardData = {
   truckSize: string;
   primaryLanes: string;
   fmsProvider: string;
+  fmsOther: string;
   contactEmail: string;
   contactName: string;
   contactPhone: string;
@@ -63,6 +64,7 @@ export default function Apply() {
     truckSize: "",
     primaryLanes: "",
     fmsProvider: "",
+    fmsOther: "",
     contactEmail: user?.email || "",
     contactName: "",
     contactPhone: "",
@@ -119,7 +121,7 @@ export default function Apply() {
         notes: [
           data.website && `Website: ${data.website}`,
           data.primaryLanes && `Primary lanes: ${data.primaryLanes}`,
-          data.fmsProvider && `FMS provider: ${data.fmsProvider}`,
+          data.fmsProvider && `FMS provider: ${data.fmsProvider}${data.fmsProvider === "Other" && data.fmsOther ? ` (${data.fmsOther})` : ""}`,
           data.contactName && `Contact: ${data.contactName}`,
           data.contactTitle && `Title: ${data.contactTitle}`,
           data.contactPhone && `Phone: ${data.contactPhone}`,
@@ -293,15 +295,59 @@ function Stepper({ current }: { current: number }) {
 
 function CompanyStep({ data, update }: { data: WizardData; update: <K extends keyof WizardData>(k: K, v: WizardData[K]) => void }) {
   return (
-    <div className="space-y-4">
-      <h2 className="font-display text-xl font-bold mb-4">Tell us about your company</h2>
-      <div>
-        <Label className="text-white/70 text-sm mb-1 block">Company name *</Label>
-        <Input value={data.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="Swift Transport Logistics" className="bg-white/5 border-white/10 text-white" />
+    <div className="space-y-6">
+      {/* Quick context block — for prospects who landed here without
+          reading /for-fleets first. Five quick facts about Cruze + the
+          pilot before any form fields. */}
+      <div className="rounded-xl border border-brand-orange/20 bg-gradient-to-br from-brand-orange/10 to-transparent p-5">
+        <div className="text-[11px] uppercase tracking-widest text-brand-orange font-semibold mb-3">
+          About the Cruze pilot
+        </div>
+        <p className="text-white/80 text-sm leading-relaxed mb-4">
+          Cruze coordinates speeds across your drivers and the swarm around them, dissolving phantom traffic
+          jams before they form. The 30-day pilot is software-only (no hardware to install) and zero upfront cost.
+        </p>
+        <div className="grid sm:grid-cols-3 gap-3 text-xs">
+          <div className="rounded-lg bg-white/5 p-3">
+            <div className="font-display text-2xl font-bold text-brand-orange">8 to 14%</div>
+            <div className="text-white/60 mt-1">fuel reduction in pilots</div>
+          </div>
+          <div className="rounded-lg bg-white/5 p-3">
+            <div className="font-display text-2xl font-bold text-brand-cyan">1 to 2 hrs</div>
+            <div className="text-white/60 mt-1">reclaimed per driver per week</div>
+          </div>
+          <div className="rounded-lg bg-white/5 p-3">
+            <div className="font-display text-2xl font-bold text-white">$0</div>
+            <div className="text-white/60 mt-1">upfront, only pay on documented savings</div>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3 text-xs">
+          <a href="/for-fleets" target="_blank" rel="noopener noreferrer" className="text-brand-orange hover:underline">
+            See the full fleet pitch →
+          </a>
+          <a href="/case-studies/midwest-class8-fleet" target="_blank" rel="noopener noreferrer" className="text-brand-cyan hover:underline">
+            Read the 600-truck case study →
+          </a>
+          <a href="/faq" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:underline">
+            FAQ →
+          </a>
+        </div>
       </div>
+
       <div>
-        <Label className="text-white/70 text-sm mb-1 block">Website</Label>
-        <Input value={data.website} onChange={(e) => update("website", e.target.value)} placeholder="https://…" className="bg-white/5 border-white/10 text-white" />
+        <h2 className="font-display text-xl font-bold mb-1">Tell us about your company</h2>
+        <p className="text-white/50 text-sm">Five quick steps. We respond within two business days.</p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label className="text-white/70 text-sm mb-1 block">Company name *</Label>
+          <Input value={data.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="Swift Transport Logistics" className="bg-white/5 border-white/10 text-white" />
+        </div>
+        <div>
+          <Label className="text-white/70 text-sm mb-1 block">Website</Label>
+          <Input value={data.website} onChange={(e) => update("website", e.target.value)} placeholder="https://…" className="bg-white/5 border-white/10 text-white" />
+        </div>
       </div>
     </div>
   );
@@ -365,6 +411,20 @@ function IntegrationStep({ data, update }: { data: WizardData; update: <K extend
           </SelectContent>
         </Select>
       </div>
+      {data.fmsProvider === "Other" && (
+        <div>
+          <Label className="text-white/70 text-sm mb-1 block">Which FMS / telematics system?</Label>
+          <Input
+            value={data.fmsOther}
+            onChange={(e) => update("fmsOther", e.target.value)}
+            placeholder="e.g. Fleet Complete, Lytx, Solera Omnitracs, custom in-house tool"
+            className="bg-white/5 border-white/10 text-white"
+          />
+          <p className="text-xs text-white/40 mt-1">
+            Helps us scope the integration timeline accurately.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -402,7 +462,10 @@ function ContactStep({ data, update }: { data: WizardData; update: <K extends ke
 }
 
 function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof WizardData>(k: K, v: WizardData[K]) => void }) {
-  const [showFullText, setShowFullText] = useState(false);
+  // Track whether the user has scrolled the full LOI text to the bottom.
+  // The agree-checkbox stays disabled until they've actually read it.
+  const [scrolledToEnd, setScrolledToEnd] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const signedDate = useMemo(() => new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }), []);
   const fullText = useMemo(
     () =>
@@ -417,12 +480,41 @@ function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof 
     [data.contactName, data.companyName, data.contactTitle, data.fleetSize, data.loiInitials, signedDate]
   );
 
+  // On mount, also check whether the LOI is short enough that no scrolling
+  // is needed (small viewports, short text variants). If the content already
+  // fits without overflow, count it as read.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (el.scrollHeight <= el.clientHeight + 4) {
+      setScrolledToEnd(true);
+    }
+  }, [fullText]);
+
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const t = e.currentTarget;
+    if (t.scrollTop + t.clientHeight >= t.scrollHeight - 24) {
+      setScrolledToEnd(true);
+    }
+  };
+
+  // If they later edit upstream wizard fields, force them to re-scroll. This
+  // protects against the corner case of "I scrolled, then went back, edited
+  // company name, returned, and the LOI text changed."
+  useEffect(() => {
+    setScrolledToEnd(false);
+  }, [data.contactName, data.companyName, data.fleetSize, data.contactTitle]);
+
+  // The checkbox is locked until they've read the full LOI.
+  const canAgree = scrolledToEnd;
+
   return (
     <div className="space-y-5">
       <div>
         <h2 className="font-display text-xl font-bold mb-1">Sign your Letter of Intent</h2>
         <p className="text-white/55 text-sm">
-          Standard 30-day pilot terms. Non-binding. We pre-filled everything from your previous answers.
+          Standard 30-day pilot terms. Non-binding. Pre-filled from your earlier answers. Scroll through the full
+          document below before you sign.
         </p>
       </div>
 
@@ -450,29 +542,47 @@ function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof 
         </dl>
       </div>
 
-      {/* Full LOI text (collapsible) */}
-      <div className="rounded-xl border border-white/10 bg-[#0B0E14]">
-        <button
-          type="button"
-          onClick={() => setShowFullText((v) => !v)}
-          className="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-white/80 hover:text-white"
+      {/* Full LOI text — always visible, must be scrolled to the end */}
+      <div className="rounded-xl border border-white/10 bg-[#0B0E14] overflow-hidden">
+        <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium">Full Letter of Intent</div>
+            <div className="text-[11px] text-white/40 mt-0.5">Read every section before signing.</div>
+          </div>
+          {scrolledToEnd ? (
+            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 px-2.5 py-1 rounded-full">
+              <Check size={11} /> Read
+            </span>
+          ) : (
+            <span className="text-[10px] uppercase tracking-widest font-semibold text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-2.5 py-1 rounded-full">
+              Scroll to bottom
+            </span>
+          )}
+        </div>
+        <div
+          ref={scrollRef}
+          onScroll={onScroll}
+          className="px-5 py-4 h-72 overflow-y-auto"
+          style={{ scrollBehavior: "smooth" }}
         >
-          <span>{showFullText ? "Hide" : "Read"} the full LOI text</span>
-          <ArrowRight size={14} className={`transition-transform ${showFullText ? "rotate-90" : ""}`} />
-        </button>
-        {showFullText && (
-          <div className="border-t border-white/10 px-5 py-4 max-h-72 overflow-y-auto">
-            <pre className="text-xs text-white/70 leading-relaxed whitespace-pre-wrap font-sans">{fullText}</pre>
+          <pre className="text-xs text-white/80 leading-relaxed whitespace-pre-wrap font-sans">{fullText}</pre>
+        </div>
+        {!scrolledToEnd && (
+          <div className="px-5 py-2 bg-yellow-400/5 border-t border-yellow-400/20 text-xs text-yellow-400/90 text-center">
+            Keep scrolling to unlock the signature section ↓
           </div>
         )}
       </div>
 
       {/* Sign block */}
-      <div className="rounded-xl border border-brand-orange/30 bg-brand-orange/5 p-5 space-y-4">
-        <label className="flex items-start gap-3 cursor-pointer">
+      <div className={`rounded-xl border p-5 space-y-4 transition-all ${
+        canAgree ? "border-brand-orange/30 bg-brand-orange/5" : "border-white/10 bg-white/[0.02] opacity-60 pointer-events-none"
+      }`}>
+        <label className={`flex items-start gap-3 ${canAgree ? "cursor-pointer" : "cursor-not-allowed"}`}>
           <Checkbox
             checked={data.loiAgreed}
             onCheckedChange={(v) => update("loiAgreed", !!v)}
+            disabled={!canAgree}
             className="mt-0.5 border-white/30 data-[state=checked]:bg-brand-orange data-[state=checked]:text-[#0B0E14] data-[state=checked]:border-brand-orange"
           />
           <span className="text-sm text-white/85 leading-relaxed">

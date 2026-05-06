@@ -41,6 +41,7 @@ export default function PilotsTab({ isDemo }: { isDemo: boolean }) {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<PilotApp | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [signedPilotIds, setSignedPilotIds] = useState<Set<string>>(new Set());
 
   const toggleSelected = (id: string) =>
     setSelected((prev) => {
@@ -83,6 +84,19 @@ export default function PilotsTab({ isDemo }: { isDemo: boolean }) {
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setApps((data as PilotApp[]) || []);
+
+    // Look up which pilot applications already have a signed LOI so we can
+    // show a badge on each pilot card. One query, in() filter, then a Set.
+    if (data && data.length > 0) {
+      const ids = (data as PilotApp[]).map((a) => a.id);
+      const { data: loiRows } = await supabase
+        .from("loi_signatures")
+        .select("pilot_application_id")
+        .in("pilot_application_id", ids);
+      if (loiRows) {
+        setSignedPilotIds(new Set(loiRows.map((r: any) => r.pilot_application_id).filter(Boolean)));
+      }
+    }
     setLoading(false);
   };
 
@@ -129,10 +143,19 @@ export default function PilotsTab({ isDemo }: { isDemo: boolean }) {
                   <LifecycleBadge state={a.status} />
                 </div>
                 <button onClick={() => setEditing(a)} className="text-left w-full">
-                  <div className="flex flex-wrap gap-3 text-xs text-white/50 mb-3">
+                  <div className="flex flex-wrap gap-3 text-xs text-white/50 mb-3 items-center">
                     <span className="inline-flex items-center gap-1"><Truck size={12} /> {a.truck_size || "N/A"}</span>
                     <span>{a.fleet_size ? `${a.fleet_size} vehicles` : "N/A"}</span>
                     <span>· {new Date(a.created_at).toLocaleDateString()}</span>
+                    {signedPilotIds.has(a.id) ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-400 text-[10px] uppercase tracking-widest font-semibold ml-auto px-2 py-0.5 rounded-full border border-emerald-400/30 bg-emerald-400/5">
+                        <FileSignature size={10} /> LOI signed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-white/30 text-[10px] uppercase tracking-widest ml-auto px-2 py-0.5 rounded-full border border-white/10">
+                        No LOI
+                      </span>
+                    )}
                   </div>
                   {a.notes && <p className="text-white/60 text-sm line-clamp-2">{a.notes}</p>}
                 </button>
@@ -184,11 +207,15 @@ function ManagePilotDialog({
   const [status, setStatus] = useState<LifecycleState>(app.status);
   const [notes, setNotes] = useState(app.notes || "");
   const [busy, setBusy] = useState(false);
-  const [loi, setLoi] = useState<{ id: string; signed_at: string; initials: string; participant_name: string } | null>(null);
+  type LoiPreview = { id: string; signed_at: string; initials: string; participant_name: string };
+  const [loi, setLoi] = useState<LoiPreview | null>(null);
 
   // Look up the signed LOI tied to this pilot application (if any)
   useEffect(() => {
-    if (isDemo) return;
+    if (isDemo) {
+      setLoi({ id: "demo-loi", signed_at: new Date().toISOString(), initials: "DM", participant_name: "Demo Signer" });
+      return;
+    }
     (async () => {
       const { data } = await supabase
         .from("loi_signatures")
@@ -197,7 +224,7 @@ function ManagePilotDialog({
         .order("signed_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (data) setLoi(data as typeof loi extends null ? never : any);
+      if (data) setLoi(data as LoiPreview);
     })();
   }, [app.id, isDemo]);
 

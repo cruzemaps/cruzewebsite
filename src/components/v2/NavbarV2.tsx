@@ -83,7 +83,7 @@ const NavbarV2 = () => {
                   Login
                 </Button>
               )}
-              <Button onClick={() => navigate('/login')} className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6">
+              <Button onClick={() => navigate('/apply')} className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6">
                 Start the Pilot
               </Button>
             </div>
@@ -122,7 +122,7 @@ const NavbarV2 = () => {
              ) : (
                <Link to="/login" className="text-brand-cyan hover:text-white font-medium" onClick={() => setIsOpen(false)}>Login</Link>
              )}
-             <Button onClick={() => { navigate('/login'); setIsOpen(false); }} className="bg-brand-orange text-[#0B0E14] font-bold w-full rounded-full">
+             <Button onClick={() => { navigate('/apply'); setIsOpen(false); }} className="bg-brand-orange text-[#0B0E14] font-bold w-full rounded-full">
                Start the Pilot
              </Button>
           </div>
