@@ -16,6 +16,11 @@ export default function ForCities() {
     window.location.href = "/dashboard";
   };
 
+  const handleBriefing = (location: string) => {
+    track("cities_cta_click", { cta: "request_briefing", location });
+    navigate("/login?role=city_operator");
+  };
+
   return (
     <MarketingLayout>
       <SEO
@@ -43,7 +48,7 @@ export default function ForCities() {
               Cruze is the first traffic management layer that actively coordinates driver speeds across your network. We dissolve recurring congestion before it forms, with zero roadside installation.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button onClick={() => navigate("/login?role=city_operator")} className="bg-brand-cyan hover:bg-brand-cyan/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6 h-12">
+              <Button onClick={() => handleBriefing("hero")} className="bg-brand-cyan hover:bg-brand-cyan/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6 h-12">
                 Request a briefing <ArrowRight className="ml-2" size={16} />
               </Button>
               <Button onClick={handleTryDemo} variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-full px-6 h-12">
@@ -96,7 +101,7 @@ export default function ForCities() {
             16-page primer for transportation directors: phantom jam economics, deployment patterns, federal funding alignment (USDOT SMART Grants, ARPA-IT/CARS).
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button onClick={() => navigate("/login?role=city_operator")} className="bg-brand-cyan hover:bg-brand-cyan/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6 h-12">
+            <Button onClick={() => handleBriefing("footer")} className="bg-brand-cyan hover:bg-brand-cyan/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6 h-12">
               Get the briefing
             </Button>
             <a

@@ -30,7 +30,7 @@ const FleetDashboard = () => {
       const isDemo = sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role");
       
       if (isDemo) {
-        const demoStatus = localStorage.getItem("demo_status") as AppStatus;
+        const demoStatus = (sessionStorage.getItem("demo_status") || localStorage.getItem("demo_status")) as AppStatus;
         if (demoStatus) setStatus(demoStatus);
         setLoading(false);
         return;

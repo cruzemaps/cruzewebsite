@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth, type AppRole } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import { ImpersonationBanner } from "@/components/ImpersonationBanner";
+import { track } from "@/lib/analytics";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,6 +13,18 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const { user, role, status, loading } = useAuth();
   const location = useLocation();
+  const firedFirstView = useRef(false);
+
+  useEffect(() => {
+    // dashboard_first_view: fires once per protected mount for an
+    // authenticated user with a real role. Used as the activation event
+    // in PostHog funnels. Don't fire while loading, signed-out, or
+    // role-mismatched.
+    if (!loading && user && role && !firedFirstView.current) {
+      firedFirstView.current = true;
+      track("dashboard_first_view", { role, path: location.pathname });
+    }
+  }, [loading, user, role, location.pathname]);
 
   if (loading) {
     return (

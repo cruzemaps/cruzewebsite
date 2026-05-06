@@ -7,6 +7,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Loader2, Building2, Truck, Route } from "lucide-react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 
 type RoleType = "fleet_owner" | "city_operator";
 
@@ -64,6 +65,7 @@ const Login = () => {
       });
       if (error) toast.error(error.message);
       else {
+        track("signup_completed", { requested_role: role });
         toast.success("Pilot application initiated! Check your email to verify (or sign in if confirm email is off).");
         setIsSignUp(false); // Switch back to sign in
       }
@@ -79,6 +81,7 @@ const Login = () => {
       } else {
         toast.success("Successfully logged in");
         let appRole: string | undefined;
+        track("login_succeeded", { method: "password" });
         try {
           if (data.session?.access_token) {
             const payload = JSON.parse(atob(data.session.access_token.split(".")[1]));
@@ -95,13 +98,17 @@ const Login = () => {
     setLoading(false);
   };
 
-  const handleOAuth = async (provider: 'google' | 'azure') => {
+  const handleOAuth = async (provider: 'google') => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({ 
+    const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { 
-        redirectTo: `${window.location.origin}/dashboard` // Standard redirect fallback
-      } 
+      options: {
+        // After OAuth, land on a generic post-signin route. The Login form
+        // post-signin handler reads JWT app_role and routes by role; for
+        // OAuth we don't have the JWT before the redirect happens, so we
+        // bounce through /admin which ProtectedRoute will reroute by role.
+        redirectTo: `${window.location.origin}/admin`,
+      }
     });
     if (error) toast.error(`Failed to connect to ${provider}: ${error.message}`);
     setLoading(false);

@@ -20,6 +20,11 @@ export default function ForFleets() {
     window.location.href = "/fleet-dashboard";
   };
 
+  const handleApply = (location: string) => {
+    track("fleet_cta_click", { cta: "apply", location });
+    navigate("/login?role=fleet_owner");
+  };
+
   return (
     <MarketingLayout>
       <SEO
@@ -39,12 +44,12 @@ export default function ForFleets() {
         }}
       />
 
-      <Hero onTryDemo={handleTryDemo} onApply={() => navigate("/login?role=fleet_owner")} />
+      <Hero onTryDemo={handleTryDemo} onApply={() => handleApply("hero")} />
       <ROISection />
       <BenefitsGrid />
       <ComparisonStrip />
       <IntegrationStrip />
-      <CTAStrip onApply={() => navigate("/login?role=fleet_owner")} />
+      <CTAStrip onApply={() => handleApply("footer")} />
     </MarketingLayout>
   );
 }
