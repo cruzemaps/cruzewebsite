@@ -1,10 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Download, ArrowLeft, Printer } from "lucide-react";
+import { Loader2, Download, ArrowLeft, Printer, Plus, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import SEO from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 // /loi/:id renders a signed LOI as a printable, paper-styled page.
 // Users hit "Download PDF" → opens browser print dialog → save as PDF.
@@ -12,7 +24,10 @@ import { useAuth } from "@/hooks/useAuth";
 //
 // Access:
 //   - User can view their own signed LOI (RLS enforced by Supabase)
-//   - Admin can view any signed LOI
+//   - Admin can view any signed LOI AND record amendments
+//
+// Amendments append to loi_amendments without mutating the original LOI.
+// They render below the signature panel as an "Amendments" section.
 
 interface LOISig {
   id: string;
@@ -31,12 +46,49 @@ interface LOISig {
   user_agent: string | null;
 }
 
+interface Amendment {
+  id: string;
+  loi_signature_id: string;
+  field: string;
+  previous_value: string | null;
+  new_value: string;
+  reason: string;
+  amended_by: string;
+  amended_at: string;
+}
+
+// Fields admins commonly need to amend. They can also type a custom one.
+const COMMON_FIELDS = [
+  "Company name",
+  "Participant name",
+  "Title",
+  "Fleet size",
+  "Performance fee bracket",
+  "Pilot start date",
+  "Telematics access scope",
+  "Other clarification",
+];
+
 export default function LOIView() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const [loi, setLoi] = useState<LOISig | null>(null);
+  const [amendments, setAmendments] = useState<Amendment[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [amendOpen, setAmendOpen] = useState(false);
+
+  const isAdmin = role === "admin";
+
+  const reloadAmendments = async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from("loi_amendments")
+      .select("*")
+      .eq("loi_signature_id", id)
+      .order("amended_at", { ascending: true });
+    if (data) setAmendments(data as Amendment[]);
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -52,11 +104,14 @@ export default function LOIView() {
         .maybeSingle();
       if (error || !data) {
         setNotFound(true);
-      } else {
-        setLoi(data as LOISig);
+        setLoading(false);
+        return;
       }
+      setLoi(data as LOISig);
+      await reloadAmendments();
       setLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, authLoading]);
 
   if (authLoading || loading) {
@@ -108,6 +163,15 @@ export default function LOIView() {
               <ArrowLeft size={16} /> Back to dashboard
             </Link>
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  onClick={() => setAmendOpen(true)}
+                  className="border-brand-orange/30 text-brand-orange hover:bg-brand-orange/10"
+                >
+                  <Plus size={14} className="mr-2" /> Add amendment
+                </Button>
+              )}
               <Button
                 onClick={() => window.print()}
                 className="bg-brand-cyan text-[#0B0E14] hover:bg-brand-cyan/90"
@@ -140,6 +204,11 @@ export default function LOIView() {
               <div className="text-right text-xs text-gray-500">
                 <div>LOI version {loi.loi_version}</div>
                 <div className="mt-0.5 font-mono">#{loi.id.slice(0, 8)}</div>
+                {amendments.length > 0 && (
+                  <div className="mt-1 inline-block px-2 py-0.5 rounded-full border border-amber-300 bg-amber-50 text-amber-800">
+                    {amendments.length} amendment{amendments.length === 1 ? "" : "s"}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -176,6 +245,52 @@ export default function LOIView() {
               </div>
             </div>
 
+            {/* Amendments — append-only ledger, renders below the signature.
+                The original LOI text above is unmodified; amendments listed
+                here clarify or correct fields after signing. */}
+            {amendments.length > 0 && (
+              <div className="mt-10 pt-6 border-t border-gray-300">
+                <div className="flex items-center gap-2 mb-1">
+                  <FileEdit size={14} className="text-amber-700" />
+                  <h3 className="text-sm font-bold tracking-widest uppercase text-amber-800">
+                    Amendments
+                  </h3>
+                </div>
+                <p className="text-xs text-gray-500 mb-5">
+                  The following changes were recorded after signing. The original signed text above remains unchanged.
+                  Amendments are listed in the order they were applied.
+                </p>
+                <ol className="space-y-4">
+                  {amendments.map((a, i) => (
+                    <li key={a.id} className="rounded-md border border-amber-200 bg-amber-50/40 p-4">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="text-sm font-semibold text-gray-900">
+                          Amendment {i + 1}: <span className="text-amber-800">{a.field}</span>
+                        </div>
+                        <div className="text-[11px] text-gray-500 whitespace-nowrap">
+                          {new Date(a.amended_at).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                        </div>
+                      </div>
+                      {a.previous_value && (
+                        <div className="text-[13px] text-gray-700 mb-1">
+                          <span className="text-gray-500">Was:</span> <span className="line-through">{a.previous_value}</span>
+                        </div>
+                      )}
+                      <div className="text-[13px] text-gray-900 mb-2">
+                        <span className="text-gray-500">Now:</span> <strong>{a.new_value}</strong>
+                      </div>
+                      <div className="text-[12px] text-gray-600 italic border-t border-amber-100 pt-2">
+                        Reason: {a.reason}
+                      </div>
+                      <div className="text-[10px] text-gray-400 mt-2 font-mono">
+                        Recorded by admin {a.amended_by.slice(0, 8)}… · amendment ID {a.id.slice(0, 8)}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
             {/* Audit footer */}
             <div className="mt-10 pt-4 border-t border-gray-200 text-[10px] text-gray-400 leading-relaxed">
               <div>
@@ -185,11 +300,178 @@ export default function LOIView() {
               </div>
               <div className="mt-1">
                 This document is the binding text of what was electronically agreed to. Cruze retains an immutable copy.
+                {amendments.length > 0 && " Amendments recorded after signing are listed above and do not alter the original signed text."}
               </div>
             </div>
           </div>
         </div>
+
+        {amendOpen && user && (
+          <AmendmentDialog
+            loi={loi}
+            adminId={user.id}
+            onClose={() => setAmendOpen(false)}
+            onAdded={async () => {
+              setAmendOpen(false);
+              await reloadAmendments();
+              toast.success("Amendment recorded.");
+            }}
+          />
+        )}
       </div>
     </>
+  );
+}
+
+function AmendmentDialog({
+  loi,
+  adminId,
+  onClose,
+  onAdded,
+}: {
+  loi: LOISig;
+  adminId: string;
+  onClose: () => void;
+  onAdded: () => void;
+}) {
+  const [field, setField] = useState<string>("");
+  const [customField, setCustomField] = useState("");
+  const [previousValue, setPreviousValue] = useState("");
+  const [newValue, setNewValue] = useState("");
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  // Pre-fill previous_value when a known field is selected
+  const handleFieldChange = (f: string) => {
+    setField(f);
+    if (f === "Company name") setPreviousValue(loi.participant_company);
+    else if (f === "Participant name") setPreviousValue(loi.participant_name);
+    else if (f === "Title") setPreviousValue(loi.participant_title || "(none)");
+    else if (f === "Fleet size") setPreviousValue(loi.fleet_size);
+    else if (f === "Performance fee bracket") setPreviousValue(`${loi.performance_fee_min_pct}–${loi.performance_fee_max_pct}%`);
+    else setPreviousValue("");
+  };
+
+  const submit = async () => {
+    const finalField = field === "Other clarification" ? customField : field;
+    if (!finalField || finalField.length < 2) return toast.error("Pick or type the field being amended.");
+    if (!newValue.trim()) return toast.error("Enter the new value.");
+    if (reason.trim().length < 5) return toast.error("Reason is required (5+ characters).");
+
+    setBusy(true);
+    const { error } = await supabase.from("loi_amendments").insert({
+      loi_signature_id: loi.id,
+      field: finalField,
+      previous_value: previousValue || null,
+      new_value: newValue,
+      reason,
+      amended_by: adminId,
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    onAdded();
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0B0E14] border-white/10 text-white max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display flex items-center gap-2">
+            <FileEdit size={18} /> Add amendment
+          </DialogTitle>
+          <DialogDescription className="text-white/50">
+            The original signed LOI text stays unchanged. Amendments are added as a separate, append-only record below the signature.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div>
+            <Label className="text-white/70 text-sm mb-2 block">Which field is being amended?</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {COMMON_FIELDS.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => handleFieldChange(f)}
+                  className={`text-left text-xs px-3 py-2 rounded-md border transition-colors ${
+                    field === f
+                      ? "border-brand-orange/60 bg-brand-orange/10 text-brand-orange"
+                      : "border-white/10 bg-white/5 text-white/70 hover:border-white/20"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            {field === "Other clarification" && (
+              <Input
+                value={customField}
+                onChange={(e) => setCustomField(e.target.value.slice(0, 60))}
+                placeholder="Describe the field (e.g. 'Pilot start date')"
+                className="bg-white/5 border-white/10 text-white mt-3"
+              />
+            )}
+          </div>
+
+          {field && field !== "Other clarification" && (
+            <div>
+              <Label className="text-white/70 text-sm mb-2 block">Previous value (auto-filled, edit if needed)</Label>
+              <Input
+                value={previousValue}
+                onChange={(e) => setPreviousValue(e.target.value)}
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+          )}
+
+          {field === "Other clarification" && (
+            <div>
+              <Label className="text-white/70 text-sm mb-2 block">Previous value (optional)</Label>
+              <Input
+                value={previousValue}
+                onChange={(e) => setPreviousValue(e.target.value)}
+                placeholder="What it was before, if applicable"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+          )}
+
+          <div>
+            <Label className="text-white/70 text-sm mb-2 block">New value *</Label>
+            <Input
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              placeholder="What it is now"
+              className="bg-white/5 border-white/10 text-white"
+            />
+          </div>
+
+          <div>
+            <Label className="text-white/70 text-sm mb-2 block">Reason for amendment *</Label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              placeholder="e.g. Customer reported the company name was misspelled at signing — confirmed correct legal name via email."
+              className="bg-white/5 border-white/10 text-white"
+            />
+            <p className="text-[11px] text-white/40 mt-1">
+              The reason shows up in the LOI's amendments section and is part of the permanent audit trail.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button
+            onClick={submit}
+            disabled={busy || !field || (field === "Other clarification" && !customField) || !newValue.trim() || reason.trim().length < 5}
+            className="bg-brand-orange text-[#0B0E14] hover:bg-brand-orange/90 font-bold"
+          >
+            {busy && <Loader2 className="animate-spin mr-2" size={14} />} Record amendment
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

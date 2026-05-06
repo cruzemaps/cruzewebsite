@@ -42,6 +42,7 @@ export default function PilotsTab({ isDemo }: { isDemo: boolean }) {
   const [editing, setEditing] = useState<PilotApp | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [signedPilotIds, setSignedPilotIds] = useState<Set<string>>(new Set());
+  const [showArchived, setShowArchived] = useState(false);
 
   const toggleSelected = (id: string) =>
     setSelected((prev) => {
@@ -107,6 +108,18 @@ export default function PilotsTab({ isDemo }: { isDemo: boolean }) {
   return (
     <Card className="bg-[#0F131C] border-white/10">
       <CardContent className="p-6">
+        <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="text-sm text-white/60">
+            {showArchived ? "Showing all pilot applications including archived." : "Hiding archived applications. Toggle to view."}
+          </div>
+          <button
+            onClick={() => setShowArchived((v) => !v)}
+            className="text-xs px-3 py-1.5 rounded-md border border-white/10 text-white/70 hover:border-white/20 hover:text-white"
+          >
+            {showArchived ? "Hide archived" : "Show archived"}
+          </button>
+        </div>
+
         {selected.size > 0 && (
           <div className="mb-4 flex flex-wrap items-center gap-2 p-3 rounded-lg bg-brand-cyan/10 border border-brand-cyan/30">
             <span className="text-sm text-brand-cyan font-semibold mr-2">{selected.size} selected</span>

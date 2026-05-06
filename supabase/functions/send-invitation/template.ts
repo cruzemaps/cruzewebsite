@@ -1,69 +1,99 @@
 // Email template for the invitation pipeline. Edit copy/layout here without
 // touching index.ts (the function plumbing).
 //
-// DESIGN NOTES:
-//   - Pulls the real logo from cruzemaps.com (so updating the file there
-//     updates every future email).
-//   - Per-role accent color: cyan for cities, orange for fleets, gradient
-//     for admin. Matches the website's role tinting.
-//   - Charcoal #0B0E14 canvas (matches site).
-//   - Table-based layout so Outlook + Gmail + dark mode all render the same.
-//   - Inline styles only; <style> blocks are stripped by many clients.
-//   - SOLID HEX COLORS for all text. Some clients (Gmail dark mode, Outlook)
-//     auto-darken or strip rgba(255,255,255,X) values, leaving low-contrast
-//     ghost text. Hex equivalents render reliably everywhere.
-//   - Hidden preheader text in <span style="display:none"> at the very top
-//     gives the inbox-list preview snippet a useful sentence.
+// DESIGN APPROACH — LIGHT THEME WITH DARK ACCENT BANDS:
+//   Gmail dark mode aggressively auto-darkens already-dark emails, which is
+//   why the previous fully-dark design rendered as ghost text in Gmail dark
+//   mode. The robust solution every major transactional sender (Stripe,
+//   Linear, Vercel, Notion, Figma) uses: a LIGHT email body with dark brand
+//   bands at top and bottom.
+//
+//   - White card background, near-black body text → reads predictably in
+//     both light AND dark mode (Gmail dim-pass keeps it legible).
+//   - Dark header band with logo + role eyebrow gives brand presence without
+//     being touched by dark-mode auto-inversion.
+//   - Dark footer band closes the visual frame.
+//   - Brand accent colors (cyan / orange) used for: top accent bar,
+//     "Accept invitation" CTA, headline highlight, bullet markers.
+//
+//   - Table-based layout (Outlook compatibility).
+//   - Inline styles only (most clients strip <style> blocks).
+//   - Hidden preheader text in <span style="display:none"> at the top.
+//   - meta name="color-scheme" left as "light" so clients don't try to
+//     auto-flip the design.
 //
 // Returns { subject, html, text } for Resend's API.
 
 // @ts-nocheck — Deno runtime, not Node. The repo's tsconfig doesn't load this file.
 
 const BRAND = {
-  // Backgrounds
+  // Dark band colors (header + footer)
   charcoal: "#0B0E14",
   charcoalDeep: "#070A10",
-  cardBg: "#141821",
-  cardBorder: "#1F2530",
-  cardBorderStrong: "#2A3140",
-  // Text — solid hex equivalents of various opacities, picked so they
-  // render with good contrast in BOTH dark mode and light mode email clients.
-  white: "#FFFFFF",
-  textPrimary: "#F4F6FB",      // body copy, ~95% white
-  textSecondary: "#C5CCDB",    // secondary copy, was 0.65 alpha
-  textMuted: "#8F98AB",        // tertiary, was 0.42 alpha — now actually readable
-  textFooter: "#6F778A",       // footer, was 0.28 alpha — now visible
+
+  // Light body colors
+  bodyBg: "#F4F6FB",         // outer canvas (page background)
+  cardBg: "#FFFFFF",         // email card background
+  cardBorder: "#E5E9F2",     // subtle card edges
+
+  // Light-theme text
+  textPrimary: "#0B0E14",    // headlines on white
+  textBody: "#1F2530",       // body copy
+  textMuted: "#5C6478",      // tertiary
+  textFaint: "#8F98AB",      // faint footer text in light areas
+
+  // Dark-band text
+  darkBandPrimary: "#FFFFFF",
+  darkBandSecondary: "#C5CCDB",
+  darkBandFaint: "#8F98AB",
+
   // Brand accents
-  cyan: "#00F2FF",
-  cyanSoft: "#1DD9E5",         // slightly desaturated cyan for some surfaces
-  orange: "#FF8C00",
-  orangeSoft: "#E07700",
+  cyan: "#00B4C0",           // slightly darker cyan that has good contrast on WHITE
+  cyanBg: "#00F2FF",         // brighter cyan for use on dark bands / CTA backgrounds
+  orange: "#E67700",         // slightly darker orange for white background readability
+  orangeBg: "#FF8C00",       // brighter orange for dark bands / CTA backgrounds
+
+  // Bullet card
+  bulletCardBg: "#F8FAFD",
+  bulletCardBorder: "#E5E9F2",
+
   // System
   fontStack: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif',
 };
 
 const LOGO_URL = "https://cruzemaps.com/logo.png";
 
-// Per-role copy and accent. Edit these to change what each role sees.
+// Per-role copy and accent.
+// `accentDark` is used on dark surfaces (bands, CTAs); `accentText` is the
+// readable variant for accent text on the WHITE body.
 const COPY: Record<
   string,
-  { subject: string; preheader: string; eyebrow: string; subhead: string; bullets: string[]; accent: string }
+  {
+    subject: string;
+    preheader: string;
+    eyebrow: string;
+    subhead: string;
+    bullets: string[];
+    accentDark: string;   // color used on dark bands / for the CTA fill
+    accentText: string;   // color used for accent text on white background
+  }
 > = {
   admin: {
-    subject: "You've been invited as a Cruze Admin",
+    subject: "You've been invited as a Cruzemaps Admin",
     preheader: "Accept your admin invitation to manage Cruze pilots, users, and audit trails.",
     eyebrow: "Admin invitation",
-    subhead: "You'll have full operational control of the Cruze platform: pilot reviews, user management, and the complete audit trail.",
+    subhead: "You'll have full operational control of the Cruzemaps platform: pilot reviews, user management, and the complete audit trail.",
     bullets: [
       "Review and approve incoming pilot applications",
       "Manage roles and access for the entire team",
       "Inspect every change with the immutable audit log",
       "Issue invitations, suspend accounts, and impersonate users for support",
     ],
-    accent: BRAND.cyan,
+    accentDark: BRAND.cyanBg,
+    accentText: BRAND.cyan,
   },
   city_operator: {
-    subject: "Your Cruze city operator invitation",
+    subject: "Your Cruzemaps city operator invitation",
     preheader: "Accept your invitation to access Mission Control for your city's corridor.",
     eyebrow: "City operator invitation",
     subhead: "Mission Control gives you live corridor telemetry, coordination metrics, and pre/post benchmarking against control segments.",
@@ -73,20 +103,22 @@ const COPY: Record<
       "Pre/post benchmarks against unmanaged control segments",
       "Equity and emissions reporting for federal program co-funding",
     ],
-    accent: BRAND.cyan,
+    accentDark: BRAND.cyanBg,
+    accentText: BRAND.cyan,
   },
   fleet_owner: {
-    subject: "Your Cruze fleet pilot invitation",
-    preheader: "Accept your invitation to start your Cruze fleet pilot.",
+    subject: "Your Cruzemaps fleet pilot invitation",
+    preheader: "Accept your invitation to start your Cruzemaps fleet pilot.",
     eyebrow: "Fleet pilot invitation",
-    subhead: "Cruze coordinates speeds across your drivers and the swarm around them. Pilots show 8 to 14% fuel reduction and 1 to 2 hours per week reclaimed per driver.",
+    subhead: "Cruzemaps coordinates speeds across your drivers and the swarm around them. Pilots show 8 to 14% fuel reduction and 1 to 2 hours per week reclaimed per driver.",
     bullets: [
       "Live fuel and stop-and-go reduction per truck",
       "Audit-ready CO₂ ledger for sustainability reports",
       "Direct integration with Samsara, Geotab, Motive, Verizon Connect, and Trimble",
       "Calibrated savings projections after a 30-day pilot",
     ],
-    accent: BRAND.orange,
+    accentDark: BRAND.orangeBg,
+    accentText: BRAND.orange,
   },
 };
 
@@ -110,25 +142,22 @@ export function renderInvitationEmail(vars: InvitationVars): {
   text: string;
 } {
   const copy = COPY[vars.role] ?? COPY.fleet_owner;
-  const accent = copy.accent;
   const roleLabel = ROLE_LABEL[vars.role] ?? vars.role;
   const expiresIso = new Date(vars.expiresAt).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
-  const inviter = vars.inviterName ?? "An admin at Cruze";
+  const inviter = vars.inviterName ?? "An admin at Cruzemaps";
 
-  // Bullets rendered as a 2-column table per row: dot + text. Solid hex colors
-  // throughout so dark-mode email clients don't recolor them.
   const bulletsHtml = copy.bullets
     .map(
       (b) => `
         <tr>
-          <td style="padding:6px 0; vertical-align:top; width:18px; line-height:1;">
-            <span style="display:inline-block; width:6px; height:6px; border-radius:9999px; background:${accent}; margin-top:9px;">&nbsp;</span>
+          <td style="padding:8px 0; vertical-align:top; width:18px; line-height:1;">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:9999px; background:${copy.accentText}; margin-top:7px;">&nbsp;</span>
           </td>
-          <td style="padding:6px 0 6px 10px; color:${BRAND.textPrimary}; font-size:15px; line-height:1.5; font-family:${BRAND.fontStack};">${escapeHtml(b)}</td>
+          <td style="padding:8px 0 8px 12px; color:${BRAND.textBody}; font-size:15px; line-height:1.55; font-family:${BRAND.fontStack};">${escapeHtml(b)}</td>
         </tr>`
     )
     .join("");
@@ -138,8 +167,8 @@ export function renderInvitationEmail(vars: InvitationVars): {
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark only" />
-  <meta name="supported-color-schemes" content="dark only" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
   <title>${escapeHtml(copy.subject)}</title>
   <!--[if mso]>
   <style type="text/css">
@@ -147,68 +176,81 @@ export function renderInvitationEmail(vars: InvitationVars): {
     .button { padding: 14px 32px !important; }
   </style>
   <![endif]-->
+  <style>
+    /* Override Gmail dark mode auto-inversion. Gmail's mobile dark mode
+       sometimes recolors emails it considers "light" — these classes hint
+       to keep the explicit colors. Standard properties used by Gmail. */
+    u + .body .gmail-fix { display: none !important; }
+    @media (prefers-color-scheme: dark) {
+      .body { background:${BRAND.bodyBg} !important; }
+      .card { background:${BRAND.cardBg} !important; }
+      .text-primary { color:${BRAND.textPrimary} !important; }
+      .text-body { color:${BRAND.textBody} !important; }
+      .text-muted { color:${BRAND.textMuted} !important; }
+    }
+  </style>
 </head>
-<body style="margin:0; padding:0; background:${BRAND.charcoalDeep}; font-family:${BRAND.fontStack}; color:${BRAND.textPrimary}; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%;">
+<body class="body" style="margin:0; padding:0; background:${BRAND.bodyBg}; font-family:${BRAND.fontStack}; color:${BRAND.textBody}; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%;">
   <!-- Preheader (preview snippet in inbox list, hidden in body) -->
   <span style="display:none !important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px;">
     ${escapeHtml(copy.preheader)}
   </span>
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.charcoalDeep}; min-width:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.bodyBg}; min-width:100%;">
     <tr>
       <td align="center" style="padding:32px 12px;">
 
         <!-- Outer card -->
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:${BRAND.charcoal}; border-radius:16px; overflow:hidden;">
+        <table role="presentation" class="card" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:${BRAND.cardBg}; border:1px solid ${BRAND.cardBorder}; border-radius:14px; overflow:hidden; box-shadow:0 4px 24px rgba(11,14,20,0.06);">
 
-          <!-- Top accent bar (gradient) -->
+          <!-- DARK HEADER BAND with logo + brand + eyebrow -->
           <tr>
-            <td style="height:4px; background:${accent}; line-height:4px; font-size:0; mso-line-height-rule:exactly;">&nbsp;</td>
-          </tr>
-
-          <!-- Header / brand -->
-          <tr>
-            <td style="padding:36px 40px 0 40px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <td style="background:${BRAND.charcoal}; padding:32px 40px;" bgcolor="${BRAND.charcoal}">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
-                  <td style="vertical-align:middle; padding-right:16px;">
-                    <img src="${LOGO_URL}" width="56" height="56" alt="Cruze" style="display:block; border:0; outline:none; border-radius:12px; max-width:56px;" />
+                  <td style="vertical-align:middle; padding-right:14px; width:56px;">
+                    <img src="${LOGO_URL}" width="48" height="48" alt="Cruzemaps" style="display:block; border:0; outline:none; border-radius:10px; max-width:48px;" />
                   </td>
                   <td style="vertical-align:middle;">
-                    <div style="font-weight:800; font-size:22px; letter-spacing:0.10em; color:${BRAND.white}; font-family:${BRAND.fontStack}; line-height:1.1;">CRUZE</div>
-                    <div style="font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${accent}; font-family:${BRAND.fontStack}; margin-top:6px; font-weight:600;">${escapeHtml(copy.eyebrow)}</div>
+                    <div style="font-weight:800; font-size:20px; letter-spacing:0.10em; color:${BRAND.darkBandPrimary}; font-family:${BRAND.fontStack}; line-height:1.1;">CRUZE</div>
+                    <div style="font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${copy.accentDark}; font-family:${BRAND.fontStack}; margin-top:6px; font-weight:600;">${escapeHtml(copy.eyebrow)}</div>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
+          <!-- Top accent bar in brand color -->
+          <tr>
+            <td style="height:4px; background:${copy.accentDark}; line-height:4px; font-size:0; mso-line-height-rule:exactly;" bgcolor="${copy.accentDark}">&nbsp;</td>
+          </tr>
+
           <!-- Hero -->
           <tr>
-            <td style="padding:32px 40px 12px 40px;">
-              <h1 style="margin:0; font-size:30px; line-height:1.2; font-weight:700; color:${BRAND.white}; font-family:${BRAND.fontStack}; letter-spacing:-0.02em;">
-                You've been invited to <span style="color:${accent};">Cruze</span>.
+            <td style="padding:40px 40px 12px 40px; background:${BRAND.cardBg};">
+              <h1 class="text-primary" style="margin:0; font-size:30px; line-height:1.18; font-weight:700; color:${BRAND.textPrimary}; font-family:${BRAND.fontStack}; letter-spacing:-0.02em;">
+                You've been invited to <span style="color:${copy.accentText};">Cruzemaps</span>.
               </h1>
             </td>
           </tr>
           <tr>
-            <td style="padding:0 40px 28px 40px;">
-              <p style="margin:0 0 14px; font-size:16px; line-height:1.55; color:${BRAND.textSecondary}; font-family:${BRAND.fontStack};">
-                ${escapeHtml(inviter)} invited you to join Cruze as <strong style="color:${accent}; font-weight:600;">${escapeHtml(roleLabel)}</strong>.
+            <td style="padding:0 40px 28px 40px; background:${BRAND.cardBg};">
+              <p class="text-body" style="margin:0 0 14px; font-size:16px; line-height:1.55; color:${BRAND.textBody}; font-family:${BRAND.fontStack};">
+                ${escapeHtml(inviter)} invited you to join Cruzemaps as <strong style="color:${copy.accentText}; font-weight:600;">${escapeHtml(roleLabel)}</strong>.
               </p>
-              <p style="margin:0; font-size:16px; line-height:1.55; color:${BRAND.textSecondary}; font-family:${BRAND.fontStack};">
+              <p class="text-body" style="margin:0; font-size:16px; line-height:1.55; color:${BRAND.textBody}; font-family:${BRAND.fontStack};">
                 ${escapeHtml(copy.subhead)}
               </p>
             </td>
           </tr>
 
-          <!-- Bullets card -->
+          <!-- Bullets card on a slightly tinted background -->
           <tr>
-            <td style="padding:0 40px 32px 40px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.cardBg}; border:1px solid ${BRAND.cardBorderStrong}; border-radius:12px; width:100%;">
+            <td style="padding:0 40px 32px 40px; background:${BRAND.cardBg};">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.bulletCardBg}; border:1px solid ${BRAND.bulletCardBorder}; border-radius:10px; width:100%;">
                 <tr>
-                  <td style="padding:20px 24px;">
-                    <div style="font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:${accent}; font-family:${BRAND.fontStack}; margin-bottom:14px; font-weight:700;">What you'll get</div>
+                  <td style="padding:18px 22px;">
+                    <div style="font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:${copy.accentText}; font-family:${BRAND.fontStack}; margin-bottom:10px; font-weight:700;">What you'll get</div>
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                       ${bulletsHtml}
                     </table>
@@ -218,12 +260,12 @@ export function renderInvitationEmail(vars: InvitationVars): {
             </td>
           </tr>
 
-          <!-- CTA. Bullet-proof button: solid background, dark text, big tap target. -->
+          <!-- CTA button. Bullet-proof: solid bgcolor + dark text + explicit padding. -->
           <tr>
-            <td align="left" style="padding:0 40px 12px 40px;">
+            <td align="left" style="padding:0 40px 16px 40px; background:${BRAND.cardBg};">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="background:${accent}; border-radius:10px;" bgcolor="${accent}">
+                  <td style="background:${copy.accentDark}; border-radius:10px;" bgcolor="${copy.accentDark}">
                     <a href="${escapeAttr(vars.inviteUrl)}"
                        class="button"
                        style="display:inline-block; padding:14px 32px; color:${BRAND.charcoal} !important; font-weight:700; font-size:15px; text-decoration:none; border-radius:10px; font-family:${BRAND.fontStack}; letter-spacing:0.02em; mso-padding-alt:0; mso-text-raise:14pt;">
@@ -237,35 +279,35 @@ export function renderInvitationEmail(vars: InvitationVars): {
 
           <!-- Plain link fallback -->
           <tr>
-            <td style="padding:8px 40px 28px 40px;">
-              <p style="margin:0 0 6px; font-size:13px; color:${BRAND.textMuted}; line-height:1.5; font-family:${BRAND.fontStack};">
+            <td style="padding:8px 40px 32px 40px; background:${BRAND.cardBg};">
+              <p class="text-muted" style="margin:0 0 6px; font-size:13px; color:${BRAND.textMuted}; line-height:1.5; font-family:${BRAND.fontStack};">
                 Or paste this link into your browser:
               </p>
               <p style="margin:0 0 16px; font-size:13px; word-break:break-all; line-height:1.55; font-family:${BRAND.fontStack};">
-                <a href="${escapeAttr(vars.inviteUrl)}" style="color:${accent}; text-decoration:underline;">${escapeHtml(vars.inviteUrl)}</a>
+                <a href="${escapeAttr(vars.inviteUrl)}" style="color:${copy.accentText}; text-decoration:underline;">${escapeHtml(vars.inviteUrl)}</a>
               </p>
-              <p style="margin:0; font-size:13px; color:${BRAND.textMuted}; line-height:1.5; font-family:${BRAND.fontStack};">
+              <p class="text-muted" style="margin:0; font-size:13px; color:${BRAND.textMuted}; line-height:1.5; font-family:${BRAND.fontStack};">
                 This invitation expires on <strong style="color:${BRAND.textPrimary}; font-weight:600;">${escapeHtml(expiresIso)}</strong>. If you weren't expecting this email you can safely ignore it.
               </p>
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- DARK FOOTER BAND -->
           <tr>
-            <td style="border-top:1px solid ${BRAND.cardBorder}; padding:24px 40px 28px 40px; background:${BRAND.charcoalDeep};">
+            <td style="background:${BRAND.charcoalDeep}; padding:24px 40px 28px 40px;" bgcolor="${BRAND.charcoalDeep}">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td style="vertical-align:middle;">
-                    <div style="font-weight:700; letter-spacing:0.08em; font-size:12px; color:${BRAND.textPrimary}; font-family:${BRAND.fontStack}; text-transform:uppercase;">Cruzemaps</div>
-                    <div style="margin-top:4px; font-size:12px; color:${BRAND.textMuted}; font-family:${BRAND.fontStack};">Dissolve traffic, not just avoid it.</div>
+                    <div style="font-weight:800; letter-spacing:0.10em; font-size:13px; color:${BRAND.darkBandPrimary}; font-family:${BRAND.fontStack}; text-transform:uppercase;">Cruzemaps</div>
+                    <div style="margin-top:4px; font-size:12px; color:${BRAND.darkBandSecondary}; font-family:${BRAND.fontStack};">Dissolve traffic, not just avoid it.</div>
                   </td>
                   <td align="right" style="vertical-align:middle; font-size:12px; font-family:${BRAND.fontStack};">
-                    <a href="https://cruzemaps.com" style="color:${BRAND.textSecondary}; text-decoration:none;">cruzemaps.com</a>
+                    <a href="https://cruzemaps.com" style="color:${copy.accentDark}; text-decoration:none; font-weight:600;">cruzemaps.com</a>
                   </td>
                 </tr>
               </table>
-              <p style="margin:18px 0 0; font-size:11px; color:${BRAND.textFooter}; line-height:1.6; font-family:${BRAND.fontStack};">
-                Sent to ${escapeHtml(vars.email)} · Questions: <a href="mailto:hello@cruzemaps.com" style="color:${BRAND.textMuted}; text-decoration:underline;">hello@cruzemaps.com</a>
+              <p style="margin:18px 0 0; font-size:11px; color:${BRAND.darkBandFaint}; line-height:1.6; font-family:${BRAND.fontStack};">
+                Sent to ${escapeHtml(vars.email)} · Questions: <a href="mailto:hello@cruzemaps.com" style="color:${BRAND.darkBandSecondary}; text-decoration:underline;">hello@cruzemaps.com</a>
               </p>
             </td>
           </tr>
@@ -278,9 +320,9 @@ export function renderInvitationEmail(vars: InvitationVars): {
 </html>`;
 
   const text = [
-    `You've been invited to Cruze.`,
+    `You've been invited to Cruzemaps.`,
     ``,
-    `${inviter} invited you to join Cruze as ${roleLabel}.`,
+    `${inviter} invited you to join Cruzemaps as ${roleLabel}.`,
     `${copy.subhead}`,
     ``,
     `What you'll get:`,

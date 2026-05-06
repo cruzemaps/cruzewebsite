@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, Search, Shield, ShieldOff, Users as UsersIcon, Eye, AlertTriangle } from "lucide-react";
+import { Loader2, Search, Shield, ShieldOff, Users as UsersIcon, Eye, AlertTriangle, Archive, ArchiveRestore } from "lucide-react";
 import { track } from "@/lib/analytics";
 
 type Profile = {
@@ -43,7 +43,7 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
   const [editing, setEditing] = useState<Profile | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -55,6 +55,28 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
       else next.add(id);
       return next;
     });
+
+  // Archive (soft-delete) or restore a user. Goes through the same
+  // change_user_role RPC so the action is captured in role_history.
+  const archiveOrRestore = async (u: Profile, archive: boolean) => {
+    const verb = archive ? "archive" : "restore";
+    const reason = prompt(`${archive ? "Archive" : "Restore"} ${u.email}? Enter a reason for the audit log:`);
+    if (!reason || reason.trim().length < 3) return;
+    if (isDemo) {
+      setUsers((prev) => prev.map((p) => (p.id === u.id ? { ...p, status: archive ? "archived" : "active" } : p)));
+      toast.success(`Demo: ${u.email} ${verb}d locally.`);
+      return;
+    }
+    const { error } = await supabase.rpc("change_user_role", {
+      target_user_id: u.id,
+      new_role: u.role,
+      new_status: archive ? "archived" : "active",
+      reason: reason.trim(),
+    });
+    if (error) return toast.error(error.message);
+    setUsers((prev) => prev.map((p) => (p.id === u.id ? { ...p, status: archive ? "archived" : "active" } : p)));
+    toast.success(`${u.email} ${verb}d.`);
+  };
 
   const impersonate = (u: Profile) => {
     if (!confirm(`Impersonate ${u.email}? This opens a new tab acting as them. The action is logged in the audit trail.`)) return;
@@ -106,7 +128,11 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
   const filtered = useMemo(() => {
     return users.filter((u) => {
       if (roleFilter !== "all" && u.role !== roleFilter) return false;
-      if (statusFilter !== "all" && u.status !== statusFilter) return false;
+      if (statusFilter === "all_visible") {
+        if (u.status === "archived") return false;
+      } else if (statusFilter !== "all") {
+        if (u.status !== statusFilter) return false;
+      }
       if (query) {
         const q = query.toLowerCase();
         const fields = [u.email, u.first_name, u.last_name].filter(Boolean).join(" ").toLowerCase();
@@ -139,13 +165,14 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-white"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-[200px] bg-white/5 border-white/10 text-white"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="active">Active (default)</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
               <SelectItem value="suspended">Suspended</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
+              <SelectItem value="archived">Archived (deleted)</SelectItem>
+              <SelectItem value="all_visible">All except archived</SelectItem>
+              <SelectItem value="all">All including archived</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -214,6 +241,15 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
                         <Button size="sm" variant="ghost" onClick={() => impersonate(u)} title="View as this user (logged)">
                           <Eye size={14} />
                         </Button>
+                        {u.status === "archived" ? (
+                          <Button size="sm" variant="ghost" onClick={() => archiveOrRestore(u, false)} title="Restore from archive" className="text-emerald-400 hover:text-emerald-300">
+                            <ArchiveRestore size={14} />
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="ghost" onClick={() => archiveOrRestore(u, true)} title="Archive (soft-delete)" className="text-white/50 hover:text-red-400">
+                            <Archive size={14} />
+                          </Button>
+                        )}
                         <Button size="sm" variant="ghost" onClick={() => setEditing(u)}>Manage</Button>
                       </td>
                     </tr>
