@@ -9,6 +9,9 @@
 //   - Charcoal #0B0E14 canvas (matches site).
 //   - Table-based layout so Outlook + Gmail + dark mode all render the same.
 //   - Inline styles only; <style> blocks are stripped by many clients.
+//   - SOLID HEX COLORS for all text. Some clients (Gmail dark mode, Outlook)
+//     auto-darken or strip rgba(255,255,255,X) values, leaving low-contrast
+//     ghost text. Hex equivalents render reliably everywhere.
 //   - Hidden preheader text in <span style="display:none"> at the very top
 //     gives the inbox-list preview snippet a useful sentence.
 //
@@ -17,19 +20,25 @@
 // @ts-nocheck — Deno runtime, not Node. The repo's tsconfig doesn't load this file.
 
 const BRAND = {
+  // Backgrounds
   charcoal: "#0B0E14",
   charcoalDeep: "#070A10",
-  cardBg: "#0F131C",
-  cardBorder: "rgba(255,255,255,0.08)",
-  cyan: "#00F2FF",
-  orange: "#FF8C00",
+  cardBg: "#141821",
+  cardBorder: "#1F2530",
+  cardBorderStrong: "#2A3140",
+  // Text — solid hex equivalents of various opacities, picked so they
+  // render with good contrast in BOTH dark mode and light mode email clients.
   white: "#FFFFFF",
-  whiteStrong: "rgba(255,255,255,0.92)",
-  whiteMuted: "rgba(255,255,255,0.65)",
-  whiteFaint: "rgba(255,255,255,0.42)",
-  whiteGhost: "rgba(255,255,255,0.28)",
-  // Use a system font stack that approximates Inter on most platforms.
-  // Web fonts via @import in email are unreliable — most clients strip them.
+  textPrimary: "#F4F6FB",      // body copy, ~95% white
+  textSecondary: "#C5CCDB",    // secondary copy, was 0.65 alpha
+  textMuted: "#8F98AB",        // tertiary, was 0.42 alpha — now actually readable
+  textFooter: "#6F778A",       // footer, was 0.28 alpha — now visible
+  // Brand accents
+  cyan: "#00F2FF",
+  cyanSoft: "#1DD9E5",         // slightly desaturated cyan for some surfaces
+  orange: "#FF8C00",
+  orangeSoft: "#E07700",
+  // System
   fontStack: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif',
 };
 
@@ -82,9 +91,9 @@ const COPY: Record<
 };
 
 const ROLE_LABEL: Record<string, string> = {
-  admin: "Admin",
-  city_operator: "City Operator",
-  fleet_owner: "Fleet Operator",
+  admin: "an Admin",
+  city_operator: "a City Operator",
+  fleet_owner: "a Fleet Operator",
 };
 
 interface InvitationVars {
@@ -110,14 +119,16 @@ export function renderInvitationEmail(vars: InvitationVars): {
   });
   const inviter = vars.inviterName ?? "An admin at Cruze";
 
+  // Bullets rendered as a 2-column table per row: dot + text. Solid hex colors
+  // throughout so dark-mode email clients don't recolor them.
   const bulletsHtml = copy.bullets
     .map(
       (b) => `
         <tr>
-          <td style="padding:8px 0; vertical-align:top; width:22px; line-height:1;">
-            <span style="display:inline-block; width:6px; height:6px; border-radius:9999px; background:${accent}; margin-top:8px; box-shadow:0 0 12px ${accent};"></span>
+          <td style="padding:6px 0; vertical-align:top; width:18px; line-height:1;">
+            <span style="display:inline-block; width:6px; height:6px; border-radius:9999px; background:${accent}; margin-top:9px;">&nbsp;</span>
           </td>
-          <td style="padding:8px 0 8px 8px; color:${BRAND.whiteStrong}; font-size:15px; line-height:1.55; font-family:${BRAND.fontStack};">${escapeHtml(b)}</td>
+          <td style="padding:6px 0 6px 10px; color:${BRAND.textPrimary}; font-size:15px; line-height:1.5; font-family:${BRAND.fontStack};">${escapeHtml(b)}</td>
         </tr>`
     )
     .join("");
@@ -127,31 +138,32 @@ export function renderInvitationEmail(vars: InvitationVars): {
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark light" />
-  <meta name="supported-color-schemes" content="dark light" />
+  <meta name="color-scheme" content="dark only" />
+  <meta name="supported-color-schemes" content="dark only" />
   <title>${escapeHtml(copy.subject)}</title>
   <!--[if mso]>
   <style type="text/css">
     table, td { mso-line-height-rule: exactly; line-height: normal; }
+    .button { padding: 14px 32px !important; }
   </style>
   <![endif]-->
 </head>
-<body style="margin:0; padding:0; background:${BRAND.charcoalDeep}; font-family:${BRAND.fontStack}; color:${BRAND.white}; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%;">
+<body style="margin:0; padding:0; background:${BRAND.charcoalDeep}; font-family:${BRAND.fontStack}; color:${BRAND.textPrimary}; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%;">
   <!-- Preheader (preview snippet in inbox list, hidden in body) -->
   <span style="display:none !important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px;">
     ${escapeHtml(copy.preheader)}
   </span>
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.charcoalDeep};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.charcoalDeep}; min-width:100%;">
     <tr>
       <td align="center" style="padding:32px 12px;">
 
-        <!-- Outer card with subtle gradient border at top -->
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:${BRAND.charcoal}; border-radius:18px; overflow:hidden;">
+        <!-- Outer card -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:${BRAND.charcoal}; border-radius:16px; overflow:hidden;">
 
           <!-- Top accent bar (gradient) -->
           <tr>
-            <td style="height:4px; background:linear-gradient(90deg, ${BRAND.orange} 0%, ${BRAND.cyan} 100%); line-height:4px; font-size:0;">&nbsp;</td>
+            <td style="height:4px; background:${accent}; line-height:4px; font-size:0; mso-line-height-rule:exactly;">&nbsp;</td>
           </tr>
 
           <!-- Header / brand -->
@@ -159,12 +171,12 @@ export function renderInvitationEmail(vars: InvitationVars): {
             <td style="padding:36px 40px 0 40px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="vertical-align:middle; padding-right:14px;">
-                    <img src="${LOGO_URL}" width="44" height="44" alt="Cruze logo" style="display:block; border:0; outline:none; border-radius:10px;" />
+                  <td style="vertical-align:middle; padding-right:16px;">
+                    <img src="${LOGO_URL}" width="56" height="56" alt="Cruze" style="display:block; border:0; outline:none; border-radius:12px; max-width:56px;" />
                   </td>
                   <td style="vertical-align:middle;">
-                    <div style="font-weight:800; font-size:20px; letter-spacing:0.10em; color:${BRAND.white}; font-family:${BRAND.fontStack}; line-height:1;">CRUZE</div>
-                    <div style="font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${accent}; font-family:${BRAND.fontStack}; margin-top:6px;">${escapeHtml(copy.eyebrow)}</div>
+                    <div style="font-weight:800; font-size:22px; letter-spacing:0.10em; color:${BRAND.white}; font-family:${BRAND.fontStack}; line-height:1.1;">CRUZE</div>
+                    <div style="font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${accent}; font-family:${BRAND.fontStack}; margin-top:6px; font-weight:600;">${escapeHtml(copy.eyebrow)}</div>
                   </td>
                 </tr>
               </table>
@@ -173,17 +185,18 @@ export function renderInvitationEmail(vars: InvitationVars): {
 
           <!-- Hero -->
           <tr>
-            <td style="padding:32px 40px 8px 40px;">
-              <h1 style="margin:0; font-size:34px; line-height:1.12; font-weight:700; color:${BRAND.white}; font-family:${BRAND.fontStack}; letter-spacing:-0.02em;">
-                You've been invited<br/>to <span style="color:${accent};">Cruze</span>.
+            <td style="padding:32px 40px 12px 40px;">
+              <h1 style="margin:0; font-size:30px; line-height:1.2; font-weight:700; color:${BRAND.white}; font-family:${BRAND.fontStack}; letter-spacing:-0.02em;">
+                You've been invited to <span style="color:${accent};">Cruze</span>.
               </h1>
             </td>
           </tr>
           <tr>
             <td style="padding:0 40px 28px 40px;">
-              <p style="margin:0; font-size:16px; line-height:1.6; color:${BRAND.whiteMuted}; font-family:${BRAND.fontStack};">
-                ${escapeHtml(inviter)} invited you to join as a
-                <strong style="color:${accent}; font-weight:600;">${escapeHtml(roleLabel)}</strong>.
+              <p style="margin:0 0 14px; font-size:16px; line-height:1.55; color:${BRAND.textSecondary}; font-family:${BRAND.fontStack};">
+                ${escapeHtml(inviter)} invited you to join Cruze as <strong style="color:${accent}; font-weight:600;">${escapeHtml(roleLabel)}</strong>.
+              </p>
+              <p style="margin:0; font-size:16px; line-height:1.55; color:${BRAND.textSecondary}; font-family:${BRAND.fontStack};">
                 ${escapeHtml(copy.subhead)}
               </p>
             </td>
@@ -192,10 +205,10 @@ export function renderInvitationEmail(vars: InvitationVars): {
           <!-- Bullets card -->
           <tr>
             <td style="padding:0 40px 32px 40px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.cardBg}; border:1px solid ${BRAND.cardBorder}; border-radius:14px; width:100%;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.cardBg}; border:1px solid ${BRAND.cardBorderStrong}; border-radius:12px; width:100%;">
                 <tr>
-                  <td style="padding:18px 22px;">
-                    <div style="font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${accent}; font-family:${BRAND.fontStack}; margin-bottom:12px;">What you'll get</div>
+                  <td style="padding:20px 24px;">
+                    <div style="font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:${accent}; font-family:${BRAND.fontStack}; margin-bottom:14px; font-weight:700;">What you'll get</div>
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                       ${bulletsHtml}
                     </table>
@@ -205,14 +218,15 @@ export function renderInvitationEmail(vars: InvitationVars): {
             </td>
           </tr>
 
-          <!-- CTA -->
+          <!-- CTA. Bullet-proof button: solid background, dark text, big tap target. -->
           <tr>
-            <td align="left" style="padding:0 40px 16px 40px;">
+            <td align="left" style="padding:0 40px 12px 40px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="background:${accent}; border-radius:9999px;">
+                  <td style="background:${accent}; border-radius:10px;" bgcolor="${accent}">
                     <a href="${escapeAttr(vars.inviteUrl)}"
-                       style="display:inline-block; padding:16px 36px; color:${BRAND.charcoal}; font-weight:700; font-size:15px; text-decoration:none; border-radius:9999px; font-family:${BRAND.fontStack}; letter-spacing:0.02em;">
+                       class="button"
+                       style="display:inline-block; padding:14px 32px; color:${BRAND.charcoal} !important; font-weight:700; font-size:15px; text-decoration:none; border-radius:10px; font-family:${BRAND.fontStack}; letter-spacing:0.02em; mso-padding-alt:0; mso-text-raise:14pt;">
                       Accept invitation →
                     </a>
                   </td>
@@ -221,38 +235,37 @@ export function renderInvitationEmail(vars: InvitationVars): {
             </td>
           </tr>
 
-          <!-- Plain link fallback + expiry -->
+          <!-- Plain link fallback -->
           <tr>
-            <td style="padding:8px 40px 32px 40px;">
-              <p style="margin:0 0 10px; font-size:13px; color:${BRAND.whiteFaint}; line-height:1.5; font-family:${BRAND.fontStack};">
+            <td style="padding:8px 40px 28px 40px;">
+              <p style="margin:0 0 6px; font-size:13px; color:${BRAND.textMuted}; line-height:1.5; font-family:${BRAND.fontStack};">
                 Or paste this link into your browser:
               </p>
-              <p style="margin:0 0 18px; font-size:13px; word-break:break-all; line-height:1.5; font-family:${BRAND.fontStack};">
+              <p style="margin:0 0 16px; font-size:13px; word-break:break-all; line-height:1.55; font-family:${BRAND.fontStack};">
                 <a href="${escapeAttr(vars.inviteUrl)}" style="color:${accent}; text-decoration:underline;">${escapeHtml(vars.inviteUrl)}</a>
               </p>
-              <p style="margin:0; font-size:13px; color:${BRAND.whiteFaint}; line-height:1.5; font-family:${BRAND.fontStack};">
-                This invitation expires on <strong style="color:${BRAND.whiteMuted}; font-weight:600;">${escapeHtml(expiresIso)}</strong>.
-                If you weren't expecting this, you can safely ignore the email.
+              <p style="margin:0; font-size:13px; color:${BRAND.textMuted}; line-height:1.5; font-family:${BRAND.fontStack};">
+                This invitation expires on <strong style="color:${BRAND.textPrimary}; font-weight:600;">${escapeHtml(expiresIso)}</strong>. If you weren't expecting this email you can safely ignore it.
               </p>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="border-top:1px solid ${BRAND.cardBorder}; padding:24px 40px 32px 40px; background:${BRAND.charcoalDeep};">
+            <td style="border-top:1px solid ${BRAND.cardBorder}; padding:24px 40px 28px 40px; background:${BRAND.charcoalDeep};">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td style="vertical-align:middle;">
-                    <div style="font-weight:800; letter-spacing:0.08em; font-size:12px; color:${BRAND.whiteMuted}; font-family:${BRAND.fontStack};">CRUZE TECHNOLOGIES</div>
-                    <div style="margin-top:4px; font-size:12px; color:${BRAND.whiteFaint}; font-family:${BRAND.fontStack}; font-style:italic;">Dissolve traffic, not just avoid it.</div>
+                    <div style="font-weight:700; letter-spacing:0.08em; font-size:12px; color:${BRAND.textPrimary}; font-family:${BRAND.fontStack}; text-transform:uppercase;">Cruze Technologies</div>
+                    <div style="margin-top:4px; font-size:12px; color:${BRAND.textMuted}; font-family:${BRAND.fontStack};">Dissolve traffic, not just avoid it.</div>
                   </td>
-                  <td align="right" style="vertical-align:middle; font-size:12px; color:${BRAND.whiteFaint}; font-family:${BRAND.fontStack};">
-                    <a href="https://cruzemaps.com" style="color:${BRAND.whiteMuted}; text-decoration:none;">cruzemaps.com</a>
+                  <td align="right" style="vertical-align:middle; font-size:12px; font-family:${BRAND.fontStack};">
+                    <a href="https://cruzemaps.com" style="color:${BRAND.textSecondary}; text-decoration:none;">cruzemaps.com</a>
                   </td>
                 </tr>
               </table>
-              <p style="margin:18px 0 0; font-size:11px; color:${BRAND.whiteGhost}; line-height:1.6; font-family:${BRAND.fontStack};">
-                Sent to ${escapeHtml(vars.email)}. Questions: <a href="mailto:hello@cruzemaps.com" style="color:${BRAND.whiteFaint}; text-decoration:none;">hello@cruzemaps.com</a>
+              <p style="margin:18px 0 0; font-size:11px; color:${BRAND.textFooter}; line-height:1.6; font-family:${BRAND.fontStack};">
+                Sent to ${escapeHtml(vars.email)} · Questions: <a href="mailto:hello@cruzemaps.com" style="color:${BRAND.textMuted}; text-decoration:underline;">hello@cruzemaps.com</a>
               </p>
             </td>
           </tr>
@@ -267,7 +280,7 @@ export function renderInvitationEmail(vars: InvitationVars): {
   const text = [
     `You've been invited to Cruze.`,
     ``,
-    `${inviter} invited you to join as a ${roleLabel}.`,
+    `${inviter} invited you to join Cruze as ${roleLabel}.`,
     `${copy.subhead}`,
     ``,
     `What you'll get:`,
