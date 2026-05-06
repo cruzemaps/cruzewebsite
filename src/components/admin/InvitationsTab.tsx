@@ -32,6 +32,7 @@ export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Invite["role"]>("fleet_owner");
   const [copied, setCopied] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -130,16 +131,42 @@ export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
           </div>
         </div>
 
+        {(() => {
+          const now = Date.now();
+          const visibleInvites = showAll
+            ? invites
+            : invites.filter(
+                (i) => !i.accepted_at && new Date(i.expires_at).getTime() >= now
+              );
+          const acceptedCount = invites.filter((i) => i.accepted_at).length;
+          const expiredCount = invites.filter((i) => !i.accepted_at && new Date(i.expires_at).getTime() < now).length;
+          return (
+            <>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div className="text-xs text-white/50">
+                  {showAll
+                    ? `Showing all ${invites.length} invitations.`
+                    : `Showing ${visibleInvites.length} pending. Hidden: ${acceptedCount} accepted, ${expiredCount} expired.`}
+                </div>
+                {(acceptedCount > 0 || expiredCount > 0) && (
+                  <button
+                    onClick={() => setShowAll((v) => !v)}
+                    className="text-xs px-3 py-1 rounded-md border border-white/10 text-white/70 hover:border-white/20 hover:text-white"
+                  >
+                    {showAll ? "Hide accepted/expired" : "Show all (incl. accepted)"}
+                  </button>
+                )}
+              </div>
         {loading ? (
           <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-brand-cyan" /></div>
-        ) : invites.length === 0 ? (
+        ) : visibleInvites.length === 0 ? (
           <div className="py-12 text-center text-white/40">
             <Mail className="mx-auto mb-2" />
-            No invitations yet.
+            {invites.length === 0 ? "No invitations yet." : "No pending invitations. Click 'Show all' to view accepted/expired."}
           </div>
         ) : (
           <div className="space-y-3">
-            {invites.map((inv) => {
+            {visibleInvites.map((inv) => {
               const expired = !inv.accepted_at && new Date(inv.expires_at) < new Date();
               return (
                 <div key={inv.id} className="rounded-xl border border-white/10 bg-[#0B0E14] p-4 flex flex-wrap items-center gap-4">
@@ -165,6 +192,9 @@ export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
             })}
           </div>
         )}
+            </>
+          );
+        })()}
       </CardContent>
     </Card>
   );

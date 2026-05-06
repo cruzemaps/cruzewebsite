@@ -133,11 +133,14 @@ export default function PilotsTab({ isDemo }: { isDemo: boolean }) {
         )}
         {loading ? (
           <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-brand-cyan" /></div>
-        ) : apps.length === 0 ? (
-          <div className="py-16 text-center text-white/40">No pilot applications yet.</div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-4">
-            {apps.map((a) => (
+        ) : (() => {
+          const visibleApps = showArchived ? apps : apps.filter((a) => a.status !== "archived");
+          if (visibleApps.length === 0) {
+            return <div className="py-16 text-center text-white/40">{apps.length === 0 ? "No pilot applications yet." : "No active pilot applications. Toggle 'Show archived' to view archived."}</div>;
+          }
+          return (
+            <div className="grid md:grid-cols-2 gap-4">
+              {visibleApps.map((a) => (
               <div key={a.id} className="rounded-xl border border-white/10 bg-[#0B0E14] p-5 hover:border-brand-cyan/40 transition-colors">
                 <div className="flex items-start justify-between mb-3 gap-3">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -174,8 +177,9 @@ export default function PilotsTab({ isDemo }: { isDemo: boolean }) {
                 </button>
               </div>
             ))}
-          </div>
-        )}
+            </div>
+          );
+        })()}
       </CardContent>
 
       {editing && (
