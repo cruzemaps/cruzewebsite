@@ -74,7 +74,7 @@ function articleJsonLd(study: CaseStudy) {
     "@type": "Article",
     headline: study.title,
     description: study.excerpt,
-    author: { "@type": "Organization", name: "Cruze Technologies" },
+    author: { "@type": "Organization", name: "Cruzemaps" },
     publisher: { "@type": "Organization", name: "Cruze", logo: { "@type": "ImageObject", url: `${SITE.url}/logo.png` } },
     datePublished: study.publishedAt,
     mainEntityOfPage: `${SITE.url}/case-studies/${study.slug}`,

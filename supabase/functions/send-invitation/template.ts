@@ -256,7 +256,7 @@ export function renderInvitationEmail(vars: InvitationVars): {
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td style="vertical-align:middle;">
-                    <div style="font-weight:700; letter-spacing:0.08em; font-size:12px; color:${BRAND.textPrimary}; font-family:${BRAND.fontStack}; text-transform:uppercase;">Cruze Technologies</div>
+                    <div style="font-weight:700; letter-spacing:0.08em; font-size:12px; color:${BRAND.textPrimary}; font-family:${BRAND.fontStack}; text-transform:uppercase;">Cruzemaps</div>
                     <div style="margin-top:4px; font-size:12px; color:${BRAND.textMuted}; font-family:${BRAND.fontStack};">Dissolve traffic, not just avoid it.</div>
                   </td>
                   <td align="right" style="vertical-align:middle; font-size:12px; font-family:${BRAND.fontStack};">
@@ -293,7 +293,7 @@ export function renderInvitationEmail(vars: InvitationVars): {
     `If you weren't expecting this email you can safely ignore it.`,
     ``,
     `—`,
-    `Cruze Technologies — Dissolve traffic, not just avoid it.`,
+    `Cruzemaps — Dissolve traffic, not just avoid it.`,
     `cruzemaps.com — hello@cruzemaps.com`,
   ].join("\n");
 

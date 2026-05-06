@@ -64,7 +64,7 @@ function Footer() {
         </FooterColumn>
       </div>
       <div className="border-t border-white/5 py-6 text-center text-xs text-white/40">
-        © {new Date().getFullYear()} Cruze Technologies. Driving the future of traffic management.
+        © {new Date().getFullYear()} Cruzemaps. Driving the future of traffic management.
       </div>
     </footer>
   );

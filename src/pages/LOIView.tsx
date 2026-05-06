@@ -134,7 +134,7 @@ export default function LOIView() {
                 <img src="/logo.png" alt="Cruze" className="w-12 h-12" />
                 <div>
                   <div className="font-bold tracking-widest text-sm text-gray-900">CRUZE</div>
-                  <div className="text-xs text-gray-500 mt-0.5">Cruze Technologies · Austin, TX</div>
+                  <div className="text-xs text-gray-500 mt-0.5">Cruzemaps · Austin, TX</div>
                 </div>
               </div>
               <div className="text-right text-xs text-gray-500">
@@ -171,7 +171,7 @@ export default function LOIView() {
                   /s/ AB
                 </div>
                 <div className="text-sm text-gray-700">Anudeep Bonagiri</div>
-                <div className="text-sm text-gray-600">Founder, Cruze Technologies</div>
+                <div className="text-sm text-gray-600">Founder, Cruzemaps</div>
                 <div className="text-sm text-gray-600">Austin, Texas</div>
               </div>
             </div>

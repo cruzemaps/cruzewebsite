@@ -37,7 +37,7 @@ export default function Investors() {
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Organization",
-          name: "Cruze Technologies",
+          name: "Cruzemaps",
           description:
             "Cruze is the operating system for moving vehicles. We coordinate driver speeds with swarm intelligence to dissolve phantom traffic jams.",
           url: SITE.url,

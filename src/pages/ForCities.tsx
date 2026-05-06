@@ -29,7 +29,7 @@ export default function ForCities() {
           "@type": "GovernmentService",
           name: "Cruze for Cities & DOTs",
           serviceType: "Traffic management coordination platform",
-          provider: { "@type": "Organization", name: "Cruze Technologies" },
+          provider: { "@type": "Organization", name: "Cruzemaps" },
           areaServed: { "@type": "Country", name: "United States" },
         }}
       />

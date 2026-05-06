@@ -66,7 +66,7 @@ Signed (electronic): ${fields.signedDate}
 
 For Cruze: Anudeep Bonagiri
 Title: Founder
-Cruze Technologies, Austin, Texas`;
+Cruzemaps, Austin, Texas`;
 }
 
 // Plain-English summary shown above the full text in the signing UI, so

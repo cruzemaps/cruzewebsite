@@ -33,7 +33,7 @@ export type RouteMeta = {
 const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Cruze Technologies",
+  name: "Cruzemaps",
   url: SITE.url,
   logo: `${SITE.url}/logo.png`,
   description: SITE.shortDescription,
