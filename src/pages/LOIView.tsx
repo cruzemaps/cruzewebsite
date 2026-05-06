@@ -77,16 +77,26 @@ export default function LOIView() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [amendOpen, setAmendOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiveReason, setArchiveReason] = useState("");
+  const [archiving, setArchiving] = useState(false);
 
   const isAdmin = role === "admin";
 
   const reloadAmendments = async () => {
     if (!id) return;
-    const { data } = await supabase
+    // Audit #31: surface amendment-load errors instead of swallowing them.
+    // Otherwise an admin could record an amendment, see no error, and not
+    // realize their list view is stale because the reload silently failed.
+    const { data, error } = await supabase
       .from("loi_amendments")
       .select("*")
       .eq("loi_signature_id", id)
       .order("amended_at", { ascending: true });
+    if (error) {
+      toast.error(`Couldn't reload amendments: ${error.message}`);
+      return;
+    }
     if (data) setAmendments(data as Amendment[]);
   };
 
@@ -122,7 +132,12 @@ export default function LOIView() {
     );
   }
   if (!user) return <Navigate to={`/login?next=/loi/${id}`} replace />;
-  if (notFound || !loi) return <Navigate to="/fleet-dashboard" replace />;
+  // Audit #12: admins land on /admin (not /fleet-dashboard) when the LOI
+  // can't be found — they don't have a fleet dashboard, so the previous
+  // redirect would bounce them back through ProtectedRoute anyway.
+  if (notFound || !loi) {
+    return <Navigate to={isAdmin ? "/admin" : "/fleet-dashboard"} replace />;
+  }
 
   const signedDate = new Date(loi.signed_at).toLocaleDateString("en-US", {
     year: "numeric",
@@ -174,13 +189,9 @@ export default function LOIView() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={async () => {
-                      const reason = prompt("Reason for archiving this LOI? (Min 3 characters)");
-                      if (!reason || reason.trim().length < 3) return;
-                      const { error } = await supabase.rpc("archive_loi", { p_loi_id: loi.id, p_reason: reason });
-                      if (error) return toast.error(error.message);
-                      toast.success("LOI archived. Find it in the Archive Library.");
-                      window.location.href = "/admin";
+                    onClick={() => {
+                      setArchiveReason("");
+                      setArchiveOpen(true);
                     }}
                     className="border-white/15 text-white/70 hover:bg-white/5"
                   >
@@ -325,7 +336,6 @@ export default function LOIView() {
         {amendOpen && user && (
           <AmendmentDialog
             loi={loi}
-            adminId={user.id}
             onClose={() => setAmendOpen(false)}
             onAdded={async () => {
               setAmendOpen(false);
@@ -334,6 +344,71 @@ export default function LOIView() {
             }}
           />
         )}
+
+        {/* Archive dialog (audit #13) — replaces the bare browser prompt() */}
+        <Dialog open={archiveOpen} onOpenChange={(o) => {
+          // 2nd-pass audit #8: clear the typed reason on any close path
+          // (backdrop, Esc, Cancel) so a half-typed reason can never be
+          // submitted against an LOI viewed later in the same session.
+          if (archiving) return;
+          if (!o) setArchiveReason("");
+          setArchiveOpen(o);
+        }}>
+          <DialogContent className="bg-[#0B0E14] border-white/10 text-white max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display flex items-center gap-2">
+                <Archive size={18} /> Archive this LOI
+              </DialogTitle>
+              <DialogDescription className="text-white/50">
+                Archived LOIs are removed from the live LOIs list and surface in the Archive Library. The original
+                signed text and audit trail are preserved.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label className="text-white/70 text-sm">Reason for archive (required, 3+ characters)</Label>
+              <Textarea
+                value={archiveReason}
+                onChange={(e) => setArchiveReason(e.target.value)}
+                rows={3}
+                placeholder="e.g. Superseded by amended LOI v1.1"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setArchiveOpen(false)} disabled={archiving}>
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  const reason = archiveReason.trim();
+                  if (reason.length < 3) {
+                    toast.error("Please give a reason (3+ characters).");
+                    return;
+                  }
+                  setArchiving(true);
+                  const { error } = await supabase.rpc("archive_loi", {
+                    p_loi_id: loi.id,
+                    p_reason: reason,
+                  });
+                  setArchiving(false);
+                  if (error) {
+                    toast.error(error.message);
+                    return;
+                  }
+                  setArchiveOpen(false);
+                  toast.success("LOI archived. Find it in the Archive Library.");
+                  // Use react-router instead of full page reload would lose
+                  // the LOI page mid-archive; admin lands on the portal.
+                  window.location.href = "/admin";
+                }}
+                disabled={archiving || archiveReason.trim().length < 3}
+                className="bg-brand-orange text-[#0B0E14] hover:bg-brand-orange/90 font-bold"
+              >
+                {archiving && <Loader2 className="animate-spin mr-2" size={14} />} Archive LOI
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );
@@ -341,15 +416,17 @@ export default function LOIView() {
 
 function AmendmentDialog({
   loi,
-  adminId,
   onClose,
   onAdded,
 }: {
   loi: LOISig;
-  adminId: string;
   onClose: () => void;
   onAdded: () => void;
 }) {
+  // Audit #37: read the admin ID from useAuth directly instead of plumbing
+  // it down as a prop. The Supabase trigger enforces amended_by = auth.uid()
+  // anyway, so the parent's prop drilling was redundant.
+  const { user } = useAuth();
   const [field, setField] = useState<string>("");
   const [customField, setCustomField] = useState("");
   const [previousValue, setPreviousValue] = useState("");
@@ -369,6 +446,7 @@ function AmendmentDialog({
   };
 
   const submit = async () => {
+    if (!user) return toast.error("Not signed in.");
     const finalField = field === "Other clarification" ? customField : field;
     if (!finalField || finalField.length < 2) return toast.error("Pick or type the field being amended.");
     if (!newValue.trim()) return toast.error("Enter the new value.");
@@ -381,7 +459,7 @@ function AmendmentDialog({
       previous_value: previousValue || null,
       new_value: newValue,
       reason,
-      amended_by: adminId,
+      amended_by: user.id,
     });
     setBusy(false);
     if (error) return toast.error(error.message);

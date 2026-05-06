@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { identifyUser, resetAnalytics } from "@/lib/analytics";
@@ -49,6 +49,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<AppRole | null>(null);
   const [status, setStatus] = useState<AppStatus | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Refs that mirror role/status. The realtime subscription's callback closes
+  // over these via the ref, not the state value, so subsequent profile UPDATEs
+  // always compare against the latest known role/status (fixes audit #8).
+  const roleRef = useRef<AppRole | null>(null);
+  const statusRef = useRef<AppStatus | null>(null);
+  useEffect(() => { roleRef.current = role; }, [role]);
+  useEffect(() => { statusRef.current = status; }, [status]);
 
   // Helper: re-fetch session from Supabase, which re-runs the JWT hook and
   // returns a token with current claims. Used when an admin updates this
@@ -144,8 +152,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return;
             }
 
+            // Read latest role/status from refs (state-mirroring) so the
+            // closure isn't stale across multiple updates within the same
+            // session. Audit #8 was about this exact bug.
+            const currentRole = roleRef.current;
+            const currentStatus = statusRef.current;
+
             // Soft notification: role changed. Refresh JWT so RLS sees new role.
-            if (newRole && newRole !== role) {
+            if (newRole && newRole !== currentRole) {
               toast.info(`Your role was updated to ${newRole}.`);
               forceRefresh();
               return;
@@ -155,14 +169,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Do NOT sign out — pending users can still browse public pages.
             // Refresh so the JWT reflects the new app_status claim, but if
             // refresh fails we keep the old session rather than dropping it.
-            if (newStatus && newStatus !== status && newStatus !== "active") {
+            if (newStatus && newStatus !== currentStatus && newStatus !== "active") {
               toast.warning(`Your account status changed to ${newStatus}. Some features may be limited.`);
               forceRefresh();
               return;
             }
 
             // Status returned to active — refresh quietly so RLS unblocks.
-            if (newStatus === "active" && status && status !== "active") {
+            if (newStatus === "active" && currentStatus && currentStatus !== "active") {
               forceRefresh();
               return;
             }
@@ -195,7 +209,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setStatus(s);
       if (session?.user) {
         identifyUser(session.user.id, { email: session.user.email });
-        if (currentUserId !== session.user.id) {
+        // 2nd-pass audit #7: also re-subscribe when the JWT's claim role
+        // drifts from what we previously had on this user. The user.id
+        // check alone misses the case where a session for the same user
+        // is reissued with a different app_role (admin demoted/promoted
+        // mid-session), which would otherwise leave the channel listening
+        // under stale claims.
+        const claimDrifted = currentUserId === session.user.id && r !== roleRef.current;
+        if (currentUserId !== session.user.id || claimDrifted) {
           currentUserId = session.user.id;
           subscribeToProfile(session.user.id);
         }

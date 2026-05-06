@@ -42,6 +42,27 @@ const Login = () => {
     }
   }, [location.search]);
 
+  // OAuth callback handler: when an OAuth provider returns to /login with
+  // ?oauth_callback=1, read the now-issued JWT and route by role. Avoids
+  // the previous "flash of /admin" bug for non-admin OAuth users (audit #25).
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("oauth_callback") !== "1") return;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      let appRole: string | undefined;
+      try {
+        if (data.session?.access_token) {
+          const payload = JSON.parse(atob(data.session.access_token.split(".")[1]));
+          appRole = payload.app_role;
+        }
+      } catch { /* fall through */ }
+      if (appRole === 'admin') window.location.replace("/admin");
+      else if (appRole === 'city_operator') window.location.replace("/dashboard");
+      else window.location.replace("/fleet-dashboard");
+    })();
+  }, [location.search]);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -89,25 +110,47 @@ const Login = () => {
           }
         } catch { /* fall through to default redirect */ }
 
+        // Honor return-to-flow query params before falling back to dashboards.
+        // (Audit #2 + #3: Login was ignoring ?apply=1 and ?invite=TOKEN
+        // params, dropping users on the wrong page after auth.)
+        const params = new URLSearchParams(location.search);
+        const inviteToken = params.get("invite");
+        const wantsApply = params.get("apply") === "1";
+
+        if (inviteToken) {
+          window.location.href = `/invite/${inviteToken}`;
+          return;
+        }
+        if (wantsApply) {
+          window.location.href = "/apply";
+          return;
+        }
+
         if (appRole === 'admin') window.location.href = "/admin";
         else if (appRole === 'city_operator') window.location.href = "/dashboard";
         else window.location.href = "/fleet-dashboard";
       }
     }
-    
+
     setLoading(false);
   };
 
   const handleOAuth = async (provider: 'google') => {
     setLoading(true);
+    // Carry return-to-flow params through OAuth as well. Land on /login
+    // which then routes appropriately based on either JWT app_role or
+    // ?invite/?apply params. (Audit #25: previously hardcoded /admin
+    // caused a flash of the admin loader for non-admins.)
+    const params = new URLSearchParams(location.search);
+    const after = params.get("invite")
+      ? `/invite/${params.get("invite")}`
+      : params.get("apply") === "1"
+      ? "/apply"
+      : "/login?oauth_callback=1";
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        // After OAuth, land on a generic post-signin route. The Login form
-        // post-signin handler reads JWT app_role and routes by role; for
-        // OAuth we don't have the JWT before the redirect happens, so we
-        // bounce through /admin which ProtectedRoute will reroute by role.
-        redirectTo: `${window.location.origin}/admin`,
+        redirectTo: `${window.location.origin}${after}`,
       }
     });
     if (error) toast.error(`Failed to connect to ${provider}: ${error.message}`);

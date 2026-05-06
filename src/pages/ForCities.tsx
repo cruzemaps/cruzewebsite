@@ -12,8 +12,10 @@ export default function ForCities() {
 
   const handleTryDemo = () => {
     track("demo_role_activated", { role: "city_operator", from: "/for-cities" });
-    sessionStorage.setItem("demo_role", "city_operator");
-    window.location.href = "/dashboard";
+    // Audit #1: open the demo in a new tab so the current tab's session
+    // isn't poisoned. Routes through /demo (the production-safe handoff —
+    // /login?demo= is gated behind import.meta.env.DEV).
+    window.open("/demo?role=city_operator", "_blank", "noopener");
   };
 
   const handleBriefing = (location: string) => {

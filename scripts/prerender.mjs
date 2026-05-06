@@ -185,12 +185,25 @@ ${urls}
 }
 
 async function emitRobots(SITE) {
+  // Audit #30: extend the disallow list to cover every authenticated /
+  // private surface area we've added since the original list was written.
+  // - /loi/        signed LOI PDF view (sensitive PII)
+  // - /diag        internal diagnostics screen
+  // - /impersonate admin handoff route — never indexable
+  // - /apply       gated wizard, not interesting to crawlers
+  // - /login       no value indexed; /login?demo= would be embarrassing
   const txt = `User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /dashboard
 Disallow: /fleet-dashboard
 Disallow: /invite/
+Disallow: /loi/
+Disallow: /diag
+Disallow: /impersonate
+Disallow: /demo
+Disallow: /apply
+Disallow: /login
 
 Sitemap: ${SITE.url}/sitemap.xml
 `;

@@ -56,23 +56,71 @@ export default function Apply() {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [data, setData] = useState<WizardData>({
-    companyName: "",
-    website: "",
-    fleetSize: "",
-    truckSize: "",
-    primaryLanes: "",
-    fmsProvider: "",
-    fmsOther: "",
-    contactEmail: user?.email || "",
-    contactName: "",
-    contactPhone: "",
-    contactTitle: "",
-    notes: "",
-    loiAgreed: false,
-    loiInitials: "",
-  });
+  // On mount, restore any pending application that was parked in
+  // sessionStorage when an unauthenticated user tried to submit. This is
+  // the other half of the "Apply → Login → resume" loop. (Audit #2)
+  const initialData: WizardData = (() => {
+    const base: WizardData = {
+      companyName: "",
+      website: "",
+      fleetSize: "",
+      truckSize: "",
+      primaryLanes: "",
+      fmsProvider: "",
+      fmsOther: "",
+      contactEmail: user?.email || "",
+      contactName: "",
+      contactPhone: "",
+      contactTitle: "",
+      notes: "",
+      loiAgreed: false,
+      loiInitials: "",
+    };
+    try {
+      const parked = sessionStorage.getItem("pending_application");
+      if (parked) {
+        const restored = JSON.parse(parked);
+        // The user has to re-sign because the LOI text is captured at
+        // signing time. Discard agreement/initials but keep everything else.
+        return {
+          ...base,
+          ...restored,
+          loiAgreed: false,
+          loiInitials: "",
+          contactEmail: user?.email || restored.contactEmail || "",
+        };
+      }
+    } catch { /* fall through to base */ }
+    return base;
+  })();
+
+  const [data, setData] = useState<WizardData>(initialData);
+
+  // Once we've consumed the parked form, clear it so a future visit
+  // doesn't auto-restore it again.
+  useEffect(() => {
+    if (sessionStorage.getItem("pending_application")) {
+      sessionStorage.removeItem("pending_application");
+      // If the user is now signed in and we restored data, jump them past
+      // the steps they already filled. Heuristic: skip to the LOI step
+      // (4) if all earlier steps validate.
+      if (user && [0, 1, 2, 3].every((i) => stepValid(i, initialData))) {
+        setStep(4);
+        toast.success("We restored your previous answers. Just sign the LOI to finish.");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Clear any pending submit timer on unmount so navigating away during
+  // the success animation doesn't navigate us back unexpectedly. (Audit #17)
+  useEffect(() => {
+    return () => {
+      if (submitTimerRef.current) clearTimeout(submitTimerRef.current);
+    };
+  }, []);
 
   // Auto-suggest initials from contactName when LOI step opens, but let
   // the user override.
@@ -110,7 +158,10 @@ export default function Apply() {
       return;
     }
 
-    // 1. Insert pilot_applications row first; capture id so we can link the LOI to it.
+    // Order matters here. We insert the pilot_applications row first so
+    // the LOI can reference it. If the LOI insert later fails, we roll back
+    // the pilot row by deleting it — this prevents orphan applications
+    // + spurious Discord pings (audit #19).
     const { data: pilotRow, error: pilotErr } = await supabase
       .from("pilot_applications")
       .insert({
@@ -136,7 +187,6 @@ export default function Apply() {
       return toast.error(pilotErr.message);
     }
 
-    // 2. Snapshot the rendered LOI text and insert the signature row.
     const signedDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
     const loiFullText = renderLOIText({
       participantName: data.contactName,
@@ -163,15 +213,34 @@ export default function Apply() {
       user_agent: navigator.userAgent,
     });
 
-    setSubmitting(false);
     if (loiErr) {
-      toast.error("Application saved but the LOI signature failed: " + loiErr.message);
+      // Roll back the pilot row so we don't leave an orphan + the Discord
+      // notification has nothing to fire on a non-existent app. (Audit #19)
+      // 2nd-pass audit #3: fleet_owner has no DELETE policy on
+      // pilot_applications, so the previous client-side .delete() silently
+      // failed (PostgREST returns success with 0 rows affected). Use the
+      // SECURITY DEFINER rollback_unsigned_pilot RPC, which is owner-scoped
+      // and refuses to fire if an LOI is already attached.
+      // 2nd-pass audit #15: wrap in try/catch so a network error mid-rollback
+      // doesn't leave the submit button locked forever.
+      if (pilotRow?.id) {
+        try {
+          await supabase.rpc("rollback_unsigned_pilot", { p_id: pilotRow.id });
+        } catch (rollbackErr) {
+          console.error("Pilot rollback failed:", rollbackErr);
+          // Surface as a less severe note — the LOI failure message below is
+          // the primary user signal.
+        }
+      }
+      setSubmitting(false);
+      toast.error("Couldn't sign the LOI: " + loiErr.message + ". Your application was rolled back; please try again.");
       return;
     }
 
+    setSubmitting(false);
     track("application_submitted", { fleet_size: data.fleetSize, fms: data.fmsProvider, loi_signed: true });
     setDone(true);
-    setTimeout(() => navigate("/fleet-dashboard"), 1800);
+    submitTimerRef.current = setTimeout(() => navigate("/fleet-dashboard"), 1800);
   };
 
   return (
@@ -182,7 +251,7 @@ export default function Apply() {
           <>
             <h1 className="font-display text-3xl md:text-5xl font-bold mb-2">Apply for the Cruze pilot.</h1>
             <p className="text-white/60 mb-10">
-              Four short steps. We'll respond within two business days with a calibrated 30-day pilot proposal.
+              Five short steps including signing the LOI. We'll respond within two business days with a calibrated 30-day pilot proposal.
             </p>
 
             <Stepper current={step} />
@@ -480,16 +549,10 @@ function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof 
     [data.contactName, data.companyName, data.contactTitle, data.fleetSize, data.loiInitials, signedDate]
   );
 
-  // On mount, also check whether the LOI is short enough that no scrolling
-  // is needed (small viewports, short text variants). If the content already
-  // fits without overflow, count it as read.
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    if (el.scrollHeight <= el.clientHeight + 4) {
-      setScrolledToEnd(true);
-    }
-  }, [fullText]);
+  // The scroll container has a fixed h-72 (288px) so the LOI text always
+  // overflows regardless of viewport size. The "auto-mark-read if it fits"
+  // path is intentionally absent — every signer must scroll. Fixes the
+  // 4K-viewport bypass (audit #41).
 
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const t = e.currentTarget;

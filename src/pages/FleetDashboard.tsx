@@ -27,18 +27,23 @@ const FleetDashboard = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    // Cancellation flag (audit #22): prevents the async fetch from writing
+    // state into a stale FleetDashboard instance after the user has changed
+    // (sign-out, switch role, etc.).
+    let cancelled = false;
+
     const fetchApplication = async () => {
       if (!user) return;
-      
-      const isDemo = sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role");
-      
+
+      const isDemo = sessionStorage.getItem("demo_role");
+
       if (isDemo) {
-        const demoStatus = (sessionStorage.getItem("demo_status") || localStorage.getItem("demo_status")) as AppStatus;
-        if (demoStatus) setStatus(demoStatus);
-        setLoading(false);
+        const demoStatus = sessionStorage.getItem("demo_status") as AppStatus;
+        if (!cancelled && demoStatus) setStatus(demoStatus);
+        if (!cancelled) setLoading(false);
         return;
       }
-      
+
       try {
         const { data, error } = await supabase
           .from('pilot_applications')
@@ -46,7 +51,7 @@ const FleetDashboard = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (data && !error) {
+        if (!cancelled && data && !error) {
           setStatus(data.status as AppStatus);
         }
       } catch (e) {
@@ -62,34 +67,49 @@ const FleetDashboard = () => {
           .order("signed_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (loiRow) setLoi(loiRow as LOISummary);
+        if (!cancelled && loiRow) setLoi(loiRow as LOISummary);
       } catch {
         // ignore — card just won't render
       }
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     };
 
     fetchApplication();
 
-    // REAL-TIME STATUS LISTENER
-    if (user && !(sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role"))) {
-      const channel = supabase
+    // REAL-TIME STATUS LISTENER. Always declare and return cleanup so a
+    // channel from a previous render (different user) cannot leak.
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    if (user && !(sessionStorage.getItem("demo_role"))) {
+      channel = supabase
         .channel(`status_updates_${user.id}`)
-        .on('postgres_changes', { 
-          event: 'UPDATE', 
-          schema: 'public', 
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
           table: 'pilot_applications',
           filter: `user_id=eq.${user.id}`
         }, (payload) => {
+          if (cancelled) return;
           setStatus(payload.new.status as AppStatus);
-          toast.info(`Status Update: Your application is now ${payload.new.status}!`);
+          // Humanize the raw enum status before showing it (audit #21).
+          const rawStatus = payload.new.status as string;
+          const humanLabel: Record<string, string> = {
+            pending: "received and queued for review",
+            in_review: "under review",
+            approved: "approved",
+            onboarding: "in onboarding",
+            active: "live and active",
+            denied: "not selected for the current cohort",
+            archived: "archived",
+          };
+          toast.info(`Application status: ${humanLabel[rawStatus] ?? rawStatus}.`);
         })
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     }
+
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const handleSubmitPilot = async (e: React.FormEvent) => {
@@ -97,7 +117,7 @@ const FleetDashboard = () => {
     if (!user) return;
     setSubmitting(true);
     
-    if (sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role")) {
+    if (sessionStorage.getItem("demo_role")) {
       setTimeout(() => {
         toast.success("Demo Application submitted successfully.");
         sessionStorage.setItem("demo_status", "pending");
@@ -196,13 +216,15 @@ const FleetDashboard = () => {
                      <FileText className="w-12 h-12 text-brand-cyan mb-4" />
                      <h3 className="font-bold text-lg mb-2">Cruze Pilot Information Kit</h3>
                      <p className="text-sm text-white/60 mb-4">Learn why and how we reduce $11k in fuel spend per truck annually.</p>
-                     <Button variant="outline" className="border-brand-cyan text-brand-cyan hover:bg-brand-cyan/10" onClick={() => window.alert("Dummy PDF downloaded!")}>
-                       Download PDF
+                     <Button asChild variant="outline" className="border-brand-cyan text-brand-cyan hover:bg-brand-cyan/10">
+                       <a href="/press/cruze-fact-sheet.pdf" target="_blank" rel="noopener noreferrer" download>
+                         Download PDF
+                       </a>
                      </Button>
                    </CardContent>
                  </Card>
                  
-                 <Card className="bg-white/5 border-white/10 text-white backdrop-blur-lg h-1/2 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => window.alert("Opening Live Chat widget...")}>
+                 <Card className="bg-white/5 border-white/10 text-white backdrop-blur-lg h-1/2 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => { window.location.href = "mailto:hello@cruzemaps.com?subject=Pilot%20question"; }}>
                    <CardContent className="h-full flex items-center gap-4 p-6">
                      <div className="p-3 bg-white/10 rounded-full">
                        <MessageCircle className="w-6 h-6 text-white" />
@@ -218,7 +240,10 @@ const FleetDashboard = () => {
           </motion.div>
         )}
 
-        {loi && (
+        {/* Only show the signed-LOI summary once the user has an application
+            in flight; on the empty form view it would float above the form
+            without context. (audit #33) */}
+        {loi && status !== null && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <Card className="bg-[#0F131C] border-white/10">
               <CardContent className="p-5 flex flex-wrap items-center gap-4">
@@ -304,13 +329,15 @@ const FleetDashboard = () => {
 
       </main>
 
-      {/* Floating Chat Dummy Button */}
-      <button 
-        onClick={() => window.alert("Opening Live Chat...")}
+      {/* Floating contact button — mailto in lieu of a real chat widget. */}
+      <a
+        href="mailto:hello@cruzemaps.com?subject=Fleet%20pilot%20question"
         className="fixed bottom-6 right-6 p-4 bg-brand-cyan text-black rounded-full shadow-2xl hover:scale-105 transition-transform z-50 flex items-center justify-center"
+        aria-label="Email Cruze fleet support"
+        title="Email hello@cruzemaps.com"
       >
         <MessageCircle className="w-6 h-6" />
-      </button>
+      </a>
 
     </div>
   );

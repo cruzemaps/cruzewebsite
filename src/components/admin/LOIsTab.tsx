@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, FileSignature, Search, ExternalLink, Download } from "lucide-react";
+import { Loader2, FileSignature, Search, ExternalLink } from "lucide-react";
 
 type LOIRow = {
   id: string;
@@ -82,8 +82,12 @@ export default function LOIsTab({ isDemo }: { isDemo: boolean }) {
               Every LOI signed via the pilot application flow. Click any row to view or download a printable copy.
             </p>
           </div>
+          {/* Audit #15: this list is filtered to non-archived rows, so the
+              count is "active" (matching what's shown), not "total" — the
+              total signed count (active + archived) lives on the AdminPortal
+              stat tile. */}
           <div className="text-xs text-white/50">
-            <span className="text-white font-display text-lg font-bold">{lois.length}</span> total
+            <span className="text-white font-display text-lg font-bold">{lois.length}</span> active
           </div>
         </div>
 
@@ -174,11 +178,16 @@ export default function LOIsTab({ isDemo }: { isDemo: boolean }) {
           </div>
         )}
 
+        {/* Audit #14: the original disclaimer claimed "no UPDATE/DELETE policy",
+            but admins CAN now archive an LOI from the LOI viewer and CAN
+            permanently delete from the Archive Library (logged to
+            permanent_deletions). The signed text itself stays immutable —
+            corrections are appended via loi_amendments. */}
         <div className="mt-6 p-4 rounded-lg border border-brand-cyan/15 bg-brand-cyan/5 text-xs text-white/60 leading-relaxed">
-          <strong className="text-brand-cyan">LOIs are immutable.</strong> Once signed, a record cannot be edited
-          or deleted from the admin portal. The DB has no UPDATE/DELETE policy on this table. To revise a customer's
-          LOI, send them a new invitation with updated terms; they'll sign a new version while the old one remains in
-          the audit trail.
+          <strong className="text-brand-cyan">The signed LOI text is immutable.</strong> Open any LOI to record an
+          append-only <em>amendment</em> (clarifications, name corrections, etc.) — the original signed body stays
+          unchanged. To take an LOI off this list, archive it from the LOI viewer; archived LOIs move to the Archive
+          Library where they can be restored or permanently deleted (deletes are logged to <code>permanent_deletions</code>).
         </div>
       </CardContent>
     </Card>

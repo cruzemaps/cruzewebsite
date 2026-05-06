@@ -33,9 +33,11 @@ All routes are declared in [src/App.tsx](src/App.tsx). Three role-gated dashboar
 
 ### Auth & demo bypass (important)
 
-Auth is Supabase, wrapped by [useAuth](src/hooks/useAuth.tsx). A **localStorage-based demo bypass** runs *before* the Supabase flow: if `localStorage.demo_role` is set, the provider mints a fake `user`/`session` with that role and skips Supabase entirely. The bypass is set by visiting `/login?demo=admin|fleet_owner|city_operator` (see [Login.tsx](src/pages/Login.tsx)). `signOut` clears `demo_role` for demo users instead of calling Supabase.
+Auth is Supabase, wrapped by [useAuth](src/hooks/useAuth.tsx). A **sessionStorage-based demo bypass** runs *before* the Supabase flow: if `sessionStorage.demo_role` is set, the provider mints a fake `user`/`session` with that role and skips Supabase entirely. The bypass is set by visiting `/login?demo=admin|fleet_owner|city_operator` (see [Login.tsx](src/pages/Login.tsx)). `signOut` clears `demo_role` for demo users instead of calling Supabase.
 
-When changing auth, dashboard data fetching, or `ProtectedRoute`, preserve the demo path — several dashboards (e.g. [AdminPortal](src/pages/AdminPortal.tsx)) check `localStorage.demo_role` and return mock data instead of hitting Supabase. Breaking either branch breaks the no-backend demo.
+**Why sessionStorage and not localStorage** — `localStorage` is shared across every tab on the same origin, so an admin visiting the marketing page and clicking "Try Demo" used to overwrite their real admin tab's session. We now use `sessionStorage` (per-tab) for `demo_role` and `demo_status`. Marketing CTAs that activate a demo (`/for-fleets`, `/for-cities`) `window.open(..., "_blank")` so the write only lands in the new tab. Same goes for [admin impersonation](src/components/admin/UsersTab.tsx) — it routes through `/impersonate` in a new tab so the admin's own session is never touched.
+
+When changing auth, dashboard data fetching, or `ProtectedRoute`, preserve the demo path — several dashboards (e.g. [AdminPortal](src/pages/AdminPortal.tsx), [FleetDashboard](src/pages/FleetDashboard.tsx)) check `sessionStorage.demo_role` and return mock data instead of hitting Supabase. Breaking either branch breaks the no-backend demo. Read `demo_role` from `sessionStorage` only — do **not** add a `localStorage` fallback, that's the bug we just removed.
 
 ### Supabase
 

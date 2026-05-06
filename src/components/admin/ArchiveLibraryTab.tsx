@@ -123,6 +123,8 @@ function UsersSection({ isDemo }: { isDemo: boolean }) {
   const [items, setItems] = useState<ArchivedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<ArchivedUser | null>(null);
+  // Audit #24: shadcn Dialog instead of native prompt/confirm.
+  const [restoreTarget, setRestoreTarget] = useState<ArchivedUser | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -138,18 +140,23 @@ function UsersSection({ isDemo }: { isDemo: boolean }) {
 
   useEffect(() => { load(); }, [isDemo]);
 
-  const restore = async (u: ArchivedUser) => {
-    const reason = prompt(`Restore ${u.email} to active status?`);
-    if (!reason || reason.length < 3) return;
+  const submitRestore = async (reason: string) => {
+    const u = restoreTarget;
+    if (!u) return;
     if (isDemo) {
       setItems((prev) => prev.filter((p) => p.id !== u.id));
       toast.success("Demo: restored locally");
+      setRestoreTarget(null);
       return;
     }
     const { error } = await supabase.rpc("change_user_role", { target_user_id: u.id, new_role: u.role, new_status: "active", reason });
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setItems((prev) => prev.filter((p) => p.id !== u.id));
     toast.success(`${u.email} restored.`);
+    setRestoreTarget(null);
   };
 
   return (
@@ -166,7 +173,7 @@ function UsersSection({ isDemo }: { isDemo: boolean }) {
               <td className="py-3 px-2 text-white/70">{u.role}</td>
               <td className="py-3 px-2 text-white/50 text-xs">{u.last_active_at ? new Date(u.last_active_at).toLocaleDateString() : "Never"}</td>
               <td className="py-3 px-2 text-right whitespace-nowrap">
-                <Button size="sm" variant="ghost" onClick={() => restore(u)} className="text-emerald-400 hover:text-emerald-300">
+                <Button size="sm" variant="ghost" onClick={() => setRestoreTarget(u)} className="text-emerald-400 hover:text-emerald-300">
                   <ArchiveRestore size={14} className="mr-1" /> Restore
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(u)} className="text-red-400 hover:text-red-300">
@@ -177,6 +184,15 @@ function UsersSection({ isDemo }: { isDemo: boolean }) {
           ))}
         </tbody>
       </Table>
+      {restoreTarget && (
+        <RestoreDialog
+          title="Restore user"
+          description={`Restoring ${restoreTarget.email} sets their status back to active. The reason is captured in role_history.`}
+          minReasonLength={3}
+          onClose={() => setRestoreTarget(null)}
+          onConfirm={submitRestore}
+        />
+      )}
       {confirmDelete && (
         <HardDeleteDialog
           title="Permanently delete user"
@@ -201,6 +217,7 @@ function PilotsSection({ isDemo }: { isDemo: boolean }) {
   const [items, setItems] = useState<ArchivedPilot[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<ArchivedPilot | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<ArchivedPilot | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -216,17 +233,23 @@ function PilotsSection({ isDemo }: { isDemo: boolean }) {
 
   useEffect(() => { load(); }, [isDemo]);
 
-  const restore = async (p: ArchivedPilot) => {
-    if (!confirm(`Restore "${p.company_name}" to pending status?`)) return;
+  const submitRestore = async () => {
+    const p = restoreTarget;
+    if (!p) return;
     if (isDemo) {
       setItems((prev) => prev.filter((x) => x.id !== p.id));
       toast.success("Demo: restored locally");
+      setRestoreTarget(null);
       return;
     }
     const { error } = await supabase.from("pilot_applications").update({ status: "pending" }).eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setItems((prev) => prev.filter((x) => x.id !== p.id));
     toast.success("Pilot restored to pending.");
+    setRestoreTarget(null);
   };
 
   return (
@@ -243,7 +266,7 @@ function PilotsSection({ isDemo }: { isDemo: boolean }) {
               <td className="py-3 px-2 text-white/70">{p.fleet_size || "?"} · {p.truck_size || "?"}</td>
               <td className="py-3 px-2 text-white/50 text-xs">{new Date(p.created_at).toLocaleDateString()}</td>
               <td className="py-3 px-2 text-right whitespace-nowrap">
-                <Button size="sm" variant="ghost" onClick={() => restore(p)} className="text-emerald-400 hover:text-emerald-300">
+                <Button size="sm" variant="ghost" onClick={() => setRestoreTarget(p)} className="text-emerald-400 hover:text-emerald-300">
                   <ArchiveRestore size={14} className="mr-1" /> Restore
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(p)} className="text-red-400 hover:text-red-300">
@@ -254,6 +277,15 @@ function PilotsSection({ isDemo }: { isDemo: boolean }) {
           ))}
         </tbody>
       </Table>
+      {restoreTarget && (
+        <RestoreDialog
+          title="Restore pilot application"
+          description={`Restoring "${restoreTarget.company_name}" sets the application status back to "pending" so it re-enters the review queue.`}
+          minReasonLength={0}
+          onClose={() => setRestoreTarget(null)}
+          onConfirm={submitRestore}
+        />
+      )}
       {confirmDelete && (
         <HardDeleteDialog
           title="Permanently delete pilot application"
@@ -352,6 +384,7 @@ function LOIsSection({ isDemo }: { isDemo: boolean }) {
   const [items, setItems] = useState<ArchivedLOI[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<ArchivedLOI | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<ArchivedLOI | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -367,17 +400,28 @@ function LOIsSection({ isDemo }: { isDemo: boolean }) {
 
   useEffect(() => { load(); }, [isDemo]);
 
-  const restore = async (l: ArchivedLOI) => {
-    if (!confirm(`Restore the LOI signed by ${l.participant_name}? It will reappear in the active LOIs list.`)) return;
+  const submitRestore = async (reason: string) => {
+    const l = restoreTarget;
+    if (!l) return;
     if (isDemo) {
       setItems((prev) => prev.filter((x) => x.id !== l.id));
       toast.success("Demo: restored locally");
+      setRestoreTarget(null);
       return;
     }
-    const { error } = await supabase.rpc("restore_loi", { p_loi_id: l.id });
-    if (error) return toast.error(error.message);
+    // 2nd-pass audit #10: forward the reason to the SECURITY DEFINER RPC,
+    // which appends it to archive_reason as part of the audit trail.
+    const { error } = await supabase.rpc("restore_loi", {
+      p_loi_id: l.id,
+      p_reason: reason || null,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setItems((prev) => prev.filter((x) => x.id !== l.id));
     toast.success("LOI restored.");
+    setRestoreTarget(null);
   };
 
   return (
@@ -401,7 +445,7 @@ function LOIsSection({ isDemo }: { isDemo: boolean }) {
                     <ExternalLink size={12} className="mr-1" /> View
                   </Link>
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => restore(l)} className="text-emerald-400 hover:text-emerald-300">
+                <Button size="sm" variant="ghost" onClick={() => setRestoreTarget(l)} className="text-emerald-400 hover:text-emerald-300">
                   <ArchiveRestore size={14} className="mr-1" /> Restore
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(l)} className="text-red-400 hover:text-red-300">
@@ -412,6 +456,17 @@ function LOIsSection({ isDemo }: { isDemo: boolean }) {
           ))}
         </tbody>
       </Table>
+      {restoreTarget && (
+        <RestoreDialog
+          title="Restore LOI"
+          description={`Restoring the LOI signed by ${restoreTarget.participant_name} (${restoreTarget.participant_company}) returns it to the active LOIs list. The reason is appended to its archive_reason field as a permanent audit trail.`}
+          // 2nd-pass audit #10: require a real reason now that the RPC
+          // records it. Matches the rigor of the original archive flow.
+          minReasonLength={5}
+          onClose={() => setRestoreTarget(null)}
+          onConfirm={submitRestore}
+        />
+      )}
       {confirmDelete && (
         <HardDeleteDialog
           title="Permanently delete LOI"
@@ -508,6 +563,74 @@ function THead({ cols }: { cols: string[] }) {
         ))}
       </tr>
     </thead>
+  );
+}
+
+// Audit #24: shared confirmation dialog used by Users/Pilots/LOIs sections in
+// place of the native window.prompt/window.confirm calls. Optionally collects
+// a reason that the caller can store in its own audit trail. When
+// `minReasonLength` is 0 the dialog is a pure "are you sure?" confirmation.
+function RestoreDialog({
+  title,
+  description,
+  minReasonLength,
+  onClose,
+  onConfirm,
+}: {
+  title: string;
+  description: string;
+  minReasonLength: number;
+  onClose: () => void;
+  onConfirm: (reason: string) => Promise<void> | void;
+}) {
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const canSubmit = reason.trim().length >= minReasonLength;
+
+  const submit = async () => {
+    if (!canSubmit) return;
+    setBusy(true);
+    try {
+      await onConfirm(reason.trim());
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={(o) => !busy && !o && onClose()}>
+      <DialogContent className="bg-[#0B0E14] border-white/10 text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display flex items-center gap-2">
+            <ArchiveRestore size={18} className="text-emerald-400" /> {title}
+          </DialogTitle>
+          <DialogDescription className="text-white/60">{description}</DialogDescription>
+        </DialogHeader>
+        {minReasonLength > 0 && (
+          <div className="space-y-2 py-2">
+            <Label className="text-white/70 text-sm">Reason (≥ {minReasonLength} characters)</Label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              placeholder="e.g. Verified active employment again."
+              className="bg-white/5 border-white/10 text-white"
+            />
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button
+            onClick={submit}
+            disabled={!canSubmit || busy}
+            className="bg-emerald-500 text-[#0B0E14] hover:bg-emerald-500/90 font-bold"
+          >
+            {busy && <Loader2 className="animate-spin mr-2" size={14} />} Restore
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -16,7 +16,10 @@ import ArchiveLibraryTab from "@/components/admin/ArchiveLibraryTab";
 const AdminPortal = () => {
   const { user, signOut } = useAuth();
   const [counts, setCounts] = useState({ users: 0, pendingPilots: 0, openInvites: 0, lois: 0 });
-  const isDemo = !!(sessionStorage.getItem("demo_role") || localStorage.getItem("demo_role"));
+  // Audit (demo storage cleanup): canonical demo flag is sessionStorage now;
+  // legacy localStorage fallback removed so we don't pick up another tab's
+  // poisoned state. Mirrors UsersTab/FleetDashboard.
+  const isDemo = !!sessionStorage.getItem("demo_role");
 
   useEffect(() => {
     if (isDemo) {
@@ -24,13 +27,33 @@ const AdminPortal = () => {
       return;
     }
     (async () => {
-      const [{ count: users }, { count: pendingPilots }, { count: openInvites }, { count: lois }] = await Promise.all([
+      // Audit #11: per-query error handling. Promise.all destructuring used
+      // to silently swallow `error` and only show 0 — the operator couldn't
+      // tell whether "0 users" meant empty or RLS-denied. Track each error
+      // independently and surface the first failure so the admin knows the
+      // count is unreliable.
+      const [usersRes, pendingRes, invitesRes, loisRes] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("pilot_applications").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("invitations").select("*", { count: "exact", head: true }).is("accepted_at", null),
-        supabase.from("loi_signatures").select("*", { count: "exact", head: true }),
+        supabase.from("loi_signatures").select("*", { count: "exact", head: true }).is("archived_at", null),
       ]);
-      setCounts({ users: users || 0, pendingPilots: pendingPilots || 0, openInvites: openInvites || 0, lois: lois || 0 });
+
+      setCounts({
+        users: usersRes.count || 0,
+        pendingPilots: pendingRes.count || 0,
+        openInvites: invitesRes.count || 0,
+        lois: loisRes.count || 0,
+      });
+
+      const failures: string[] = [];
+      if (usersRes.error) failures.push(`users (${usersRes.error.message})`);
+      if (pendingRes.error) failures.push(`pending pilots (${pendingRes.error.message})`);
+      if (invitesRes.error) failures.push(`open invitations (${invitesRes.error.message})`);
+      if (loisRes.error) failures.push(`signed LOIs (${loisRes.error.message})`);
+      if (failures.length > 0) {
+        toast.error(`Some stat counts couldn't load: ${failures.join("; ")}`);
+      }
     })();
   }, [isDemo]);
 
@@ -73,7 +96,9 @@ const AdminPortal = () => {
           <Stat icon={<Users size={18} />} label="Users" value={counts.users} />
           <Stat icon={<FileCheck size={18} />} label="Pending pilots" value={counts.pendingPilots} />
           <Stat icon={<Mail size={18} />} label="Open invitations" value={counts.openInvites} />
-          <Stat icon={<FileSignature size={18} />} label="Signed LOIs" value={counts.lois} />
+          {/* Audit (2nd pass) #6: tile filters archived LOIs out, so the
+              label needs to match — "Signed LOIs" implied a total. */}
+          <Stat icon={<FileSignature size={18} />} label="Active LOIs" value={counts.lois} />
         </div>
 
         <Tabs defaultValue="users" className="w-full">

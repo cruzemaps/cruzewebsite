@@ -49,8 +49,14 @@ serve(async (req) => {
   const FROM_ADDRESS = Deno.env.get("INVITE_FROM_ADDRESS") || "Cruzemaps <invitations@cruzemaps.com>";
   const DEFAULT_INVITER = Deno.env.get("DEFAULT_INVITER_NAME") || "An admin at Cruzemaps";
 
+  // Audit #39: when Resend isn't configured we still want the invitation
+  // row to land — the admin can copy the link from the InvitationsTab.
+  // Returning 500 makes the DB webhook retry forever, which both spams the
+  // function and surfaces in logs as a permanent error. 200 + skipped lets
+  // the operator deploy the rest of the system without Resend wired up.
   if (!RESEND_API_KEY) {
-    return json({ error: "RESEND_API_KEY not configured" }, 500);
+    console.warn("RESEND_API_KEY not configured; skipping email send.");
+    return json({ skipped: "RESEND_API_KEY not configured" });
   }
 
   let payload: WebhookPayload;
@@ -98,7 +104,26 @@ serve(async (req) => {
   if (!resendRes.ok) {
     const errBody = await resendRes.text();
     console.error("Resend error:", errBody);
-    return json({ error: `Resend ${resendRes.status}: ${errBody}` }, 500);
+    // Audit #39 + 2nd-pass #4: classify Resend errors with an explicit
+    // allow-list of permanent codes. Bad From / unverified domain (403, 422),
+    // bad request (400), auth (401), missing route (404) are not retry-worthy
+    // → return 200 to stop the DB webhook from retrying forever. Everything
+    // else (rate limits 429, request timeout 408, all 5xx, network errors)
+    // gets 502 so the webhook retries. The previous "all 4xx is permanent"
+    // heuristic dropped 429s, which Resend uses for legitimate rate-limit
+    // backoff.
+    const PERMANENT = new Set([400, 401, 403, 404, 422]);
+    const isPermanent = PERMANENT.has(resendRes.status);
+    const status = isPermanent ? 200 : 502;
+    return json(
+      {
+        skipped: isPermanent ? "Resend rejected the message; not retrying" : undefined,
+        retry: !isPermanent,
+        resend_status: resendRes.status,
+        resend_body: errBody.slice(0, 500),
+      },
+      status
+    );
   }
 
   const result = await resendRes.json();

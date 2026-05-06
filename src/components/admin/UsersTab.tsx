@@ -47,6 +47,12 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
   const [editing, setEditing] = useState<Profile | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
+  // Audit #34: replace browser prompt()/confirm() with shadcn Dialogs.
+  const [archiveTarget, setArchiveTarget] = useState<{ user: Profile; archive: boolean } | null>(null);
+  const [archiveReason, setArchiveReason] = useState("");
+  const [archiveBusy, setArchiveBusy] = useState(false);
+  const [impersonateTarget, setImpersonateTarget] = useState<Profile | null>(null);
+  const [impersonateBusy, setImpersonateBusy] = useState(false);
 
   const toggleSelected = (id: string) =>
     setSelected((prev) => {
@@ -58,38 +64,65 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
 
   // Archive (soft-delete) or restore a user. Goes through the same
   // change_user_role RPC so the action is captured in role_history.
-  const archiveOrRestore = async (u: Profile, archive: boolean) => {
+  const submitArchiveOrRestore = async () => {
+    if (!archiveTarget) return;
+    const { user: u, archive } = archiveTarget;
     const verb = archive ? "archive" : "restore";
-    const reason = prompt(`${archive ? "Archive" : "Restore"} ${u.email}? Enter a reason for the audit log:`);
-    if (!reason || reason.trim().length < 3) return;
+    const reason = archiveReason.trim();
+    if (reason.length < 3) {
+      toast.error("Please enter a reason (3+ characters).");
+      return;
+    }
+    setArchiveBusy(true);
     if (isDemo) {
       setUsers((prev) => prev.map((p) => (p.id === u.id ? { ...p, status: archive ? "archived" : "active" } : p)));
       toast.success(`Demo: ${u.email} ${verb}d locally.`);
+      setArchiveBusy(false);
+      setArchiveTarget(null);
       return;
     }
     const { error } = await supabase.rpc("change_user_role", {
       target_user_id: u.id,
       new_role: u.role,
       new_status: archive ? "archived" : "active",
-      reason: reason.trim(),
+      reason,
     });
-    if (error) return toast.error(error.message);
+    setArchiveBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setUsers((prev) => prev.map((p) => (p.id === u.id ? { ...p, status: archive ? "archived" : "active" } : p)));
     toast.success(`${u.email} ${verb}d.`);
+    setArchiveTarget(null);
   };
 
-  const impersonate = (u: Profile) => {
-    if (!confirm(`Impersonate ${u.email}? This opens a new tab acting as them. The action is logged in the audit trail.`)) return;
-    track("role_changed", { event: "impersonation", target: u.id });
-    // Audit row, non-blocking.
+  const confirmImpersonate = async () => {
+    if (!impersonateTarget) return;
+    const u = impersonateTarget;
+    setImpersonateBusy(true);
+    // Audit #35: AWAIT the audit row before opening the impersonation tab.
+    // Otherwise the admin can act as the user before the audit entry lands,
+    // creating an inversion where the impersonated session writes ride
+    // ahead of the audit record. Failures are surfaced rather than silently
+    // dropped.
     if (!isDemo) {
-      void supabase.rpc("change_user_role", {
+      const { error } = await supabase.rpc("change_user_role", {
         target_user_id: u.id,
         new_role: u.role,
         new_status: u.status,
         reason: `Impersonation session opened by admin`,
-      }).then(() => {});
+      });
+      if (error) {
+        setImpersonateBusy(false);
+        toast.error(`Audit log failed: ${error.message}. Impersonation cancelled.`);
+        return;
+      }
     }
+    // 2nd-pass audit #13: only track the analytics event AFTER the audit
+    // RPC succeeds. Previously PostHog could record an "impersonation"
+    // event for sessions that never opened.
+    track("role_changed", { event: "impersonation", target: u.id });
     // CRITICAL: We previously wrote demo_role to localStorage, which is
     // shared across all tabs of the same origin. That contaminated the
     // admin's own tab. Now we hand off impersonation context as URL params
@@ -103,6 +136,8 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
       "/fleet-dashboard";
     const url = `/impersonate?role=${u.role}&status=${u.status}&id=${u.id}&go=${encodeURIComponent(dashboard)}`;
     window.open(url, "_blank", "noopener");
+    setImpersonateBusy(false);
+    setImpersonateTarget(null);
   };
 
   const load = async () => {
@@ -112,9 +147,14 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
       setLoading(false);
       return;
     }
+    // Audit #27: narrow the column list to what the table actually renders
+    // — avoids SELECT * and the implicit dependency on profiles having a
+    // stable shape.
     const { data, error } = await supabase
       .from("profiles")
-      .select("*")
+      .select(
+        "id, email, first_name, last_name, role, status, requested_role, organization_id, last_active_at, created_at"
+      )
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setUsers((data as Profile[]) || []);
@@ -238,15 +278,27 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
                       <td className="py-3 px-2 text-white/60">{u.requested_role || "N/A"}</td>
                       <td className="py-3 px-2 text-white/60 text-xs">{u.last_active_at ? new Date(u.last_active_at).toLocaleDateString() : "N/A"}</td>
                       <td className="py-3 px-2 text-right whitespace-nowrap">
-                        <Button size="sm" variant="ghost" onClick={() => impersonate(u)} title="View as this user (logged)">
+                        <Button size="sm" variant="ghost" onClick={() => setImpersonateTarget(u)} title="View as this user (logged)">
                           <Eye size={14} />
                         </Button>
                         {u.status === "archived" ? (
-                          <Button size="sm" variant="ghost" onClick={() => archiveOrRestore(u, false)} title="Restore from archive" className="text-emerald-400 hover:text-emerald-300">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => { setArchiveReason(""); setArchiveTarget({ user: u, archive: false }); }}
+                            title="Restore from archive"
+                            className="text-emerald-400 hover:text-emerald-300"
+                          >
                             <ArchiveRestore size={14} />
                           </Button>
                         ) : (
-                          <Button size="sm" variant="ghost" onClick={() => archiveOrRestore(u, true)} title="Archive (soft-delete)" className="text-white/50 hover:text-red-400">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => { setArchiveReason(""); setArchiveTarget({ user: u, archive: true }); }}
+                            title="Archive (soft-delete)"
+                            className="text-white/50 hover:text-red-400"
+                          >
                             <Archive size={14} />
                           </Button>
                         )}
@@ -278,24 +330,90 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
           count={selected.size}
           isDemo={isDemo}
           onClose={() => setBulkOpen(false)}
-          onApplied={(updates) => {
+          // Pass the actual selected user objects so the dialog has the
+          // current role for `no_change` (audit #9) without re-querying.
+          targets={users.filter((u) => selected.has(u.id))}
+          onApplied={(applied) => {
             setUsers((prev) =>
-              prev.map((u) =>
-                selected.has(u.id)
-                  ? {
-                      ...u,
-                      ...(updates.role ? { role: updates.role } : {}),
-                      ...(updates.status ? { status: updates.status } : {}),
-                    }
-                  : u
-              )
+              prev.map((u) => {
+                const upd = applied.get(u.id);
+                if (!upd) return u;
+                return {
+                  ...u,
+                  ...(upd.role ? { role: upd.role } : {}),
+                  ...(upd.status ? { status: upd.status } : {}),
+                };
+              })
             );
             setSelected(new Set());
             setBulkOpen(false);
           }}
-          targetIds={Array.from(selected)}
         />
       )}
+
+      {/* Audit #34: Archive/restore confirmation dialog (replaces prompt). */}
+      <Dialog open={!!archiveTarget} onOpenChange={(o) => { if (!archiveBusy && !o) setArchiveTarget(null); }}>
+        <DialogContent className="bg-[#0B0E14] border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              {archiveTarget?.archive ? <Archive size={18} /> : <ArchiveRestore size={18} />}
+              {archiveTarget?.archive ? "Archive user" : "Restore user"}
+            </DialogTitle>
+            <DialogDescription className="text-white/50">
+              {archiveTarget?.user.email} — {archiveTarget?.archive ? "soft-delete" : "bring back to active"}.
+              The reason is stored in the role_history audit log.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-white/70 text-sm">Reason (3+ characters)</Label>
+            <Textarea
+              value={archiveReason}
+              onChange={(e) => setArchiveReason(e.target.value)}
+              rows={3}
+              placeholder={archiveTarget?.archive ? "e.g. Account dormant 90+ days" : "e.g. Verified active employment again"}
+              className="bg-white/5 border-white/10 text-white"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setArchiveTarget(null)} disabled={archiveBusy}>Cancel</Button>
+            <Button
+              onClick={submitArchiveOrRestore}
+              disabled={archiveBusy || archiveReason.trim().length < 3}
+              className="bg-brand-orange text-[#0B0E14] hover:bg-brand-orange/90 font-bold"
+            >
+              {archiveBusy && <Loader2 className="animate-spin mr-2" size={14} />}
+              {archiveTarget?.archive ? "Archive" : "Restore"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Audit #34/#35: Impersonate confirmation dialog (replaces confirm). */}
+      <Dialog open={!!impersonateTarget} onOpenChange={(o) => { if (!impersonateBusy && !o) setImpersonateTarget(null); }}>
+        <DialogContent className="bg-[#0B0E14] border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <Eye size={18} /> Impersonate user
+            </DialogTitle>
+            <DialogDescription className="text-white/50">
+              You're about to open a new tab acting as <strong className="text-white">{impersonateTarget?.email}</strong>.
+              The action is logged in the role_history audit trail before the tab opens.
+              Your own admin tab is unaffected.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setImpersonateTarget(null)} disabled={impersonateBusy}>Cancel</Button>
+            <Button
+              onClick={confirmImpersonate}
+              disabled={impersonateBusy}
+              className="bg-brand-cyan text-[#0B0E14] hover:bg-brand-cyan/90 font-bold"
+            >
+              {impersonateBusy && <Loader2 className="animate-spin mr-2" size={14} />}
+              Open as user
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
@@ -305,13 +423,17 @@ function BulkUpdateDialog({
   isDemo,
   onClose,
   onApplied,
-  targetIds,
+  targets,
 }: {
   count: number;
   isDemo: boolean;
   onClose: () => void;
-  onApplied: (u: { role?: Profile["role"]; status?: Profile["status"] }) => void;
-  targetIds: string[];
+  // Audit #10: callback receives a per-user map so we only mutate locally
+  // for rows the server actually accepted.
+  onApplied: (applied: Map<string, { role?: Profile["role"]; status?: Profile["status"] }>) => void;
+  // Audit #9: pass the full target objects so we already have each user's
+  // current role for the `no_change` case — no per-row lookup query.
+  targets: Profile[];
 }) {
   const [newRole, setNewRole] = useState<Profile["role"] | "no_change">("no_change");
   const [newStatus, setNewStatus] = useState<Profile["status"] | "no_change">("no_change");
@@ -323,34 +445,62 @@ function BulkUpdateDialog({
     if (reason.trim().length < 3) return toast.error("A reason of at least 3 characters is required.");
     setBusy(true);
 
+    const intendedRole = newRole !== "no_change" ? newRole : undefined;
+    const intendedStatus = newStatus !== "no_change" ? newStatus : undefined;
+
     if (isDemo) {
-      onApplied({
-        role: newRole !== "no_change" ? newRole : undefined,
-        status: newStatus !== "no_change" ? newStatus : undefined,
-      });
+      const applied = new Map<string, { role?: Profile["role"]; status?: Profile["status"] }>();
+      for (const t of targets) applied.set(t.id, { role: intendedRole, status: intendedStatus });
+      onApplied(applied);
       toast.success(`Demo: ${count} users updated locally.`);
       setBusy(false);
       return;
     }
 
-    // Apply the change one user at a time so each gets its own audit row.
-    let failed = 0;
-    for (const id of targetIds) {
-      const { error } = await supabase.rpc("change_user_role", {
-        target_user_id: id,
-        new_role: newRole !== "no_change" ? newRole : (await supabase.from("profiles").select("role").eq("id", id).single()).data?.role,
-        new_status: newStatus !== "no_change" ? newStatus : null,
-        reason: `BULK: ${reason}`,
-      });
-      if (error) failed += 1;
+    // Audit #9 + #10: fan out the RPCs and track which IDs failed so the
+    // parent only mutates state for the ones that actually succeeded.
+    // 2nd-pass audit #5: cap concurrency so a 500-user bulk update doesn't
+    // ship 500 simultaneous change_user_role transactions — each RPC writes
+    // to role_history under the same admin's id and they contend on FK
+    // validation locks. CONCURRENCY=4 keeps the round-trip count low while
+    // staying gentle on the DB.
+    const CONCURRENCY = 4;
+    const results: { id: string; error: { message: string } | null }[] = [];
+    for (let i = 0; i < targets.length; i += CONCURRENCY) {
+      const batch = targets.slice(i, i + CONCURRENCY);
+      const batchResults = await Promise.all(
+        batch.map(async (t) => {
+          const { error } = await supabase.rpc("change_user_role", {
+            target_user_id: t.id,
+            new_role: intendedRole ?? t.role,
+            new_status: intendedStatus ?? null,
+            reason: `BULK: ${reason}`,
+          });
+          return { id: t.id, error };
+        })
+      );
+      results.push(...batchResults);
     }
     setBusy(false);
-    if (failed > 0) toast.error(`${failed}/${count} updates failed`);
-    else toast.success(`Updated ${count} users.`);
-    onApplied({
-      role: newRole !== "no_change" ? newRole : undefined,
-      status: newStatus !== "no_change" ? newStatus : undefined,
-    });
+
+    const applied = new Map<string, { role?: Profile["role"]; status?: Profile["status"] }>();
+    const failedIds: string[] = [];
+    for (const r of results) {
+      if (r.error) failedIds.push(r.id);
+      else applied.set(r.id, { role: intendedRole, status: intendedStatus });
+    }
+
+    if (failedIds.length === 0) {
+      toast.success(`Updated ${count} users.`);
+    } else if (failedIds.length === count) {
+      toast.error(`All ${count} updates failed. First error: ${results[0].error?.message ?? "(unknown)"}`);
+    } else {
+      toast.error(
+        `${failedIds.length}/${count} updates failed. ${count - failedIds.length} applied. ` +
+          `Failed IDs (first 3): ${failedIds.slice(0, 3).join(", ")}${failedIds.length > 3 ? "…" : ""}`
+      );
+    }
+    onApplied(applied);
   };
 
   return (

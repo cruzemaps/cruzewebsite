@@ -77,14 +77,22 @@ export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
       setCreating(false);
       return toast.error("You must be signed in as an admin to create invitations.");
     }
-    const { error } = await supabase
+    // Audit #40: optimistic insert. Use .select().single() so we get the
+    // server-assigned id/token/expires_at back in one round trip and prepend
+    // it to the local list — no second `load()` round trip, no flash of
+    // stale data.
+    const { data: row, error } = await supabase
       .from("invitations")
-      .insert({ email, role, invited_by: user.id });
+      .insert({ email, role, invited_by: user.id })
+      .select("id, email, role, token, expires_at, accepted_at, created_at")
+      .single();
     setCreating(false);
-    if (error) return toast.error(error.message);
+    if (error || !row) {
+      return toast.error(error?.message ?? "Couldn't create invitation.");
+    }
+    setInvites((prev) => [row as Invite, ...prev]);
     setEmail("");
     toast.success("Invitation created. Send the link below to your invitee.");
-    load();
   };
 
   const linkFor = (token: string) => `${SITE.url}/invite/${token}`;

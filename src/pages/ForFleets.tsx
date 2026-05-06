@@ -16,8 +16,11 @@ export default function ForFleets() {
 
   const handleTryDemo = () => {
     track("demo_role_activated", { role: "fleet_owner", from: "/for-fleets" });
-    sessionStorage.setItem("demo_role", "fleet_owner");
-    window.location.href = "/fleet-dashboard";
+    // Audit #1: open the demo in a NEW tab and route through /demo so the
+    // demo_role write only happens in the new tab's sessionStorage. Routes
+    // through /demo (not /login?demo=...) because the Login URL bypass is
+    // gated to import.meta.env.DEV; /demo is the production-safe handoff.
+    window.open("/demo?role=fleet_owner", "_blank", "noopener");
   };
 
   const handleApply = (location: string) => {

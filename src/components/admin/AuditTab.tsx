@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 
 type ProfileMini = {
   id: string;
@@ -39,34 +40,45 @@ function profileLabel(p: ProfileMini | undefined, fallbackId: string): string {
   return fallbackId.slice(0, 8) + "…";
 }
 
+// Audit #28: switch the unbounded `limit(200)` fetch to true server-side
+// pagination. The role_history table grows monotonically — at scale the
+// admin needed a way to page through history rather than getting silently
+// truncated at 200 newest rows.
+const PAGE_SIZE = 50;
+
 export default function AuditTab({ isDemo }: { isDemo: boolean }) {
   const [rows, setRows] = useState<DemoRow[]>([]);
   const [profiles, setProfiles] = useState<Map<string, ProfileMini>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       if (isDemo) {
         setRows(DEMO);
+        setTotalCount(DEMO.length);
         setLoading(false);
         return;
       }
 
-      // Fetch the audit log, then fetch the profiles for every UUID
-      // referenced (both user_id and changed_by). One query per side, then
-      // merge into a Map keyed by id for O(1) lookup at render time.
-      const { data, error } = await supabase
+      // Fetch this page + the total count in one round trip.
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase
         .from("role_history")
-        .select("*")
+        .select("*", { count: "exact" })
         .order("changed_at", { ascending: false })
-        .limit(200);
+        .range(from, to);
       if (error || !data) {
         setLoading(false);
         return;
       }
       setRows(data as AuditRow[]);
+      setTotalCount(count ?? null);
 
-      // Collect every UUID we need to resolve.
+      // Resolve names for the UUIDs on this page only.
       const ids = new Set<string>();
       for (const r of data as AuditRow[]) {
         ids.add(r.user_id);
@@ -85,7 +97,11 @@ export default function AuditTab({ isDemo }: { isDemo: boolean }) {
       }
       setLoading(false);
     })();
-  }, [isDemo]);
+  }, [isDemo, page]);
+
+  const totalPages = totalCount !== null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
+  const hasPrev = page > 0;
+  const hasNext = totalPages !== null ? page < totalPages - 1 : rows.length === PAGE_SIZE;
 
   if (loading) {
     return <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-brand-cyan" /></div>;
@@ -94,6 +110,24 @@ export default function AuditTab({ isDemo }: { isDemo: boolean }) {
   return (
     <Card className="bg-[#0F131C] border-white/10">
       <CardContent className="p-6">
+        {totalCount !== null && totalCount > 0 && (
+          <div className="flex items-center justify-between mb-4 text-xs text-white/50">
+            <span>
+              Page <strong className="text-white">{page + 1}</strong>
+              {totalPages !== null && <> of <strong className="text-white">{totalPages}</strong></>}
+              {" · "}
+              <strong className="text-white">{totalCount.toLocaleString()}</strong> total events
+            </span>
+            <div className="flex gap-2">
+              <Button size="sm" variant="ghost" disabled={!hasPrev || loading} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                <ChevronLeft size={14} className="mr-1" /> Newer
+              </Button>
+              <Button size="sm" variant="ghost" disabled={!hasNext || loading} onClick={() => setPage((p) => p + 1)}>
+                Older <ChevronRight size={14} className="ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
         {rows.length === 0 ? (
           <div className="py-12 text-center text-white/40">
             <Shield className="mx-auto mb-2" />

@@ -19,7 +19,9 @@ export default function InviteAccept() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate(`/login?invite=${token}`);
+      // Pass the invite token to /login so the post-signin handler can route
+      // back here and complete acceptance. (Audit #3)
+      navigate(`/login?invite=${token}`, { replace: true });
     }
   }, [loading, user, token, navigate]);
 
@@ -27,9 +29,27 @@ export default function InviteAccept() {
     if (!token) return;
     setAccepting(true);
     const { data, error } = await supabase.rpc("accept_invitation", { invite_token: token });
-    setAccepting(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      setAccepting(false);
+      return toast.error(error.message);
+    }
+
     track("invitation_accepted", { role: data });
+
+    // CRITICAL: refresh the JWT before navigating. accept_invitation just
+    // updated profiles.role, but the user's existing JWT still carries the
+    // OLD app_role claim. ProtectedRoute reads the JWT, sees the old role,
+    // and bounces them away from the dashboard they just earned. Fixes
+    // audit #4.
+    try {
+      await supabase.auth.refreshSession();
+    } catch {
+      // If refresh fails, the realtime subscription in useAuth will catch
+      // the profile UPDATE and refresh on its own. Worst case: user has
+      // to re-navigate once.
+    }
+
+    setAccepting(false);
     setDone(true);
     setTimeout(() => {
       if (data === "admin") navigate("/admin");
@@ -51,7 +71,7 @@ export default function InviteAccept() {
             </div>
           ) : (
             <>
-              <h1 className="font-display text-2xl font-bold mb-3">You've been invited to Cruze.</h1>
+              <h1 className="font-display text-2xl font-bold mb-3">You've been invited to Cruzemaps.</h1>
               <p className="text-white/60 mb-6">
                 Accept the invitation to activate your account with the role assigned by the admin who invited you.
               </p>

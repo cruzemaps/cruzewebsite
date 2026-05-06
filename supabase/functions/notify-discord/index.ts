@@ -66,8 +66,13 @@ serve(async (req) => {
   const PILOTS_URL  = Deno.env.get("DISCORD_WEBHOOK_PILOTS") || DEFAULT_URL;
   const LOIS_URL    = Deno.env.get("DISCORD_WEBHOOK_LOIS")   || DEFAULT_URL;
 
+  // Audit #38: when no Discord webhook is configured, return 200 with a
+  // skip marker. The DB webhook treats non-2xx as a delivery failure and
+  // will retry every minute forever, hammering the function with noise
+  // while we have nothing to deliver. Returning 200 + skipped lets the
+  // operator opt out of Discord without the failure storm.
   if (!DEFAULT_URL && !PILOTS_URL && !LOIS_URL) {
-    return json({ error: "No Discord webhook URL configured" }, 500);
+    return json({ skipped: "no Discord webhook URL configured" });
   }
 
   let payload: WebhookPayload;
@@ -97,7 +102,8 @@ serve(async (req) => {
   }
 
   if (!webhookUrl) {
-    return json({ error: `No webhook URL configured for ${payload.table}` }, 500);
+    // Same logic as the global skip above — opt-out for this specific table.
+    return json({ skipped: `no webhook URL configured for ${payload.table}` });
   }
 
   const discordRes = await fetch(webhookUrl, {
