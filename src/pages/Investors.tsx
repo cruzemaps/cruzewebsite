@@ -184,8 +184,8 @@ function EmailGate({ onSuccess }: { onSuccess: () => void }) {
 }
 
 function CalBookingSection() {
-  // Cal.com embed URL — set VITE_CALCOM_USER (e.g. "cruze/intro") to wire it.
-  const calUser = (import.meta.env.VITE_CALCOM_USER as string) || "cruze/intro";
+  // Cal.com embed URL — set VITE_CALCOM_USER (e.g. "anudeep-cruze/investor-intro") to override.
+  const calUser = (import.meta.env.VITE_CALCOM_USER as string) || "anudeep-cruze/investor-intro";
   return (
     <section className="py-24 bg-[#0F131C] border-y border-white/5">
       <div className="container mx-auto px-6 max-w-4xl text-center">

@@ -8,8 +8,8 @@ export const SITE = {
   url: "https://cruzemaps.com",
   shortDescription:
     "Cruze transforms every smartphone into an active traffic actuator. We coordinate driver speeds with swarm intelligence to dissolve phantom jams before they form.",
-  twitter: "@cruzemaps",
-  ogImage: "/og-default.png",
+  twitter: "@CruzeMaps",
+  ogImage: "https://og.cruzemaps.com/",
   themeColor: "#0B0E14",
   brand: {
     cyan: "#00F2FF",
@@ -191,6 +191,11 @@ export const ROUTES: RouteMeta[] = [
     noindex: true,
   },
 ];
+
+export function resolveOgImage(image: string | undefined): string {
+  const value = image ?? SITE.ogImage;
+  return /^https?:\/\//i.test(value) ? value : `${SITE.url}${value}`;
+}
 
 export function findRouteMeta(pathname: string): RouteMeta | undefined {
   // exact match first

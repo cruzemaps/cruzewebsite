@@ -27,10 +27,10 @@ function Footer() {
             Coordinating driver speeds with swarm intelligence and physics-informed AI to dissolve phantom traffic jams before they form.
           </p>
           <div className="flex gap-3 mt-4">
-            <a href="https://twitter.com/cruzemaps" aria-label="Twitter" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
+            <a href="https://x.com/CruzeMaps" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
               <Twitter size={16} />
             </a>
-            <a href="https://linkedin.com" aria-label="LinkedIn" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
               <Linkedin size={16} />
             </a>
             <a href="mailto:hello@cruzemaps.com" aria-label="Email" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">

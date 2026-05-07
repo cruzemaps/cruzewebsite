@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
-import { SITE, findRouteMeta, type RouteMeta } from "@/lib/seo";
+import { SITE, findRouteMeta, resolveOgImage, type RouteMeta } from "@/lib/seo";
 
 type Props = Partial<RouteMeta> & {
   ogImage?: string;
@@ -14,7 +14,7 @@ export default function SEO(props: Props) {
   const title = props.title ?? fromManifest.title ?? SITE.name;
   const description = props.description ?? fromManifest.description ?? SITE.shortDescription;
   const keywords = props.keywords ?? fromManifest.keywords;
-  const ogImage = props.ogImage ?? fromManifest.ogImage ?? SITE.ogImage;
+  const ogImage = resolveOgImage(props.ogImage ?? fromManifest.ogImage);
   const noindex = props.noindex ?? fromManifest.noindex ?? false;
   const jsonLd = props.jsonLd ?? fromManifest.jsonLd;
   const canonical = props.canonicalOverride ?? `${SITE.url}${location.pathname === "/" ? "" : location.pathname}`;
@@ -34,14 +34,14 @@ export default function SEO(props: Props) {
       <meta property="og:description" content={description} />
       <meta property="og:url" content={canonical} />
       <meta property="og:site_name" content={SITE.name} />
-      <meta property="og:image" content={`${SITE.url}${ogImage}`} />
+      <meta property="og:image" content={ogImage} />
       <meta property="og:type" content="website" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={`${SITE.url}${ogImage}`} />
+      <meta name="twitter:image" content={ogImage} />
       {SITE.twitter && <meta name="twitter:site" content={SITE.twitter} />}
 
       <meta name="theme-color" content={SITE.themeColor} />

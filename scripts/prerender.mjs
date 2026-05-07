@@ -106,7 +106,8 @@ async function loadRoutes() {
 
 function renderHead(SITE, route) {
   const canonical = `${SITE.url}${route.path === "/" ? "" : route.path}`;
-  const ogImage = `${SITE.url}${route.ogImage || SITE.ogImage}`;
+  const ogImageRaw = route.ogImage || SITE.ogImage;
+  const ogImage = /^https?:\/\//i.test(ogImageRaw) ? ogImageRaw : `${SITE.url}${ogImageRaw}`;
   const robots = route.noindex ? `<meta name="robots" content="noindex,nofollow" />` : "";
   const keywords = route.keywords ? `<meta name="keywords" content="${escapeAttr(route.keywords)}" />` : "";
   const jsonLdArr = Array.isArray(route.jsonLd) ? route.jsonLd : route.jsonLd ? [route.jsonLd] : [];
@@ -185,13 +186,6 @@ ${urls}
 }
 
 async function emitRobots(SITE) {
-  // Audit #30: extend the disallow list to cover every authenticated /
-  // private surface area we've added since the original list was written.
-  // - /loi/        signed LOI PDF view (sensitive PII)
-  // - /diag        internal diagnostics screen
-  // - /impersonate admin handoff route — never indexable
-  // - /apply       gated wizard, not interesting to crawlers
-  // - /login       no value indexed; /login?demo= would be embarrassing
   const txt = `User-agent: *
 Allow: /
 Disallow: /admin
@@ -202,7 +196,6 @@ Disallow: /loi/
 Disallow: /diag
 Disallow: /impersonate
 Disallow: /demo
-Disallow: /apply
 Disallow: /login
 
 Sitemap: ${SITE.url}/sitemap.xml
