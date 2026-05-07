@@ -1,42 +1,77 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, MapPin, Radio, X, BrainCircuit, AlertTriangle, TrendingUp, CheckCircle2, Activity } from 'lucide-react';
+import { Camera, MapPin, Radio, X, BrainCircuit, AlertTriangle, TrendingUp, CheckCircle2, Activity, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const CAMERAS = [
-  { id: 1, city: 'Dallas', location: 'IH-635', lat: 32.9236, lng: -96.7669, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8' },
-  { id: 2, city: 'Houston', location: 'IH-45', lat: 29.7604, lng: -95.3698, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8' },
-  { id: 3, city: 'Austin', location: 'IH-35', lat: 30.2672, lng: -97.7431, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8' },
-  { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8' },
-  { id: 5, city: 'Fort Worth', location: 'FM-1709 @ Brock', lat: 32.7254, lng: -97.3208, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8' },
-  { id: 6, city: 'El Paso', location: 'IH-10 @ Lee Trevino', lat: 31.7398, lng: -106.3254, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8' },
+  { id: 1, city: 'Dallas', location: 'IH-635', lat: 32.9236, lng: -96.7669, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
+  { id: 2, city: 'Houston', location: 'IH-45', lat: 29.7604, lng: -95.3698, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
+  { id: 3, city: 'Austin', location: 'IH-35', lat: 30.2672, lng: -97.7431, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
+  { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
+  { id: 5, city: 'Fort Worth', location: 'FM-1709 @ Brock', lat: 32.7254, lng: -97.3208, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
+  { id: 6, city: 'El Paso', location: 'IH-10 @ Lee Trevino', lat: 31.7398, lng: -106.3254, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
 ];
 
-const HlsPlayer = ({ src }: { src: string }) => {
+const FALLBACK_MP4 = '/cruze-web.mp4';
+
+const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackSrc?: string }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
         let hls: any = null;
-        
+        let destroyed = false;
+
+        const loadFallback = () => {
+            const video = videoRef.current;
+            if (!video || destroyed) return;
+            if (hls) { hls.destroy(); hls = null; }
+            video.src = fallbackSrc;
+            video.loop = true;
+            video.play().catch(() => {});
+        };
+
         const initPlayer = () => {
             const video = videoRef.current;
-            if (!video) return;
+            if (!video || destroyed) return;
+
+            video.pause();
+
+            if (src.endsWith('.mp4')) {
+                video.src = src;
+                video.loop = true;
+                video.play().catch(e => console.log('Autoplay prevented:', e));
+                return;
+            }
 
             if ((window as any).Hls && (window as any).Hls.isSupported()) {
                 hls = new (window as any).Hls({
                     maxBufferLength: 10,
                     maxMaxBufferLength: 20,
+                    manifestLoadingTimeOut: 8000,
+                    manifestLoadingMaxRetry: 2,
+                    levelLoadingTimeOut: 8000,
+                    levelLoadingMaxRetry: 2,
                 });
                 hls.loadSource(src);
                 hls.attachMedia(video);
                 hls.on((window as any).Hls.Events.MANIFEST_PARSED, () => {
                     video.play().catch(e => console.log('Autoplay prevented:', e));
                 });
+                hls.on((window as any).Hls.Events.ERROR, (_: any, data: any) => {
+                    if (data.fatal) {
+                        console.warn(`[HLS] Fatal error on ${src}, falling back to recorded feed.`);
+                        loadFallback();
+                    }
+                });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = src;
                 video.addEventListener('loadedmetadata', () => {
                     video.play().catch(e => console.log('Autoplay prevented:', e));
                 });
+                video.addEventListener('error', () => {
+                    console.warn(`[HLS Safari] Error on ${src}, falling back to recorded feed.`);
+                    loadFallback();
+                }, { once: true });
             }
         };
 
@@ -51,6 +86,7 @@ const HlsPlayer = ({ src }: { src: string }) => {
         }
 
         return () => {
+            destroyed = true;
             if (hls) {
                 hls.destroy();
             }
@@ -146,6 +182,23 @@ const AIOverlay = ({ camId, roiPoints }: { camId?: number, roiPoints?: {x: numbe
 const InteractiveLabV2 = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [selectedCam, setSelectedCam] = useState<typeof CAMERAS[0] | null>(null);
+    const [forceNightMode, setForceNightMode] = useState(false);
+    
+    // Determine if it is night time (9 PM to 8 AM) or forced
+    const currentHour = currentTime.getHours();
+    const isActualNightTime = currentHour >= 21 || currentHour < 8;
+    const isNightTime = forceNightMode || isActualNightTime;
+    
+    // Keyboard shortcut for quick testing
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.shiftKey && e.key.toLowerCase() === 'n') {
+                setForceNightMode(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
     // ROI State
     const [roiPoints, setRoiPoints] = useState<{x: number, y: number}[]>([]);
     const [roiActive, setRoiActive] = useState(false);
@@ -261,9 +314,20 @@ const InteractiveLabV2 = () => {
             <div className="container mx-auto px-6 max-w-7xl">
                 
                 <div className="text-center mb-16 relative z-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 mb-4">
-                        <Radio className="w-4 h-4 animate-pulse" />
-                        <span className="text-xs font-bold tracking-widest uppercase">Live Network Feed</span>
+                    <div className="inline-flex items-center gap-2 mb-4">
+                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${isNightTime ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'} border`}>
+                            {isNightTime ? <Moon className="w-4 h-4" /> : <Radio className="w-4 h-4 animate-pulse" />}
+                            <span className="text-xs font-bold tracking-widest uppercase">
+                                {isNightTime ? 'Pre-recorded Daytime Feed' : 'Live Network Feed'}
+                            </span>
+                        </div>
+                        <button 
+                            onClick={() => setForceNightMode(!forceNightMode)}
+                            className="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-white/30 hover:text-white/80 bg-white/5 hover:bg-white/10 rounded border border-white/10 transition-colors"
+                            title="Toggle Night Mode (Shift+N)"
+                        >
+                            Test Night
+                        </button>
                     </div>
                     <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
                         Cruze Live
@@ -282,8 +346,10 @@ const InteractiveLabV2 = () => {
                             className="bg-[#131821] rounded-2xl border border-white/10 overflow-hidden flex flex-col relative group hover:border-brand-cyan/50 transition-colors cursor-pointer shadow-lg hover:shadow-brand-cyan/10"
                         >
                             <div className="absolute top-3 left-3 z-30 flex items-center gap-1.5 px-2 py-1 bg-black/60 backdrop-blur-md rounded border border-white/10">
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                                <span className="text-[10px] font-bold text-white tracking-wider uppercase">Live</span>
+                                <div className={`w-2 h-2 rounded-full ${isNightTime ? 'bg-indigo-500' : 'bg-red-500 animate-pulse'}`}></div>
+                                <span className="text-[10px] font-bold text-white tracking-wider uppercase">
+                                    {isNightTime ? 'Recorded' : 'Live'}
+                                </span>
                             </div>
                             
                             <div className="absolute top-3 right-3 z-30 px-2 py-1 bg-black/60 backdrop-blur-md rounded border border-white/10">
@@ -296,7 +362,7 @@ const InteractiveLabV2 = () => {
                                 <div className="absolute inset-0 flex items-center justify-center z-10">
                                     <Camera className="w-6 h-6 text-white/10 animate-pulse" />
                                 </div>
-                                <HlsPlayer src={cam.url} />
+                                <HlsPlayer src={isNightTime && cam.preRecordedUrl ? cam.preRecordedUrl : cam.url} />
                             </div>
 
                             <div className="p-4 bg-gradient-to-b from-[#131821] to-[#0B0E14]">
@@ -349,7 +415,7 @@ const InteractiveLabV2 = () => {
                                     setRoiPoints([...roiPoints, {x, y}]);
                                 }}
                             >
-                                <HlsPlayer src={selectedCam?.url || ''} />
+                                <HlsPlayer src={isNightTime && selectedCam?.preRecordedUrl ? selectedCam.preRecordedUrl : (selectedCam?.url || '')} />
                                 
                                 {/* SVG Overlay for drawing polygon */}
                                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none z-30">

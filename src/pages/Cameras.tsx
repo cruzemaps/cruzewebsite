@@ -7,42 +7,74 @@ import { Camera, MapPin, Radio } from "lucide-react";
 // Same camera list used inside the InteractiveLab on /investors. Surfaced
 // here as a standalone, easily-findable page so the camera feed isn't only
 // behind the investor tier-gate.
+const FALLBACK_MP4 = '/cruze-web.mp4';
+
 const CAMERAS = [
-  { id: 1, city: "Dallas", location: "IH-635", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8" },
-  { id: 2, city: "Houston", location: "IH-45", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8" },
-  { id: 3, city: "Austin", location: "IH-35", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8" },
-  { id: 4, city: "San Antonio", location: "IH-10", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8" },
-  { id: 5, city: "Fort Worth", location: "FM-1709 @ Brock", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8" },
-  { id: 6, city: "El Paso", location: "IH-10 @ Lee Trevino", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8" },
+  { id: 1, city: "Dallas", location: "IH-635", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
+  { id: 2, city: "Houston", location: "IH-45", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
+  { id: 3, city: "Austin", location: "IH-35", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
+  { id: 4, city: "San Antonio", location: "IH-10", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
+  { id: 5, city: "Fort Worth", location: "FM-1709 @ Brock", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
+  { id: 6, city: "El Paso", location: "IH-10 @ Lee Trevino", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
 ];
 
-function HlsPlayer({ src }: { src: string }) {
+function HlsPlayer({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackSrc?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Use a mutable ref-shaped object so the cleanup function reads the
-    // SAME hls instance that init() created, even if init() runs async
-    // after the script tag loads. Without this, the cleanup closes over
-    // the initial null and any hls instance created later leaks.
     const state: { hls: any; cancelled: boolean } = { hls: null, cancelled: false };
+
+    const loadFallback = () => {
+      const video = videoRef.current;
+      if (!video || state.cancelled) return;
+      if (state.hls) { state.hls.destroy(); state.hls = null; }
+      video.src = fallbackSrc;
+      video.loop = true;
+      video.play().catch(() => {});
+    };
 
     const init = () => {
       if (state.cancelled) return;
       const video = videoRef.current;
       if (!video) return;
+
+      if (src.endsWith('.mp4')) {
+        video.src = src;
+        video.loop = true;
+        video.play().catch(() => {});
+        return;
+      }
+
       const Hls = (window as any).Hls;
       if (Hls && Hls.isSupported()) {
-        state.hls = new Hls({ maxBufferLength: 10, maxMaxBufferLength: 20 });
+        state.hls = new Hls({
+          maxBufferLength: 10,
+          maxMaxBufferLength: 20,
+          manifestLoadingTimeOut: 8000,
+          manifestLoadingMaxRetry: 2,
+          levelLoadingTimeOut: 8000,
+          levelLoadingMaxRetry: 2,
+        });
         state.hls.loadSource(src);
         state.hls.attachMedia(video);
         state.hls.on(Hls.Events.MANIFEST_PARSED, () => {
           if (!state.cancelled) video.play().catch(() => {});
+        });
+        state.hls.on(Hls.Events.ERROR, (_: any, data: any) => {
+          if (data.fatal) {
+            console.warn(`[HLS] Fatal error on ${src}, falling back to recorded feed.`);
+            loadFallback();
+          }
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = src;
         video.addEventListener("loadedmetadata", () => {
           if (!state.cancelled) video.play().catch(() => {});
         });
+        video.addEventListener("error", () => {
+          console.warn(`[HLS Safari] Error on ${src}, falling back to recorded feed.`);
+          loadFallback();
+        }, { once: true });
       }
     };
 
