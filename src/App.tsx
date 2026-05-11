@@ -18,8 +18,6 @@ const ForCities = lazy(() => import("./pages/ForCities"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Press = lazy(() => import("./pages/Press"));
 const Stats = lazy(() => import("./pages/Stats"));
-const CaseStudies = lazy(() => import("./pages/CaseStudies"));
-const CaseStudyDetail = lazy(() => import("./pages/CaseStudyDetail"));
 const Insights = lazy(() => import("./pages/Insights"));
 const InsightDetail = lazy(() => import("./pages/InsightDetail"));
 const Cities = lazy(() => import("./pages/Cities"));
@@ -28,6 +26,7 @@ const Lanes = lazy(() => import("./pages/Lanes"));
 const LaneDetail = lazy(() => import("./pages/LaneDetail"));
 const Apply = lazy(() => import("./pages/Apply"));
 const Cameras = lazy(() => import("./pages/Cameras"));
+const Lab = lazy(() => import("./pages/Lab"));
 const ImpersonateHandoff = lazy(() => import("./pages/ImpersonateHandoff"));
 const DemoHandoff = lazy(() => import("./pages/DemoHandoff"));
 const Diag = lazy(() => import("./pages/Diag"));
@@ -69,8 +68,6 @@ const App = () => (
               <Route path="/faq" element={<FAQ />} />
               <Route path="/press" element={<Press />} />
               <Route path="/stats" element={<Stats />} />
-              <Route path="/case-studies" element={<CaseStudies />} />
-              <Route path="/case-studies/:slug" element={<CaseStudyDetail />} />
               <Route path="/insights" element={<Insights />} />
               <Route path="/insights/:slug" element={<InsightDetail />} />
               <Route path="/cities" element={<Cities />} />
@@ -79,6 +76,8 @@ const App = () => (
               <Route path="/lanes/:slug" element={<LaneDetail />} />
               <Route path="/apply" element={<Apply />} />
               <Route path="/cameras" element={<Cameras />} />
+              {/* Hidden internal CV test page — not linked, noindex'd in SEO */}
+              <Route path="/lab" element={<Lab />} />
               <Route path="/route-planner" element={<RoutePlanner />} />
 
               {/* Auth */}

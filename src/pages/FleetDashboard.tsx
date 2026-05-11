@@ -422,14 +422,8 @@ function PendingExploreSection() {
         </CardContent>
       </Card>
 
-      {/* Content blocks: case study + insight + integrations */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <ExploreLink
-          to="/case-studies/midwest-class8-fleet"
-          eyebrow="Case study"
-          title="11.4% diesel reduction across 600 Class-8 trucks"
-          body="Read the full pilot writeup from a Midwest regional carrier."
-        />
+      {/* Content blocks: insight + integrations */}
+      <div className="grid md:grid-cols-2 gap-4">
         <ExploreLink
           to="/insights/phantom-traffic-jams-explained"
           eyebrow="Deep dive"

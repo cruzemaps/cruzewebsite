@@ -124,14 +124,6 @@ export const ROUTES: RouteMeta[] = [
     priority: 0.7,
   },
   {
-    path: "/case-studies",
-    title: "Cruze Case Studies | Pilot Outcomes",
-    description:
-      "Detailed pilot outcomes from fleet and city deployments using Cruze.",
-    changefreq: "monthly",
-    priority: 0.7,
-  },
-  {
     path: "/insights",
     title: "Cruze Insights | Phantom Jams, Swarm Routing, Fleet Ops",
     description:
@@ -190,6 +182,12 @@ export const ROUTES: RouteMeta[] = [
     description: "Sign in to your Cruze account.",
     noindex: true,
   },
+  {
+    path: "/lab",
+    title: "Internal Lab | Cruze",
+    description: "Internal camera CV testing page. Not for public use.",
+    noindex: true,
+  },
 ];
 
 export function resolveOgImage(image: string | undefined): string {
@@ -201,6 +199,6 @@ export function findRouteMeta(pathname: string): RouteMeta | undefined {
   // exact match first
   const exact = ROUTES.find((r) => r.path === pathname);
   if (exact) return exact;
-  // prefix match for nested (case-studies/[slug] etc.)
+  // prefix match for nested routes (e.g. /insights/[slug], /cities/[slug]).
   return ROUTES.find((r) => r.path !== "/" && pathname.startsWith(r.path));
 }

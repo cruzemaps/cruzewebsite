@@ -79,6 +79,7 @@ When changing routing, SPA-fallback assets, or `vite.config.ts#base`, verify bot
 - **Content stores** — [src/content/caseStudies.ts](src/content/caseStudies.ts) and [src/content/insights.ts](src/content/insights.ts) drive the `/case-studies/[slug]` and `/insights/[slug]` routes. Add an entry to the array → new page exists.
 - **Analytics** — [src/lib/analytics.ts](src/lib/analytics.ts) wraps `posthog-js`. Init is no-op without `VITE_POSTHOG_KEY`. Funnel events are typed; add new event names to the `FunnelEvent` union before calling `track()`.
 - **Dynamic OG images** — [workers/og-image/](workers/og-image/) is a separate Cloudflare Worker (`workers-og` / satori). Deploy independently; bind to `og.cruzemaps.com`. See [docs/CLOUDFLARE_SETUP.md](docs/CLOUDFLARE_SETUP.md).
+- **Frame-analyze worker** — [workers/frame-analyze/](workers/frame-analyze/) holds the Anthropic API key as a wrangler secret and calls Claude Haiku 4.5 vision on traffic-cam frames captured by the InteractiveLab modal. The SPA POSTs base64 JPEGs every 10 seconds when an ROI is active, prefers the JSON result over the regime simulation, and falls back to the simulation on any failure (network, CORS-tainted canvas, worker outage). The key never appears in the client bundle — set it via `wrangler secret put ANTHROPIC_API_KEY` and read in the worker as `env.ANTHROPIC_API_KEY`. Override the URL for dev via `VITE_FRAME_ANALYZE_URL`.
 
 ### Role-management workflow (database side)
 
