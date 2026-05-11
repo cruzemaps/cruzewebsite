@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Camera, MapPin, Radio, X, BrainCircuit, AlertTriangle, TrendingUp, CheckCircle2, Activity, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import YoloOverlay from './YoloOverlay';
+// Note: a YoloOverlay (coco-ssd bounding boxes) was tried and reverted —
+// TensorFlow.js runtime + model weights added ~7MB to the modal cold-start
+// and made the camera-feed experience feel laggy on slower connections. If
+// we re-introduce it, do it behind an explicit "Enable detection" toggle
+// that opts in to the model download rather than auto-loading. See git
+// history before this commit for the working implementation.
 
 // Each camera is mapped to a *traffic regime* — a stable characterization of
 // the flow state the demo should portray for that feed. The regime drives
@@ -732,17 +737,6 @@ const InteractiveLabV2 = () => {
                                 }}
                             >
                                 <HlsPlayer src={isNightTime && selectedCam?.preRecordedUrl ? selectedCam.preRecordedUrl : (selectedCam?.url || '')} />
-
-                                {/* In-browser YOLO (coco-ssd) — live bounding boxes
-                                    around detected vehicles. Independent of the
-                                    Claude analyze call: this is the visual proof
-                                    layer, Claude is the headline summary. */}
-                                <YoloOverlay
-                                    getVideo={getModalVideo}
-                                    enabled={!!selectedCam}
-                                    roiPoints={roiPoints}
-                                    roiActive={roiActive}
-                                />
 
                                 {/* SVG Overlay for drawing polygon */}
                                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none z-30">
