@@ -62,8 +62,25 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
     const [boxes, setBoxes] = useState<Box[]>([]);
     const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
     const [video, setVideo] = useState<HTMLVideoElement | null>(null);
+    // Human-readable failure detail surfaced to the UI so we don't go silent
+    // when the model can't load, the WebGL backend won't init, or detect()
+    // throws on the video pixels. The previous version silently returned null.
+    const [errorDetail, setErrorDetail] = useState<string>("");
+    // Elapsed time + stage so the loading state shows progress instead of
+    // looking frozen during the multi-second TFJS + weights download.
+    const [loadStage, setLoadStage] = useState<string>("Fetching detector code…");
+    const loadStartRef = useRef<number>(Date.now());
+    const [, forceTick] = useState(0);
     const modelRef = useRef<unknown>(null);
     const runningRef = useRef(false);
+
+    // While loading, update a 0.5s heartbeat so the elapsed-seconds display
+    // ticks live. Stops once status flips to ready or error.
+    useEffect(() => {
+        if (status !== "loading") return;
+        const id = setInterval(() => forceTick((n) => n + 1), 500);
+        return () => clearInterval(id);
+    }, [status]);
 
     // Poll for the video element on mount until it appears, then stop. The
     // modal animates in over ~300ms and HlsPlayer mounts its <video> inside
@@ -95,26 +112,35 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
     useEffect(() => {
         if (!enabled) return;
         let cancelled = false;
+        loadStartRef.current = Date.now();
+        setLoadStage("Fetching detector code…");
 
         (async () => {
             try {
+                console.info("[YoloOverlay] Loading TensorFlow.js + coco-ssd…");
                 const [tf, cocoSsd] = await Promise.all([
                     import("@tensorflow/tfjs"),
                     import("@tensorflow-models/coco-ssd"),
                 ]);
+                if (cancelled) return;
+                setLoadStage("Initializing WebGL backend…");
                 await tf.ready();
                 if (cancelled) return;
+                console.info(`[YoloOverlay] tf.ready done in ${Date.now() - loadStartRef.current}ms, backend: ${tf.getBackend()}`);
+                setLoadStage("Downloading model weights (~5MB)…");
                 // `lite_mobilenet_v2` is the smallest variant (~5MB) and
                 // adequate for vehicle counting on a 320×240 traffic-cam
                 // frame. Heavier variants would barely help at this resolution.
                 const model = await cocoSsd.load({ base: "lite_mobilenet_v2" });
                 if (cancelled) return;
                 modelRef.current = model;
+                console.info(`[YoloOverlay] Model ready in ${Date.now() - loadStartRef.current}ms`);
                 setStatus("ready");
                 onReady?.();
             } catch (err) {
                 if (!cancelled) {
-                    console.warn("[YoloOverlay] Model load failed:", err);
+                    console.error("[YoloOverlay] Model load failed:", err);
+                    setErrorDetail(`Model load failed: ${String((err as Error)?.message || err).slice(0, 200)}`);
                     setStatus("error");
                 }
             }
@@ -164,7 +190,8 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                 // hasn't been tagged with crossOrigin="anonymous". We log
                 // once and stop the loop — re-enable when the user picks a
                 // different cam.
-                console.warn("[YoloOverlay] Detect failed:", err);
+                console.error("[YoloOverlay] Detect failed:", err);
+                setErrorDetail(`Detection failed: ${String((err as Error)?.message || err).slice(0, 200)}`);
                 stop = true;
                 setStatus("error");
             } finally {
@@ -179,18 +206,37 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
         };
     }, [status, enabled, video]);
 
-    if (!enabled || status === "error") return null;
+    if (!enabled) return null;
 
     const roiClosed = roiActive && roiPoints.length >= 3;
     const roiPolyString = roiClosed
         ? roiPoints.map((p) => `${p.x},${p.y}`).join(" ")
         : "";
+    const elapsed = Math.floor((Date.now() - loadStartRef.current) / 1000);
 
     return (
         <div className="absolute inset-0 pointer-events-none z-25">
             {status === "loading" && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1.5 bg-black/60 backdrop-blur rounded-full border border-white/20 text-[10px] font-bold tracking-widest uppercase text-white/80">
-                    Loading detector…
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-5 py-3 bg-black/75 backdrop-blur rounded-xl border border-white/20 text-center max-w-sm">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span className="text-[11px] font-bold tracking-widest uppercase text-white">
+                            Initializing detector
+                        </span>
+                    </div>
+                    <div className="text-[10px] text-white/60 font-mono">
+                        {loadStage} · {elapsed}s
+                    </div>
+                </div>
+            )}
+            {status === "error" && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-5 py-3 bg-red-500/15 backdrop-blur rounded-xl border border-red-500/40 text-center max-w-md">
+                    <div className="text-[11px] font-bold tracking-widest uppercase text-red-300 mb-1">
+                        Detector unavailable
+                    </div>
+                    <div className="text-[10px] text-red-200/80 font-mono break-words">
+                        {errorDetail || "Unknown error — see console"}
+                    </div>
                 </div>
             )}
             <svg
