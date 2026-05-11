@@ -73,6 +73,11 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
     const [, forceTick] = useState(0);
     const modelRef = useRef<unknown>(null);
     const runningRef = useRef(false);
+    // Log the raw predictions ONCE per camera session so the console shows
+    // what coco-ssd is actually returning (class + score), even when they
+    // get filtered out by the confidence threshold below. Reset when the
+    // detection effect tears down.
+    const loggedSample = useRef(false);
 
     // While loading, update a 0.5s heartbeat so the elapsed-seconds display
     // ticks live. Stops once status flips to ready or error.
@@ -168,12 +173,27 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
             }
             runningRef.current = true;
             try {
-                const preds = await model.detect(video);
+                // model.detect lets us request up to 24 detections at a lower
+                // score cap. The defaults (20 max, 0.5 cap) drop tiny / blurry
+                // traffic-cam vehicles entirely. Passing both as arguments
+                // makes the model return more candidates and we filter them
+                // ourselves below.
+                const preds = await model.detect(video, 24, 0.05);
                 if (stop) return;
+                if (!loggedSample.current) {
+                    loggedSample.current = true;
+                    console.info(
+                        `[YoloOverlay] First detect returned ${preds.length} predictions on ${video.videoWidth}×${video.videoHeight} video. Sample:`,
+                        preds.slice(0, 6).map((p) => ({ cls: p.class, score: p.score.toFixed(2) })),
+                    );
+                }
                 const vw = video.videoWidth;
                 const vh = video.videoHeight;
+                // 0.15 is the practical floor for COCO-SSD lite on small,
+                // grainy traffic-cam frames — cars at distance routinely
+                // score 0.20-0.35, well below the original 0.4 threshold.
                 const next: Box[] = preds
-                    .filter((p) => VEHICLE_CLASSES.has(p.class) && p.score >= 0.4)
+                    .filter((p) => VEHICLE_CLASSES.has(p.class) && p.score >= 0.15)
                     .slice(0, 24)
                     .map((p) => ({
                         cls: p.class as Box["cls"],
