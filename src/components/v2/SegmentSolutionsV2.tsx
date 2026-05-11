@@ -43,7 +43,7 @@ const SegmentSolutionsV2 = () => {
                   onClick={() => document.getElementById('impact-map')?.scrollIntoView({ behavior: 'smooth' })}
                   className="text-brand-orange font-bold uppercase tracking-wider text-sm flex items-center gap-2 hover:gap-3 transition-all"
                 >
-                  Explore Case Studies &rarr;
+                  Explore the Impact Map &rarr;
                 </button>
               </div>
             </div>

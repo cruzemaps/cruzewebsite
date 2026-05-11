@@ -394,9 +394,6 @@ function CompanyStep({ data, update }: { data: WizardData; update: <K extends ke
           <a href="/for-fleets" target="_blank" rel="noopener noreferrer" className="text-brand-orange hover:underline">
             See the full fleet pitch →
           </a>
-          <a href="/case-studies/midwest-class8-fleet" target="_blank" rel="noopener noreferrer" className="text-brand-cyan hover:underline">
-            Read the 600-truck case study →
-          </a>
           <a href="/faq" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:underline">
             FAQ →
           </a>

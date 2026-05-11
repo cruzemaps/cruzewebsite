@@ -1,18 +1,240 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Camera, MapPin, Radio, X, BrainCircuit, AlertTriangle, TrendingUp, CheckCircle2, Activity, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const CAMERAS = [
-  { id: 1, city: 'Dallas', location: 'IH-635', lat: 32.9236, lng: -96.7669, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
-  { id: 2, city: 'Houston', location: 'IH-45', lat: 29.7604, lng: -95.3698, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
-  { id: 3, city: 'Austin', location: 'IH-35', lat: 30.2672, lng: -97.7431, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
-  { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
-  { id: 5, city: 'Fort Worth', location: 'FM-1709 @ Brock', lat: 32.7254, lng: -97.3208, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
-  { id: 6, city: 'El Paso', location: 'IH-10 @ Lee Trevino', lat: 31.7398, lng: -106.3254, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8', preRecordedUrl: '/cruze-web.mp4' },
+// Each camera is mapped to a *traffic regime* — a stable characterization of
+// the flow state the demo should portray for that feed. The regime drives
+// sampled ranges for mean speed, density, throughput, and BotSORT entries so
+// the numbers stay believable for the visible camera frame. We don't run a
+// hard Greenshields-from-speed derivation because the displayed values are
+// per-ROI, not full-corridor capacity flow; the equilibrium form scales the
+// metrics together but each one is bounded to per-ROI ranges.
+type Severity = 'clear' | 'stable' | 'heavy' | 'shock';
+
+type Regime = {
+    severity: Severity;
+    vMean: number;     vJit: number;     // mph
+    rhoMean: number;   rhoJit: number;   // veh/mi
+    flowMean: number;  flowJit: number;  // veh/min through ROI
+    shockProb: number;                   // 0..1 — chance of a shockwave ahead
+    logCount: number;                    // typical BotSORT entries shown
+};
+
+const REGIMES: Record<Severity, Regime> = {
+    clear:  { severity: 'clear',  vMean: 70, vJit: 3, rhoMean: 6,   rhoJit: 3,  flowMean: 4,  flowJit: 2, shockProb: 0.02, logCount: 1 },
+    stable: { severity: 'stable', vMean: 55, vJit: 5, rhoMean: 22,  rhoJit: 6,  flowMean: 12, flowJit: 4, shockProb: 0.10, logCount: 2 },
+    heavy:  { severity: 'heavy',  vMean: 35, vJit: 5, rhoMean: 60,  rhoJit: 12, flowMean: 22, flowJit: 6, shockProb: 0.30, logCount: 3 },
+    shock:  { severity: 'shock',  vMean: 20, vJit: 5, rhoMean: 100, rhoJit: 15, flowMean: 14, flowJit: 6, shockProb: 0.55, logCount: 4 },
+};
+
+// Camera ↔ regime + pre-recorded fallback. Major interstates get heavier
+// regimes; Fort Worth FM-1709 is an FM road (low traffic) and stays in
+// `clear`. preRecordedUrl is a same-origin MP4 that the HLS player swaps in
+// when the live skyvdn.com feed errors or when the clock crosses into night
+// mode — same-origin means the canvas isn't tainted, so frame capture for
+// the vision pipeline still works against the recorded clip.
+const FALLBACK_MP4 = '/cruze-web.mp4';
+
+const CAMERAS: Array<{
+    id: number; city: string; location: string; lat: number; lng: number;
+    url: string; preRecordedUrl: string; regime: Regime;
+}> = [
+    { id: 1, city: 'Dallas',      location: 'IH-635',              lat: 32.9236, lng: -96.7669,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.stable },
+    { id: 2, city: 'Houston',     location: 'IH-45',               lat: 29.7604, lng: -95.3698,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8', preRecordedUrl: FALLBACK_MP4, regime: REGIMES.shock  },
+    { id: 3, city: 'Austin',      location: 'IH-35',               lat: 30.2672, lng: -97.7431,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.heavy  },
+    { id: 4, city: 'San Antonio', location: 'IH-10',               lat: 29.4241, lng: -98.4936,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.clear  },
+    { id: 5, city: 'Fort Worth',  location: 'FM-1709 @ Brock',     lat: 32.7254, lng: -97.3208,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.clear  },
+    { id: 6, city: 'El Paso',     location: 'IH-10 @ Lee Trevino', lat: 31.7398, lng: -106.3254, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.heavy  },
 ];
 
-const FALLBACK_MP4 = '/cruze-web.mp4';
+const V_F = 75.0;
+
+const VEHICLE_TYPES = ['Sedan', 'SUV', 'Truck', 'Van'];
+
+function severityLabel(s: Severity): string {
+    switch (s) {
+        case 'shock':  return '(Shockwave Detected)';
+        case 'heavy':  return '(Heavy)';
+        case 'stable': return '(Stable Flow)';
+        case 'clear':  return '(Clear)';
+    }
+}
+
+function severityWidth(s: Severity): number {
+    switch (s) {
+        case 'shock':  return 90;
+        case 'heavy':  return 65;
+        case 'stable': return 40;
+        case 'clear':  return 18;
+    }
+}
+
+function severityBadgeClass(s: Severity): string {
+    switch (s) {
+        case 'shock':
+        case 'heavy':  return 'text-red-400 border-red-400/30 bg-red-400/10';
+        case 'stable': return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
+        case 'clear':  return 'text-green-400 border-green-400/30 bg-green-400/10';
+    }
+}
+
+function jit(mean: number, jit: number) {
+    return mean + (Math.random() - 0.5) * 2 * jit;
+}
+
+// One simulation step. Each metric samples within its regime band; v_now is
+// EMA-smoothed with the previous tick so the live readout drifts instead of
+// thrashing. Returned values are ready to render.
+function tickPINN(prevV: number, regime: Regime) {
+    const vTarget = jit(regime.vMean, regime.vJit);
+    const v_now = Math.max(5, Math.min(V_F, prevV * 0.7 + vTarget * 0.3));
+    const rho = Math.max(0.5, jit(regime.rhoMean, regime.rhoJit));
+    const flowPerMin = Math.max(0, jit(regime.flowMean, regime.flowJit));
+
+    // Recommended speed: anchor on regime mean, then nudge down if a shockwave
+    // is flagged ahead. Keeps the badge severity aligned with the regime most
+    // of the time.
+    const hasShock = Math.random() < regime.shockProb;
+    const shockwave = hasShock ? 8 + Math.random() * 12 : 0;
+    const target_speed = Math.max(20, Math.min(V_F, v_now - shockwave * 0.5));
+    const recSpeedValue = Math.round(target_speed / 5) * 5;
+    const severity: Severity = hasShock && regime.severity !== 'clear' ? 'shock' : regime.severity;
+
+    const trend = (Math.random() - 0.4) * 25;
+
+    return {
+        v_now,
+        flow: flowPerMin.toFixed(1),
+        density: rho.toFixed(1),
+        avgSpeed: v_now.toFixed(1),
+        trend: trend.toFixed(1),
+        recSpeed: `${recSpeedValue} MPH ${severityLabel(severity)}`,
+        congestionWidth: `${severityWidth(severity)}%`,
+        severity,
+    };
+}
+
+type Track = { id: number; type: string; firstSeen: Date };
+
+// AnalysisResult mirrors the worker's response. When the worker is reachable
+// the SPA prefers these (real CV on the live frame) over the regime simulation.
+type AnalysisResult = {
+    count: number;
+    meanSpeedMph: number;
+    density: number;
+    severity: Severity;
+    recommendedSpeedMph: number;
+};
+
+// Frame-analyze worker URL. Overridable via VITE_FRAME_ANALYZE_URL for dev.
+// The worker holds the Anthropic key as a wrangler secret — the SPA never
+// sees the key, it just POSTs base64 frames and receives JSON back.
+const FRAME_ANALYZE_URL =
+    (import.meta.env.VITE_FRAME_ANALYZE_URL as string | undefined) ||
+    "https://analyze.cruzemaps.com/analyze";
+
+// Hard CV-result freshness window. Past this, fall back to the simulation —
+// stale CV is worse than honest simulation. Tuned to ~one refresh interval +
+// buffer for one missed call.
+const API_FRESH_MS = 14_000;
+// Refresh cadence for the vision call. ~$0.001/call × every 10s for the
+// duration of a modal session is a few cents per investor. Don't tighten
+// this without a cost re-estimate.
+const ANALYZE_INTERVAL_MS = 10_000;
+
+// Render a still frame from a <video> to a data URL, masked to the user's
+// ROI polygon so the vision model only sees the region they selected.
+// Pixels outside the polygon are filled with black; the worker's prompt
+// tells the model that black regions are masked-out and should not be
+// counted. Returns null if the video isn't ready, the canvas is tainted
+// (cross-origin HLS without CORS), or any other capture error occurs.
+//
+// roiPoints are in 0-100 percentage space (the same units the SVG overlay
+// uses), so they map cleanly to the downsampled capture canvas.
+function captureFrameFromVideo(
+    video: HTMLVideoElement | null,
+    roiPoints: { x: number; y: number }[],
+): string | null {
+    if (!video) return null;
+    if (video.readyState < 2) return null; // HAVE_CURRENT_DATA
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    if (!w || !h) return null;
+
+    const targetW = Math.min(640, w);
+    const targetH = Math.round(targetW * (h / w));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    try {
+        if (roiPoints.length >= 3) {
+            // Black background, then clip the draw to the polygon so only
+            // the ROI shows pixels from the video frame.
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, targetW, targetH);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo((roiPoints[0].x / 100) * targetW, (roiPoints[0].y / 100) * targetH);
+            for (let i = 1; i < roiPoints.length; i++) {
+                ctx.lineTo((roiPoints[i].x / 100) * targetW, (roiPoints[i].y / 100) * targetH);
+            }
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(video, 0, 0, targetW, targetH);
+            ctx.restore();
+        } else {
+            // Defensive — the analyze loop only fires when roiActive is true,
+            // which requires >= 3 points. If we ever get here, fall back to
+            // the unmasked frame rather than uploading a black image.
+            ctx.drawImage(video, 0, 0, targetW, targetH);
+        }
+        return canvas.toDataURL("image/jpeg", 0.7);
+    } catch (err) {
+        // Most common cause: HLS source served without Access-Control-Allow-Origin
+        // → canvas tainted → toDataURL throws SecurityError. We log once and let
+        // the simulation take over.
+        if (typeof console !== "undefined") console.warn("[InteractiveLab] Frame capture blocked:", err);
+        return null;
+    }
+}
+
+// Tick variant used when we have a fresh AnalysisResult from the worker. The
+// API gives us ground truth for count/regime/recommendedSpeed; we blend mean
+// speed into the existing EMA so the displayed value still moves smoothly
+// instead of snapping every 10s.
+function tickFromApi(prevV: number, api: AnalysisResult): {
+    v_now: number; flow: string; density: string; avgSpeed: string; trend: string;
+    recSpeed: string; congestionWidth: string; severity: Severity; targetCount: number;
+} {
+    const vTarget = api.meanSpeedMph + (Math.random() - 0.5) * 3;
+    const v_now = Math.max(0, Math.min(V_F, prevV * 0.8 + vTarget * 0.2));
+    const rho = Math.max(0, api.density + (Math.random() - 0.5) * 3);
+
+    // Per-ROI throughput estimate scales with visible count, not corridor
+    // capacity flow. Empty frame → 0. Heavy frame → ~30/min. This matches
+    // user intuition that "no cars in frame" should not read 35 veh/min.
+    const flowPerMin = api.count <= 0 ? 0 : Math.max(0, api.count * 3.2 + (Math.random() - 0.5) * 1.5);
+
+    const recSpeedValue = api.recommendedSpeedMph;
+    const trend = (Math.random() - 0.4) * 25;
+
+    return {
+        v_now,
+        flow: flowPerMin.toFixed(1),
+        density: rho.toFixed(1),
+        avgSpeed: v_now.toFixed(1),
+        trend: trend.toFixed(1),
+        recSpeed: `${recSpeedValue} MPH ${severityLabel(api.severity)}`,
+        congestionWidth: `${severityWidth(api.severity)}%`,
+        severity: api.severity,
+        targetCount: api.count,
+    };
+}
 
 const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackSrc?: string }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -205,92 +427,164 @@ const InteractiveLabV2 = () => {
     const videoContainerRef = useRef<HTMLDivElement>(null);
     
     const [telemetry, setTelemetry] = useState({
-        flow: '84.2',
-        density: '42.1',
-        avgSpeed: '68.4',
-        trend: '12.4',
-        recSpeed: '45 MPH (Heavy)',
-        congestionWidth: '65%',
+        flow: '0.0',
+        density: '0.0',
+        avgSpeed: '0.0',
+        trend: '0.0',
+        recSpeed: 'AWAITING ROI SELECTION',
+        congestionWidth: '0%',
+        severity: 'clear' as Severity,
         logs: [] as any[]
     });
 
+    // Hold previous v_now across ticks so the simulation EMAs smoothly instead
+    // of teleporting between samples. Reset on cam change / ROI deactivate.
+    const prevVRef = useRef<number>(0);
+    // BotSORT-style track persistence: vehicle IDs stay stable across ticks
+    // until they age out, so the log doesn't invent fresh detections every
+    // 1.3s on an empty road.
+    const tracksRef = useRef<Track[]>([]);
+    const nextIdRef = useRef<number>(1000);
+    // Latest worker analysis result. The tick prefers this when fresh and
+    // falls back to the regime simulation otherwise.
+    const apiResultRef = useRef<{ result: AnalysisResult; at: number } | null>(null);
+    // Surfaces to the UI: are we currently driving telemetry from real CV?
+    const [visionOnline, setVisionOnline] = useState(false);
+
+    // Frame capture target — the modal mounts <HlsPlayer> inside this container.
+    // We query for the <video> at call time rather than refactoring HlsPlayer.
+    const getModalVideo = useCallback((): HTMLVideoElement | null => {
+        return videoContainerRef.current?.querySelector("video") ?? null;
+    }, []);
+
+    // Periodic vision call. Runs only when a modal is open AND the user has
+    // drawn an ROI. Falls back to the simulation on any failure (network,
+    // CORS-tainted canvas, model JSON parse error, worker missing secret).
     useEffect(() => {
-        if (selectedCam) {
-            if (!roiActive) {
-                setTelemetry({
-                    flow: '0.0', density: '0.0', avgSpeed: '0.0', trend: '0.0',
-                    recSpeed: 'AWAITING ROI SELECTION', congestionWidth: '0%',
-                    logs: []
+        if (!selectedCam || !roiActive) return;
+
+        let cancelled = false;
+
+        const analyze = async () => {
+            const frame = captureFrameFromVideo(getModalVideo(), roiPoints);
+            if (!frame) return; // CORS-tainted or video not ready — sim takes over
+
+            try {
+                const resp = await fetch(FRAME_ANALYZE_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ frame }),
                 });
-                return;
+                if (!resp.ok) throw new Error(`status ${resp.status}`);
+                const data = (await resp.json()) as { ok: boolean; result?: AnalysisResult; error?: string };
+                if (cancelled) return;
+                if (!data.ok || !data.result) {
+                    console.warn("[InteractiveLab] Analyze returned error:", data.error);
+                    return;
+                }
+                apiResultRef.current = { result: data.result, at: Date.now() };
+                setVisionOnline(true);
+            } catch (err) {
+                if (!cancelled) console.warn("[InteractiveLab] Analyze fetch failed:", err);
+            }
+        };
+
+        // Fire immediately so the user sees the real read on ROI activation,
+        // then refresh every ANALYZE_INTERVAL_MS.
+        analyze();
+        const interval = setInterval(analyze, ANALYZE_INTERVAL_MS);
+        return () => {
+            cancelled = true;
+            clearInterval(interval);
+        };
+    }, [selectedCam, roiActive, roiPoints, getModalVideo]);
+
+    useEffect(() => {
+        if (!selectedCam) return;
+
+        // Reset cross-tick state every time the cam or ROI toggles.
+        prevVRef.current = selectedCam.regime.vMean;
+        tracksRef.current = [];
+        nextIdRef.current = 1000 + Math.floor(Math.random() * 8000);
+        apiResultRef.current = null;
+        setVisionOnline(false);
+
+        if (!roiActive) {
+            setTelemetry({
+                flow: '0.0', density: '0.0', avgSpeed: '0.0', trend: '0.0',
+                recSpeed: 'AWAITING ROI SELECTION', congestionWidth: '0%',
+                severity: 'clear', logs: []
+            });
+            return;
+        }
+
+        const tick = () => {
+            const regime = selectedCam.regime;
+            const api = apiResultRef.current;
+            const apiFresh = !!api && Date.now() - api.at < API_FRESH_MS;
+            if (!apiFresh && visionOnline) setVisionOnline(false);
+
+            let r: ReturnType<typeof tickPINN>;
+            let targetCount: number;
+            if (apiFresh && api) {
+                const a = tickFromApi(prevVRef.current, api.result);
+                prevVRef.current = a.v_now;
+                r = a;
+                targetCount = a.targetCount;
+            } else {
+                r = tickPINN(prevVRef.current, regime);
+                prevVRef.current = r.v_now;
+                targetCount = regime.logCount;
+                // Honest empty state on `clear` regime — sometimes show no
+                // detections so the panel doesn't invent cars on an empty road.
+                if (regime.severity === 'clear' && Math.random() < 0.45) targetCount = 0;
             }
 
-            // High-fidelity simulation scaled perfectly by ROI area
-            const hash = selectedCam.id * 12345;
-            const rand = (min: number, max: number, offset = 0) => 
-                min + ((hash + offset) % (max - min));
-
-            // --- Physics-Informed Neural Network (PINN) Simulation ---
-            // Based on the Aw-Rascle-Zhang (ARZ) PDE model from pinn_traffic_model.py
-            const V_F = 75.0; // Free-flow speed (mph)
-            const RHO_MAX = 150.0; // Jam density (veh/mile)
-            
-            // 1. Generate realistic Mean Speed (v_now) to match live video visuals (60-75 mph)
-            const baseV = 60 + ((hash % 150) / 10); 
-            const v_now = Math.min(V_F, baseV + (rand(-30, 30, 1) / 10)); // Add ARZ relaxation noise
-            
-            // 2. PINN Spatial Lookahead (predicting shockwaves 1 mile ahead)
-            const shockwave_factor = rand(0, 100, 2) > 85 ? rand(10, 25, 3) : rand(-2, 5, 4);
-            const v_ahead = v_now - shockwave_factor;
-            
-            // 3. Fuel-Optimal Recommended Speed (from TrafficPINN.forecast_speed)
-            let target_speed = v_now;
-            if (v_ahead < v_now - 10) {
-                target_speed = (v_now + v_ahead) / 2.0; // Smooth deceleration for shockwave
-            }
-            const eco_speed = Math.max(20, Math.min(V_F, target_speed));
-            const recSpeedValue = Math.round(eco_speed / 5.0) * 5.0;
-            
-            // 4. Calculate Density (rho) from PINN Equilibrium: v = V_F(1 - rho/RHO_MAX)
-            let rho = RHO_MAX * (1 - (v_now / V_F));
-            rho = Math.max(2.0, rho); // Floor to prevent zero/negative density
-            
-            // 5. Calculate Flow (q) = rho * v (veh/hour -> veh/min)
-            const qHour = rho * v_now;
-            const flowPerMin = qHour / 60.0;
-            
-            // Map Recommended Speed to UI Descriptors
-            let recSpeedDesc = '(Clear)';
-            let widthNum = 15;
-            if (recSpeedValue <= 45) { recSpeedDesc = '(Shockwave Detected)'; widthNum = 85; }
-            else if (recSpeedValue <= 55) { recSpeedDesc = '(Heavy)'; widthNum = 65; }
-            else if (recSpeedValue <= 65) { recSpeedDesc = '(Stable Flow)'; widthNum = 40; }
-            else { recSpeedDesc = '(Clear)'; widthNum = 20; }
-
-            let recSpeed = `${recSpeedValue} MPH ${recSpeedDesc}`;
-
-            const flow = flowPerMin.toFixed(1);
-            const density = rho.toFixed(1);
-            const avgSpeed = v_now.toFixed(1);
-            const trend = (rand(-150, 250, 4) / 10).toFixed(1);
-
+            // Update tracked vehicles toward the target count. Each existing
+            // track has a chance to drop per tick; new tracks fill the gap.
             const now = new Date();
+            tracksRef.current = tracksRef.current.filter(() => Math.random() > 0.30);
+            // Cap at 4 visible entries (the panel only shows 4 anyway).
+            const visibleTarget = Math.min(targetCount, 4);
+            while (tracksRef.current.length < visibleTarget) {
+                tracksRef.current.push({
+                    id: nextIdRef.current++,
+                    type: VEHICLE_TYPES[Math.floor(Math.random() * VEHICLE_TYPES.length)],
+                    firstSeen: now,
+                });
+            }
+            // Trim if we're over (e.g. target dropped from 4 to 1).
+            if (tracksRef.current.length > visibleTarget) {
+                tracksRef.current = tracksRef.current.slice(0, visibleTarget);
+            }
 
-            const vehicleTypes = ['Sedan', 'SUV', 'Truck', 'Van'];
-            const logs = Array.from({length: 4}).map((_, i) => ({
-                id: rand(1000, 9999, i * 10),
-                type: vehicleTypes[rand(0, 3, i * 11)],
-                speed: (parseFloat(avgSpeed) + (Math.random() * 10 - 5)).toFixed(1),
-                conf: (rand(85, 99, i * 13) / 100).toFixed(2),
-                time: new Date(now.getTime() - rand(1000, 15000, i * 14)).toISOString().split('T')[1].slice(0, 8)
-            })).sort((a, b) => b.time.localeCompare(a.time));
+            const logs = tracksRef.current.map((t) => ({
+                id: t.id,
+                type: t.type,
+                speed: Math.max(0, prevVRef.current + (Math.random() * 8 - 4)).toFixed(1),
+                conf: (0.85 + Math.random() * 0.14).toFixed(2),
+                time: t.firstSeen.toISOString().split('T')[1].slice(0, 8),
+            }));
 
             setTelemetry({
-                flow, density, avgSpeed, trend, recSpeed,
-                congestionWidth: `${widthNum}%`,
-                logs
+                flow: r.flow,
+                density: r.density,
+                avgSpeed: r.avgSpeed,
+                trend: r.trend,
+                recSpeed: r.recSpeed,
+                congestionWidth: r.congestionWidth,
+                severity: r.severity,
+                logs,
             });
-        }
+        };
+
+        tick();
+        const interval = setInterval(tick, 1300);
+        return () => clearInterval(interval);
+        // visionOnline intentionally not in deps — the tick reads apiResultRef
+        // directly; adding visionOnline would rebuild the interval on every
+        // status flip and reset the sim cadence.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCam, roiActive]);
 
     useEffect(() => {
@@ -473,10 +767,12 @@ const InteractiveLabV2 = () => {
                                     <X className="w-5 h-5" />
                                 </button>
                                 
-                                {/* Live AI Badge */}
-                                <div className="absolute top-6 right-6 z-40 flex items-center gap-1.5 px-3 py-1.5 bg-brand-cyan/10 backdrop-blur-md rounded border border-brand-cyan/30">
-                                    <div className="w-2 h-2 rounded-full bg-brand-cyan animate-pulse"></div>
-                                    <span className="text-[10px] font-bold text-brand-cyan tracking-widest uppercase">Live AI Processing</span>
+                                {/* Live AI Badge — flips between real CV and simulation fallback */}
+                                <div className={`absolute top-6 right-6 z-40 flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-md rounded border ${visionOnline ? 'bg-brand-cyan/10 border-brand-cyan/30' : 'bg-white/5 border-white/20'}`}>
+                                    <div className={`w-2 h-2 rounded-full animate-pulse ${visionOnline ? 'bg-brand-cyan' : 'bg-white/40'}`}></div>
+                                    <span className={`text-[10px] font-bold tracking-widest uppercase ${visionOnline ? 'text-brand-cyan' : 'text-white/60'}`}>
+                                        {visionOnline ? 'Live AI Vision' : 'Simulation Mode'}
+                                    </span>
                                 </div>
                             </div>
                             
@@ -490,7 +786,7 @@ const InteractiveLabV2 = () => {
                                 {/* Traffic Metrics Grid */}
                                 <div className="grid grid-cols-2 gap-3 mb-2">
                                     <div className="bg-white/5 rounded-xl p-4 border border-white/5">
-                                        <h4 className="text-white/40 text-[9px] font-bold uppercase tracking-wider mb-2">Vol (Veh/Min)</h4>
+                                        <h4 className="text-white/40 text-[9px] font-bold uppercase tracking-wider mb-2">Throughput (Veh/Min)</h4>
                                         <div className="flex items-end gap-1.5">
                                             <span className="text-3xl font-mono font-bold text-white leading-none">{telemetry.flow}</span>
                                         </div>
@@ -513,7 +809,7 @@ const InteractiveLabV2 = () => {
                                 <div className="bg-white/5 rounded-xl p-4 border border-white/5">
                                     <div className="flex justify-between items-center mb-3">
                                         <h4 className="text-white/40 text-[10px] font-bold uppercase tracking-wider">Recommended Variable Speed</h4>
-                                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${telemetry.recSpeed.includes('35') || telemetry.recSpeed.includes('45') ? 'text-red-400 border-red-400/30 bg-red-400/10' : telemetry.recSpeed.includes('55') ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10' : 'text-green-400 border-green-400/30 bg-green-400/10'}`}>
+                                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${severityBadgeClass(telemetry.severity)}`}>
                                             {telemetry.recSpeed}
                                         </span>
                                     </div>
@@ -535,7 +831,13 @@ const InteractiveLabV2 = () => {
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        {telemetry.logs.map((log, i) => (
+                                        {telemetry.logs.length === 0 ? (
+                                            <div className="text-[11px] font-mono text-white/30 italic py-2">
+                                                {telemetry.recSpeed === 'AWAITING ROI SELECTION'
+                                                    ? 'Awaiting ROI selection…'
+                                                    : 'No vehicles currently in ROI.'}
+                                            </div>
+                                        ) : telemetry.logs.map((log, i) => (
                                             <div key={i} className="flex justify-between items-center text-[11px] font-mono border-b border-white/5 pb-2 last:border-0 last:pb-0">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-white/30">{log.time}</span>

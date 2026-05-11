@@ -51,7 +51,6 @@ function Footer() {
         <FooterColumn title="Coverage">
           <FooterLink to="/cities">Pilot Cities</FooterLink>
           <FooterLink to="/lanes">Top US Lanes</FooterLink>
-          <FooterLink to="/case-studies">Case Studies</FooterLink>
           <FooterLink to="/insights">Insights</FooterLink>
           <FooterLink to="/faq">FAQ</FooterLink>
           <FooterLink to="/press">Press Kit</FooterLink>

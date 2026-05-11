@@ -31,13 +31,7 @@ const FinalConversionV2 = () => {
            </p>
             <div className="flex flex-col items-center">
               <div className="font-bold text-white">Sarah Johnson</div>
-              <div className="text-sm text-white/50 mb-4">Operations Director, TX Freight</div>
-              <button 
-                onClick={() => document.getElementById('impact-map')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-sm font-bold text-brand-cyan hover:underline uppercase tracking-wider"
-              >
-                Read the Case Study &rarr;
-              </button>
+              <div className="text-sm text-white/50">Operations Director, TX Freight</div>
             </div>
         </div>
 

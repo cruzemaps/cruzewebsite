@@ -1,6 +1,5 @@
 import { useState } from "react";
 import NavbarV2 from "@/components/v2/NavbarV2";
-import InteractiveLabV2 from "@/components/v2/InteractiveLabV2";
 import InvestorPitchSections from "@/components/v2/InvestorPitchSections";
 import SEO from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
@@ -82,10 +81,11 @@ export default function Investors() {
         />
       )}
 
-      {/* Tier 2 content: full pitch + interactive lab */}
+      {/* Tier 2 content: full pitch. InteractiveLabV2 is temporarily hidden
+          from the public investor flow while the live-CV path is being
+          iterated on — it lives at /lab in the meantime. */}
       {(tier === "email" || tier === "dataroom") && (
         <>
-          <InteractiveLabV2 />
           <InvestorPitchSections />
           <CalBookingSection />
         </>

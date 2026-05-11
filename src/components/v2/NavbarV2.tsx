@@ -45,9 +45,6 @@ const NavbarV2 = () => {
                 <Link className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" to="/cameras">
                   Live Cameras
                 </Link>
-                <Link className="block px-4 py-2 text-sm text-white/70 hover:text-brand-orange hover:bg-white/5 rounded-md" to="/case-studies">
-                  Case Studies
-                </Link>
               </div>
             </div>
             
@@ -105,7 +102,6 @@ const NavbarV2 = () => {
              <Link to="/for-cities" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>For Cities</Link>
              <Link to="/route-planner" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Route Planner</Link>
              <Link to="/cameras" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Live Cameras</Link>
-             <Link to="/case-studies" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Case Studies</Link>
              <Link to="/insights" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Insights</Link>
              <Link to="/investors" className="text-white/80 hover:text-white font-medium" onClick={() => setIsOpen(false)}>Investors</Link>
              {user ? (

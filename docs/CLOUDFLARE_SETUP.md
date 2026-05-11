@@ -66,11 +66,57 @@ ogImage: "https://og.cruzemaps.com/?title=Cruze%20for%20Fleets&kind=fleet"
 
 For per-case-study OG images, set `canonicalOverride` + `ogImage` in `CaseStudyDetail.tsx`'s `<SEO>` block.
 
-## 3. (Optional) Plausible-style analytics on Cloudflare
+## 3. Cloudflare Worker — frame analyzer (Claude vision)
+
+Lives in [workers/frame-analyze/](../workers/frame-analyze/). The investor-page InteractiveLab modal captures a frame from the live HLS feed every 10 seconds (after the user draws an ROI), POSTs it to this worker, and the worker calls Claude Haiku 4.5 vision to return `{ count, meanSpeedMph, density, severity, recommendedSpeedMph }`. The SPA prefers these values over the regime simulation when the worker is reachable.
+
+### Secret
+
+The worker reads `ANTHROPIC_API_KEY` from a wrangler secret — **never** add it to source, env vars, or VITE_*. The SPA never sees the key; only the worker holds it.
+
+```bash
+cd workers/frame-analyze
+npm install
+npx wrangler secret put ANTHROPIC_API_KEY    # paste your Anthropic API key when prompted
+```
+
+### Deploy
+
+```bash
+npx wrangler deploy
+```
+
+Deploys a worker named `cruze-frame-analyze`.
+
+### Custom domain
+
+Worker is bound to `analyze.cruzemaps.com`. Add the CNAME in Cloudflare DNS:
+
+- Name: `analyze`
+- Target: `cruze-frame-analyze.<your-account>.workers.dev`
+- Proxy: enabled (orange cloud)
+
+Confirm: `curl https://analyze.cruzemaps.com/health` returns `{"ok":true,"service":"cruze-frame-analyze"}`.
+
+### Override URL in dev
+
+By default the SPA points at `https://analyze.cruzemaps.com/analyze`. To hit `wrangler dev` locally, set:
+
+```
+VITE_FRAME_ANALYZE_URL=http://localhost:8787/analyze
+```
+
+in your `.env.local`. Without this the dev SPA either hits prod or (if CORS blocks the frame capture) silently falls back to the regime simulation — the UI badge flips from "Live AI Vision" to "Simulation Mode" so you can tell which mode is active.
+
+### Cost
+
+At one investor session ≈ 6–12 frames per camera modal, Haiku 4.5 vision runs ~$0.001 per frame → ~$0.01/session. Refresh cadence is in [`InteractiveLabV2.tsx`](../src/components/v2/InteractiveLabV2.tsx) (`ANALYZE_INTERVAL_MS`). Don't tighten without a cost re-estimate.
+
+## 4. (Optional) Plausible-style analytics on Cloudflare
 
 If you'd rather host analytics yourself rather than PostHog, Cloudflare Web Analytics is free and zero-cookie. Pages project → Web Analytics → Add a site → paste the token into a `<script>` in `index.html`. We skipped this so you can choose; PostHog gives funnels + session replay.
 
-## 4. Search engine submission
+## 5. Search engine submission
 
 Once the new sitemap is live:
 
@@ -78,7 +124,7 @@ Once the new sitemap is live:
 2. **Bing Webmaster Tools** — same, submit the sitemap. Bing indexes faster than Google for new sites and feeds Perplexity/ChatGPT.
 3. **IndexNow** — Cloudflare has a one-click IndexNow integration in the Pages project that pings Bing/Yandex on every deploy. Enable it.
 
-## 5. Page rules / cache
+## 6. Page rules / cache
 
 For optimal Core Web Vitals:
 

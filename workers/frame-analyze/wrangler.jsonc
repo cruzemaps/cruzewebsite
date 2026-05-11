@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cruze-frame-analyze",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-04-17",
+  "observability": { "enabled": true },
+  "routes": [
+    { "pattern": "analyze.cruzemaps.com", "custom_domain": true }
+  ]
+  // ANTHROPIC_API_KEY is delivered out-of-band:
+  //   wrangler secret put ANTHROPIC_API_KEY --config workers/frame-analyze/wrangler.jsonc
+  // It is never committed to source.
+}

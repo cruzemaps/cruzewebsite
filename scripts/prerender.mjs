@@ -22,12 +22,11 @@ const DIST = join(ROOT, "dist");
 // the manifest in TS for the app while the build script is JS. We re-implement
 // minimal parsing — just import the .ts as text and eval the ROUTES array.
 async function loadProgrammaticRoutes(SITE) {
-  // Read the raw TS for cities, lanes, case studies, insights and extract
+  // Read the raw TS for cities, lanes, insights and extract
   // their slug/title bits. Same eval-in-Function approach as loadRoutes —
   // fragile by design so any schema change forces a deliberate update.
   const cities = await loadModuleArray("src/content/cities.ts", "CITIES");
   const lanes = await loadModuleArray("src/content/lanes.ts", "LANES");
-  const caseStudies = await loadModuleArray("src/content/caseStudies.ts", "CASE_STUDIES");
   const insights = await loadModuleArray("src/content/insights.ts", "INSIGHTS");
 
   const cityRoutes = cities.map((c) => ({
@@ -46,14 +45,6 @@ async function loadProgrammaticRoutes(SITE) {
     priority: 0.6,
   }));
 
-  const caseStudyRoutes = caseStudies.map((cs) => ({
-    path: `/case-studies/${cs.slug}`,
-    title: `${cs.title} | Cruze Case Study`,
-    description: cs.excerpt,
-    changefreq: "yearly",
-    priority: 0.7,
-  }));
-
   const insightRoutes = insights.map((p) => ({
     path: `/insights/${p.slug}`,
     title: `${p.title} | Cruze Insights`,
@@ -63,7 +54,7 @@ async function loadProgrammaticRoutes(SITE) {
     priority: 0.6,
   }));
 
-  return [...cityRoutes, ...laneRoutes, ...caseStudyRoutes, ...insightRoutes];
+  return [...cityRoutes, ...laneRoutes, ...insightRoutes];
 }
 
 async function loadModuleArray(relPath, exportName) {
