@@ -134,15 +134,6 @@ const FRAME_ANALYZE_URL =
     (import.meta.env.VITE_FRAME_ANALYZE_URL as string | undefined) ||
     "https://analyze.cruzemaps.com/analyze";
 
-// Hard CV-result freshness window. Past this, fall back to the simulation —
-// stale CV is worse than honest simulation. Tuned to ~one refresh interval +
-// buffer for one missed call.
-const API_FRESH_MS = 14_000;
-// Refresh cadence for the vision call. ~$0.001/call × every 10s for the
-// duration of a modal session is a few cents per investor. Don't tighten
-// this without a cost re-estimate.
-const ANALYZE_INTERVAL_MS = 10_000;
-
 // Render a still frame from a <video> to a data URL, masked to the user's
 // ROI polygon so the vision model only sees the region they selected.
 // Pixels outside the polygon are filled with black; the worker's prompt
@@ -457,17 +448,34 @@ const InteractiveLabV2 = () => {
         return videoContainerRef.current?.querySelector("video") ?? null;
     }, []);
 
-    // Periodic vision call. Runs only when a modal is open AND the user has
-    // drawn an ROI. Falls back to the simulation on any failure (network,
-    // CORS-tainted canvas, model JSON parse error, worker missing secret).
+    // One-shot vision call when the user closes their ROI polygon. The
+    // result is held for the lifetime of this ROI — the analyze is the
+    // user's deliberate "tell me about this area" act, not background
+    // polling. To get a fresh read they Clear ROI and redraw. Falls back
+    // to the simulation on any failure (network, CORS-tainted canvas,
+    // model JSON parse error, worker missing secret).
+    //
+    // Video may need a beat after ROI activate before the frame is
+    // capture-ready, so retry with a short backoff a few times before
+    // giving up.
     useEffect(() => {
         if (!selectedCam || !roiActive) return;
 
         let cancelled = false;
+        let attempt = 0;
 
-        const analyze = async () => {
+        const analyze = async (): Promise<void> => {
+            attempt += 1;
             const frame = captureFrameFromVideo(getModalVideo(), roiPoints);
-            if (!frame) return; // CORS-tainted or video not ready — sim takes over
+            if (!frame) {
+                // Video not ready yet — retry a few times before giving up
+                // to the simulation. CORS-taint failures also land here and
+                // retrying won't help, but the cost is just three setTimeouts.
+                if (attempt < 4 && !cancelled) {
+                    setTimeout(analyze, 600);
+                }
+                return;
+            }
 
             try {
                 const resp = await fetch(FRAME_ANALYZE_URL, {
@@ -489,13 +497,9 @@ const InteractiveLabV2 = () => {
             }
         };
 
-        // Fire immediately so the user sees the real read on ROI activation,
-        // then refresh every ANALYZE_INTERVAL_MS.
         analyze();
-        const interval = setInterval(analyze, ANALYZE_INTERVAL_MS);
         return () => {
             cancelled = true;
-            clearInterval(interval);
         };
     }, [selectedCam, roiActive, roiPoints, getModalVideo]);
 
@@ -521,12 +525,14 @@ const InteractiveLabV2 = () => {
         const tick = () => {
             const regime = selectedCam.regime;
             const api = apiResultRef.current;
-            const apiFresh = !!api && Date.now() - api.at < API_FRESH_MS;
-            if (!apiFresh && visionOnline) setVisionOnline(false);
 
+            // The analyze call is one-shot — once we have a result for this
+            // ROI, hold it for the lifetime of the ROI. The 1.3s tick still
+            // runs so the displayed numbers visibly drift (live-feel jitter
+            // on a fixed snapshot) and tracks age in/out naturally.
             let r: ReturnType<typeof tickPINN>;
             let targetCount: number;
-            if (apiFresh && api) {
+            if (api) {
                 const a = tickFromApi(prevVRef.current, api.result);
                 prevVRef.current = a.v_now;
                 r = a;
