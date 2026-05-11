@@ -110,7 +110,7 @@ in your `.env.local`. Without this the dev SPA either hits prod or (if CORS bloc
 
 ### Cost
 
-At one investor session ≈ 6–12 frames per camera modal, Haiku 4.5 vision runs ~$0.001 per frame → ~$0.01/session. Refresh cadence is in [`InteractiveLabV2.tsx`](../src/components/v2/InteractiveLabV2.tsx) (`ANALYZE_INTERVAL_MS`). Don't tighten without a cost re-estimate.
+The vision call is **one-shot per ROI** — the user draws a polygon, the SPA captures the masked frame once, posts to the worker, and holds the result for the life of the ROI. To get a fresh read the user clears the ROI and redraws. Haiku 4.5 vision runs ~$0.001 per frame → an investor session that pokes at 3 cameras × 2 ROI redraws ≈ $0.006. No background polling.
 
 ## 4. (Optional) Plausible-style analytics on Cloudflare
 
