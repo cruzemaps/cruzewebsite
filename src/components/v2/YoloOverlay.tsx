@@ -166,7 +166,13 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
 
         const tick = async () => {
             if (stop) return;
-            const model = modelRef.current as { detect: (v: HTMLVideoElement) => Promise<Array<{ bbox: [number, number, number, number]; class: string; score: number }>> } | null;
+            const model = modelRef.current as {
+                detect: (
+                    v: HTMLVideoElement,
+                    maxNumBoxes?: number,
+                    minScore?: number,
+                ) => Promise<Array<{ bbox: [number, number, number, number]; class: string; score: number }>>;
+            } | null;
             if (!model || runningRef.current || video.readyState < 2 || !video.videoWidth) {
                 setTimeout(tick, DETECT_INTERVAL_MS);
                 return;
