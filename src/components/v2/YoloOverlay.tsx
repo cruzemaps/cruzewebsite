@@ -1,0 +1,264 @@
+import { useEffect, useRef, useState } from "react";
+
+// Live in-browser vehicle detection overlay. Loads COCO-SSD via TensorFlow.js
+// (~5MB weights, cached after first load), runs inference on the live video
+// frame at ~3 FPS, and renders bounding boxes around detected vehicles as
+// proof the AI is "seeing" the road in real time. Inference happens entirely
+// client-side — no per-frame API cost.
+//
+// This overlay is independent of the Claude vision pipeline. Claude runs
+// once per ROI for the headline regime summary; coco-ssd runs continuously
+// for the visual proof. If the ROI is drawn, boxes inside the polygon are
+// highlighted in cyan and boxes outside are dimmed to gray so the user can
+// see which vehicles count toward their selection.
+
+type Box = {
+    cls: "car" | "truck" | "bus" | "motorcycle" | "bicycle";
+    x: number; // 0-100 percent
+    y: number;
+    w: number;
+    h: number;
+    conf: number;
+};
+
+const VEHICLE_CLASSES = new Set(["car", "truck", "bus", "motorcycle", "bicycle"]);
+
+// Color palette per class so the overlay reads clearly. Cyan for cars to
+// match the brand accent; warmer tones for the rarer classes.
+const CLASS_COLOR: Record<Box["cls"], string> = {
+    car: "#00F2FF",
+    truck: "#FF8C00",
+    bus: "#FFB75E",
+    motorcycle: "#A78BFA",
+    bicycle: "#34D399",
+};
+
+// Detection runs on this cadence. ~330ms strikes a balance between visible
+// box update rate and CPU/GPU load on the client. Tighter (~150ms) and the
+// fan kicks on; looser (~600ms) and the boxes feel laggy.
+const DETECT_INTERVAL_MS = 330;
+
+type Props = {
+    // Getter so we can resolve the <video> after it mounts inside HlsPlayer.
+    // The element doesn't exist on first paint, so we poll briefly until it
+    // appears rather than depending on a prop that won't re-trigger.
+    getVideo: () => HTMLVideoElement | null;
+    enabled: boolean;
+    // ROI polygon in 0-100% space. When provided + closed, boxes outside the
+    // polygon are dimmed so the user sees which vehicles are "in" their pick.
+    roiPoints?: { x: number; y: number }[];
+    roiActive?: boolean;
+};
+
+export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActive = false }: Props) {
+    const [boxes, setBoxes] = useState<Box[]>([]);
+    const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+    const [video, setVideo] = useState<HTMLVideoElement | null>(null);
+    const modelRef = useRef<unknown>(null);
+    const runningRef = useRef(false);
+
+    // Poll for the video element on mount until it appears, then stop. The
+    // modal animates in over ~300ms and HlsPlayer mounts its <video> inside
+    // that animation, so a strict prop-passed ref would race.
+    useEffect(() => {
+        if (!enabled) {
+            setVideo(null);
+            return;
+        }
+        let stop = false;
+        let attempts = 0;
+        const find = () => {
+            if (stop) return;
+            const v = getVideo();
+            if (v) {
+                setVideo(v);
+                return;
+            }
+            attempts += 1;
+            if (attempts < 50) setTimeout(find, 100); // 5s max wait
+        };
+        find();
+        return () => { stop = true; };
+    }, [enabled, getVideo]);
+
+    // Lazy-load the model once. The wrappers are dynamic-imported so the TFJS
+    // runtime (~1MB) isn't pulled into every page bundle — only when the lab
+    // page actually mounts.
+    useEffect(() => {
+        if (!enabled) return;
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const [tf, cocoSsd] = await Promise.all([
+                    import("@tensorflow/tfjs"),
+                    import("@tensorflow-models/coco-ssd"),
+                ]);
+                await tf.ready();
+                if (cancelled) return;
+                // `lite_mobilenet_v2` is the smallest variant (~5MB) and
+                // adequate for vehicle counting on a 320×240 traffic-cam
+                // frame. Heavier variants would barely help at this resolution.
+                const model = await cocoSsd.load({ base: "lite_mobilenet_v2" });
+                if (cancelled) return;
+                modelRef.current = model;
+                setStatus("ready");
+            } catch (err) {
+                if (!cancelled) {
+                    console.warn("[YoloOverlay] Model load failed:", err);
+                    setStatus("error");
+                }
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [enabled]);
+
+    // Detection loop. Runs while model is ready and video is playable. Uses
+    // a recursive setTimeout (not setInterval) so a slow detect call doesn't
+    // pile up — each frame only fires after the previous finishes.
+    useEffect(() => {
+        if (status !== "ready" || !enabled || !video) return;
+
+        let stop = false;
+
+        const tick = async () => {
+            if (stop) return;
+            const model = modelRef.current as { detect: (v: HTMLVideoElement) => Promise<Array<{ bbox: [number, number, number, number]; class: string; score: number }>> } | null;
+            if (!model || runningRef.current || video.readyState < 2 || !video.videoWidth) {
+                setTimeout(tick, DETECT_INTERVAL_MS);
+                return;
+            }
+            runningRef.current = true;
+            try {
+                const preds = await model.detect(video);
+                if (stop) return;
+                const vw = video.videoWidth;
+                const vh = video.videoHeight;
+                const next: Box[] = preds
+                    .filter((p) => VEHICLE_CLASSES.has(p.class) && p.score >= 0.4)
+                    .slice(0, 24)
+                    .map((p) => ({
+                        cls: p.class as Box["cls"],
+                        x: (p.bbox[0] / vw) * 100,
+                        y: (p.bbox[1] / vh) * 100,
+                        w: (p.bbox[2] / vw) * 100,
+                        h: (p.bbox[3] / vh) * 100,
+                        conf: p.score,
+                    }));
+                setBoxes(next);
+            } catch (err) {
+                // The most common error here is a cross-origin video that
+                // hasn't been tagged with crossOrigin="anonymous". We log
+                // once and stop the loop — re-enable when the user picks a
+                // different cam.
+                console.warn("[YoloOverlay] Detect failed:", err);
+                stop = true;
+                setStatus("error");
+            } finally {
+                runningRef.current = false;
+                if (!stop) setTimeout(tick, DETECT_INTERVAL_MS);
+            }
+        };
+
+        tick();
+        return () => {
+            stop = true;
+        };
+    }, [status, enabled, video]);
+
+    if (!enabled || status === "error") return null;
+
+    const roiClosed = roiActive && roiPoints.length >= 3;
+    const roiPolyString = roiClosed
+        ? roiPoints.map((p) => `${p.x},${p.y}`).join(" ")
+        : "";
+
+    return (
+        <div className="absolute inset-0 pointer-events-none z-25">
+            {status === "loading" && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1.5 bg-black/60 backdrop-blur rounded-full border border-white/20 text-[10px] font-bold tracking-widest uppercase text-white/80">
+                    Loading detector…
+                </div>
+            )}
+            <svg
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                className="absolute inset-0 w-full h-full"
+            >
+                {roiClosed && (
+                    // Punch a hole so the ROI region is "lit" and the rest is
+                    // very faintly darkened — gives the YOLO boxes outside the
+                    // polygon a muted look without obscuring the video itself.
+                    <defs>
+                        <mask id="roi-spotlight">
+                            <rect x="0" y="0" width="100" height="100" fill="white" opacity="0.35" />
+                            <polygon points={roiPolyString} fill="white" />
+                        </mask>
+                    </defs>
+                )}
+                {boxes.map((b, i) => {
+                    const inRoi = roiClosed ? pointInPolygon(b.x + b.w / 2, b.y + b.h / 2, roiPoints) : true;
+                    const color = inRoi ? CLASS_COLOR[b.cls] : "#6B7280";
+                    const opacity = inRoi ? 0.95 : 0.35;
+                    return (
+                        <g key={i} opacity={opacity}>
+                            <rect
+                                x={b.x}
+                                y={b.y}
+                                width={b.w}
+                                height={b.h}
+                                fill="transparent"
+                                stroke={color}
+                                strokeWidth={0.35}
+                                vectorEffect="non-scaling-stroke"
+                            />
+                            <rect
+                                x={b.x}
+                                y={Math.max(0, b.y - 2.2)}
+                                width={Math.max(8, b.cls.length * 1.6)}
+                                height={2.2}
+                                fill={color}
+                                opacity={0.9}
+                            />
+                            <text
+                                x={b.x + 0.5}
+                                y={Math.max(1.6, b.y - 0.5)}
+                                fontSize="1.6"
+                                fontFamily="ui-monospace, monospace"
+                                fontWeight="700"
+                                fill="#0B0E14"
+                            >
+                                {b.cls}
+                            </text>
+                        </g>
+                    );
+                })}
+            </svg>
+            {/* Small status badge so you can tell the detector is live. */}
+            {status === "ready" && (
+                <div className="absolute bottom-6 right-6 flex items-center gap-1.5 px-2 py-1 bg-black/60 backdrop-blur rounded border border-white/10">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[9px] font-bold text-emerald-300 tracking-widest uppercase">
+                        Detector · {boxes.length} veh
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Point-in-polygon test for the ROI dim/highlight logic. Polygon is in 0-100
+// percent space; (x, y) is the bbox center. Standard ray-cast algorithm.
+function pointInPolygon(x: number, y: number, polygon: { x: number; y: number }[]): boolean {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x, yi = polygon[i].y;
+        const xj = polygon[j].x, yj = polygon[j].y;
+        const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi || 1e-9) + xi;
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}

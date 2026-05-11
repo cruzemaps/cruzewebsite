@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Camera, MapPin, Radio, X, BrainCircuit, AlertTriangle, TrendingUp, CheckCircle2, Activity, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import YoloOverlay from './YoloOverlay';
 
 // Each camera is mapped to a *traffic regime* — a stable characterization of
 // the flow state the demo should portray for that feed. The regime drives
@@ -476,15 +477,14 @@ const InteractiveLabV2 = () => {
             attempt += 1;
             const frame = captureFrameFromVideo(getModalVideo(), roiPoints);
             if (!frame) {
-                // Video not ready yet — retry a few times before giving up
-                // to the simulation. CORS-taint failures also land here and
-                // retrying won't help, but the cost is just three setTimeouts.
-                if (attempt < 4 && !cancelled) {
-                    setTimeout(analyze, 600);
-                }
+                // Video not ready yet (or CORS-tainted canvas). Retry — most
+                // capture failures self-resolve once the video has buffered a
+                // frame.
+                if (attempt < 5 && !cancelled) setTimeout(analyze, 600);
                 return;
             }
 
+            let success = false;
             try {
                 const resp = await fetch(FRAME_ANALYZE_URL, {
                     method: "POST",
@@ -496,12 +496,20 @@ const InteractiveLabV2 = () => {
                 if (cancelled) return;
                 if (!data.ok || !data.result) {
                     console.warn("[InteractiveLab] Analyze returned error:", data.error);
-                    return;
+                } else {
+                    apiResultRef.current = { result: data.result, at: Date.now() };
+                    setVisionOnline(true);
+                    success = true;
                 }
-                apiResultRef.current = { result: data.result, at: Date.now() };
-                setVisionOnline(true);
             } catch (err) {
                 if (!cancelled) console.warn("[InteractiveLab] Analyze fetch failed:", err);
+            }
+            // Any failure mode — fetch error, non-200, model returned !ok,
+            // schema validation rejection — retries with a fresh frame. We
+            // don't retry indefinitely though; 5 attempts is the ceiling
+            // before we give up and the simulation continues.
+            if (!success && attempt < 5 && !cancelled) {
+                setTimeout(analyze, 800);
             }
         };
 
@@ -724,7 +732,18 @@ const InteractiveLabV2 = () => {
                                 }}
                             >
                                 <HlsPlayer src={isNightTime && selectedCam?.preRecordedUrl ? selectedCam.preRecordedUrl : (selectedCam?.url || '')} />
-                                
+
+                                {/* In-browser YOLO (coco-ssd) — live bounding boxes
+                                    around detected vehicles. Independent of the
+                                    Claude analyze call: this is the visual proof
+                                    layer, Claude is the headline summary. */}
+                                <YoloOverlay
+                                    getVideo={getModalVideo}
+                                    enabled={!!selectedCam}
+                                    roiPoints={roiPoints}
+                                    roiActive={roiActive}
+                                />
+
                                 {/* SVG Overlay for drawing polygon */}
                                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none z-30">
                                     {roiPoints.length > 0 && (
