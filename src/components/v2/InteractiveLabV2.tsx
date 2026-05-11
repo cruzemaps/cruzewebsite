@@ -36,16 +36,16 @@ const REGIMES: Record<Severity, Regime> = {
 // the vision pipeline still works against the recorded clip.
 const FALLBACK_MP4 = '/cruze-web.mp4';
 
+// Curated to the three cleanest, most reliably-busy live feeds. Dallas,
+// Fort Worth, and El Paso were dropped — their streams either go dark
+// frequently or show low-traffic corridors that don't sell the demo.
 const CAMERAS: Array<{
     id: number; city: string; location: string; lat: number; lng: number;
     url: string; preRecordedUrl: string; regime: Regime;
 }> = [
-    { id: 1, city: 'Dallas',      location: 'IH-635',              lat: 32.9236, lng: -96.7669,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.stable },
-    { id: 2, city: 'Houston',     location: 'IH-45',               lat: 29.7604, lng: -95.3698,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8', preRecordedUrl: FALLBACK_MP4, regime: REGIMES.shock  },
-    { id: 3, city: 'Austin',      location: 'IH-35',               lat: 30.2672, lng: -97.7431,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.heavy  },
-    { id: 4, city: 'San Antonio', location: 'IH-10',               lat: 29.4241, lng: -98.4936,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.clear  },
-    { id: 5, city: 'Fort Worth',  location: 'FM-1709 @ Brock',     lat: 32.7254, lng: -97.3208,  url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.clear  },
-    { id: 6, city: 'El Paso',     location: 'IH-10 @ Lee Trevino', lat: 31.7398, lng: -106.3254, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.heavy  },
+    { id: 2, city: 'Houston',     location: 'IH-45', lat: 29.7604, lng: -95.3698, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8', preRecordedUrl: FALLBACK_MP4, regime: REGIMES.shock },
+    { id: 3, city: 'Austin',      location: 'IH-35', lat: 30.2672, lng: -97.7431, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.heavy },
+    { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.clear },
 ];
 
 const V_F = 75.0;
@@ -307,11 +307,19 @@ const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
     }, [src]);
 
     return (
-        <video 
-            ref={videoRef} 
+        <video
+            ref={videoRef}
+            // crossOrigin="anonymous" is what lets the canvas read pixels from
+            // the cross-origin HLS stream. Without this, even though
+            // skyvdn.com sends Access-Control-Allow-Origin: *, the browser
+            // taints the canvas on drawImage() and toDataURL() throws —
+            // which silently disables the vision pipeline and we fall back
+            // to the regime simulation. With it set, frame capture works
+            // and the worker gets real frames.
+            crossOrigin="anonymous"
             className="w-full h-full object-cover relative z-10"
-            autoPlay 
-            muted 
+            autoPlay
+            muted
             playsInline
         />
     );
