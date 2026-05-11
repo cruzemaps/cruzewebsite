@@ -28,7 +28,11 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        # react-simple-maps@1.x declares peer react@^16 while the project runs on
+        # react@18 — npm 7+ strictly enforces this and fails. Use legacy
+        # resolution so CI matches local install behavior. Same flag should be
+        # used locally if you ever delete node_modules and start fresh.
+        run: npm ci --legacy-peer-deps
 
       - name: Build
         run: npm run build
