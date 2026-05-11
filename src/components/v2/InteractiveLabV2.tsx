@@ -2,12 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Camera, MapPin, Radio, X, BrainCircuit, AlertTriangle, TrendingUp, CheckCircle2, Activity, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-// Note: a YoloOverlay (coco-ssd bounding boxes) was tried and reverted —
-// TensorFlow.js runtime + model weights added ~7MB to the modal cold-start
-// and made the camera-feed experience feel laggy on slower connections. If
-// we re-introduce it, do it behind an explicit "Enable detection" toggle
-// that opts in to the model download rather than auto-loading. See git
-// history before this commit for the working implementation.
+import YoloOverlay, { type Box as YoloBox } from './YoloOverlay';
 
 // Each camera is mapped to a *traffic regime* — a stable characterization of
 // the flow state the demo should portray for that feed. The regime drives
@@ -42,21 +37,17 @@ const REGIMES: Record<Severity, Regime> = {
 // the vision pipeline still works against the recorded clip.
 const FALLBACK_MP4 = '/cruze-web.mp4';
 
-// Curated to the three cleanest, most reliably-busy live feeds. Dallas,
-// Fort Worth, and El Paso were dropped — their streams either go dark
-// frequently or show low-traffic corridors that don't sell the demo.
+// Single curated feed for the YOLO demo — San Antonio IH-10 is the most
+// reliably-busy live stream and gives the in-browser detector consistent
+// vehicles to box.
 const CAMERAS: Array<{
     id: number; city: string; location: string; lat: number; lng: number;
     url: string; preRecordedUrl: string; regime: Regime;
 }> = [
-    { id: 2, city: 'Houston',     location: 'IH-45', lat: 29.7604, lng: -95.3698, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8', preRecordedUrl: FALLBACK_MP4, regime: REGIMES.shock },
-    { id: 3, city: 'Austin',      location: 'IH-35', lat: 30.2672, lng: -97.7431, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.heavy },
-    { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8',  preRecordedUrl: FALLBACK_MP4, regime: REGIMES.clear },
+    { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8', preRecordedUrl: FALLBACK_MP4, regime: REGIMES.stable },
 ];
 
 const V_F = 75.0;
-
-const VEHICLE_TYPES = ['Sedan', 'SUV', 'Truck', 'Van'];
 
 function severityLabel(s: Severity): string {
     switch (s) {
@@ -85,152 +76,41 @@ function severityBadgeClass(s: Severity): string {
     }
 }
 
-function jit(mean: number, jit: number) {
-    return mean + (Math.random() - 0.5) * 2 * jit;
-}
-
-// One simulation step. Each metric samples within its regime band; v_now is
-// EMA-smoothed with the previous tick so the live readout drifts instead of
-// thrashing. Returned values are ready to render.
-function tickPINN(prevV: number, regime: Regime) {
-    const vTarget = jit(regime.vMean, regime.vJit);
-    const v_now = Math.max(5, Math.min(V_F, prevV * 0.7 + vTarget * 0.3));
-    const rho = Math.max(0.5, jit(regime.rhoMean, regime.rhoJit));
-    const flowPerMin = Math.max(0, jit(regime.flowMean, regime.flowJit));
-
-    // Recommended speed: anchor on regime mean, then nudge down if a shockwave
-    // is flagged ahead. Keeps the badge severity aligned with the regime most
-    // of the time.
-    const hasShock = Math.random() < regime.shockProb;
-    const shockwave = hasShock ? 8 + Math.random() * 12 : 0;
-    const target_speed = Math.max(20, Math.min(V_F, v_now - shockwave * 0.5));
-    const recSpeedValue = Math.round(target_speed / 5) * 5;
-    const severity: Severity = hasShock && regime.severity !== 'clear' ? 'shock' : regime.severity;
-
-    const trend = (Math.random() - 0.4) * 25;
-
-    return {
-        v_now,
-        flow: flowPerMin.toFixed(1),
-        density: rho.toFixed(1),
-        avgSpeed: v_now.toFixed(1),
-        trend: trend.toFixed(1),
-        recSpeed: `${recSpeedValue} MPH ${severityLabel(severity)}`,
-        congestionWidth: `${severityWidth(severity)}%`,
-        severity,
-    };
-}
-
-type Track = { id: number; type: string; firstSeen: Date };
-
-// AnalysisResult mirrors the worker's response. When the worker is reachable
-// the SPA prefers these (real CV on the live frame) over the regime simulation.
-type AnalysisResult = {
-    count: number;
-    meanSpeedMph: number;
-    density: number;
-    severity: Severity;
-    recommendedSpeedMph: number;
+type Track = {
+    id: number;
+    type: string;
+    firstSeen: Date;
+    // Last-seen position + class info, used for nearest-neighbor matching
+    // across detection ticks so the ID stays stable for the same vehicle.
+    lastCx?: number;
+    lastCy?: number;
+    lastCls?: string;
+    lastConf?: number;
 };
 
-// Frame-analyze worker URL. Overridable via VITE_FRAME_ANALYZE_URL for dev.
-// The worker holds the Anthropic key as a wrangler secret — the SPA never
-// sees the key, it just POSTs base64 frames and receives JSON back.
-const FRAME_ANALYZE_URL =
-    (import.meta.env.VITE_FRAME_ANALYZE_URL as string | undefined) ||
-    "https://analyze.cruzemaps.com/analyze";
-
-// Render a still frame from a <video> to a data URL, masked to the user's
-// ROI polygon so the vision model only sees the region they selected.
-// Pixels outside the polygon are filled with black; the worker's prompt
-// tells the model that black regions are masked-out and should not be
-// counted. Returns null if the video isn't ready, the canvas is tainted
-// (cross-origin HLS without CORS), or any other capture error occurs.
-//
-// roiPoints are in 0-100 percentage space (the same units the SVG overlay
-// uses), so they map cleanly to the downsampled capture canvas.
-function captureFrameFromVideo(
-    video: HTMLVideoElement | null,
-    roiPoints: { x: number; y: number }[],
-): string | null {
-    if (!video) return null;
-    if (video.readyState < 2) return null; // HAVE_CURRENT_DATA
-    const w = video.videoWidth;
-    const h = video.videoHeight;
-    if (!w || !h) return null;
-
-    const targetW = Math.min(640, w);
-    const targetH = Math.round(targetW * (h / w));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = targetW;
-    canvas.height = targetH;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-
-    try {
-        if (roiPoints.length >= 3) {
-            // Black background, then clip the draw to the polygon so only
-            // the ROI shows pixels from the video frame.
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, targetW, targetH);
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo((roiPoints[0].x / 100) * targetW, (roiPoints[0].y / 100) * targetH);
-            for (let i = 1; i < roiPoints.length; i++) {
-                ctx.lineTo((roiPoints[i].x / 100) * targetW, (roiPoints[i].y / 100) * targetH);
-            }
-            ctx.closePath();
-            ctx.clip();
-            ctx.drawImage(video, 0, 0, targetW, targetH);
-            ctx.restore();
-        } else {
-            // Defensive — the analyze loop only fires when roiActive is true,
-            // which requires >= 3 points. If we ever get here, fall back to
-            // the unmasked frame rather than uploading a black image.
-            ctx.drawImage(video, 0, 0, targetW, targetH);
-        }
-        return canvas.toDataURL("image/jpeg", 0.7);
-    } catch (err) {
-        // Most common cause: HLS source served without Access-Control-Allow-Origin
-        // → canvas tainted → toDataURL throws SecurityError. We log once and let
-        // the simulation take over.
-        if (typeof console !== "undefined") console.warn("[InteractiveLab] Frame capture blocked:", err);
-        return null;
+// Standard ray-cast point-in-polygon. Polygon in 0-100 % space, point too.
+function pointInPoly(x: number, y: number, polygon: { x: number; y: number }[]): boolean {
+    if (polygon.length < 3) return true; // no ROI drawn → everything counts
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x, yi = polygon[i].y;
+        const xj = polygon[j].x, yj = polygon[j].y;
+        const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi || 1e-9) + xi;
+        if (intersect) inside = !inside;
     }
+    return inside;
 }
 
-// Tick variant used when we have a fresh AnalysisResult from the worker. The
-// API gives us ground truth for count/regime/recommendedSpeed; we blend mean
-// speed into the existing EMA so the displayed value still moves smoothly
-// instead of snapping every 10s.
-function tickFromApi(prevV: number, api: AnalysisResult): {
-    v_now: number; flow: string; density: string; avgSpeed: string; trend: string;
-    recSpeed: string; congestionWidth: string; severity: Severity; targetCount: number;
-} {
-    const vTarget = api.meanSpeedMph + (Math.random() - 0.5) * 3;
-    const v_now = Math.max(0, Math.min(V_F, prevV * 0.8 + vTarget * 0.2));
-    const rho = Math.max(0, api.density + (Math.random() - 0.5) * 3);
-
-    // Per-ROI throughput estimate scales with visible count, not corridor
-    // capacity flow. Empty frame → 0. Heavy frame → ~30/min. This matches
-    // user intuition that "no cars in frame" should not read 35 veh/min.
-    const flowPerMin = api.count <= 0 ? 0 : Math.max(0, api.count * 3.2 + (Math.random() - 0.5) * 1.5);
-
-    const recSpeedValue = api.recommendedSpeedMph;
-    const trend = (Math.random() - 0.4) * 25;
-
-    return {
-        v_now,
-        flow: flowPerMin.toFixed(1),
-        density: rho.toFixed(1),
-        avgSpeed: v_now.toFixed(1),
-        trend: trend.toFixed(1),
-        recSpeed: `${recSpeedValue} MPH ${severityLabel(api.severity)}`,
-        congestionWidth: `${severityWidth(api.severity)}%`,
-        severity: api.severity,
-        targetCount: api.count,
-    };
+// Map coco-ssd classes to the friendly labels shown in the BotSORT log.
+function classToType(cls: string): string {
+    switch (cls) {
+        case "truck":      return "Truck";
+        case "bus":        return "Bus";
+        case "motorcycle": return "Moto";
+        case "bicycle":    return "Bike";
+        case "car":
+        default:           return "Sedan";
+    }
 }
 
 const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackSrc?: string }) => {
@@ -442,87 +322,32 @@ const InteractiveLabV2 = () => {
         logs: [] as any[]
     });
 
-    // Hold previous v_now across ticks so the simulation EMAs smoothly instead
-    // of teleporting between samples. Reset on cam change / ROI deactivate.
+    // Hold previous v_now across ticks so the displayed speed EMAs smoothly
+    // instead of teleporting between samples.
     const prevVRef = useRef<number>(0);
-    // BotSORT-style track persistence: vehicle IDs stay stable across ticks
-    // until they age out, so the log doesn't invent fresh detections every
-    // 1.3s on an empty road.
+    // Persisted BotSORT-style tracks: synthetic stable IDs assigned to YOLO
+    // detections as they appear. Ages out boxes that haven't been seen for a
+    // tick or two so the log doesn't grow without bound.
     const tracksRef = useRef<Track[]>([]);
     const nextIdRef = useRef<number>(1000);
-    // Latest worker analysis result. The tick prefers this when fresh and
-    // falls back to the regime simulation otherwise.
-    const apiResultRef = useRef<{ result: AnalysisResult; at: number } | null>(null);
-    // Surfaces to the UI: are we currently driving telemetry from real CV?
-    const [visionOnline, setVisionOnline] = useState(false);
+    // Latest YOLO detection set, refreshed at ~3 FPS by YoloOverlay's
+    // onDetections callback. The 1s telemetry tick reads from this ref to
+    // produce throughput / density / severity from the actual visible cars.
+    const detectionsRef = useRef<YoloBox[]>([]);
+    // Surfaces to the UI: detector loaded yet?
+    const [detectorReady, setDetectorReady] = useState(false);
 
     // Frame capture target — the modal mounts <HlsPlayer> inside this container.
-    // We query for the <video> at call time rather than refactoring HlsPlayer.
+    // YoloOverlay queries this for the <video> element to run inference on.
     const getModalVideo = useCallback((): HTMLVideoElement | null => {
         return videoContainerRef.current?.querySelector("video") ?? null;
     }, []);
 
-    // One-shot vision call when the user closes their ROI polygon. The
-    // result is held for the lifetime of this ROI — the analyze is the
-    // user's deliberate "tell me about this area" act, not background
-    // polling. To get a fresh read they Clear ROI and redraw. Falls back
-    // to the simulation on any failure (network, CORS-tainted canvas,
-    // model JSON parse error, worker missing secret).
-    //
-    // Video may need a beat after ROI activate before the frame is
-    // capture-ready, so retry with a short backoff a few times before
-    // giving up.
-    useEffect(() => {
-        if (!selectedCam || !roiActive) return;
-
-        let cancelled = false;
-        let attempt = 0;
-
-        const analyze = async (): Promise<void> => {
-            attempt += 1;
-            const frame = captureFrameFromVideo(getModalVideo(), roiPoints);
-            if (!frame) {
-                // Video not ready yet (or CORS-tainted canvas). Retry — most
-                // capture failures self-resolve once the video has buffered a
-                // frame.
-                if (attempt < 5 && !cancelled) setTimeout(analyze, 600);
-                return;
-            }
-
-            let success = false;
-            try {
-                const resp = await fetch(FRAME_ANALYZE_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ frame }),
-                });
-                if (!resp.ok) throw new Error(`status ${resp.status}`);
-                const data = (await resp.json()) as { ok: boolean; result?: AnalysisResult; error?: string };
-                if (cancelled) return;
-                if (!data.ok || !data.result) {
-                    console.warn("[InteractiveLab] Analyze returned error:", data.error);
-                } else {
-                    apiResultRef.current = { result: data.result, at: Date.now() };
-                    setVisionOnline(true);
-                    success = true;
-                }
-            } catch (err) {
-                if (!cancelled) console.warn("[InteractiveLab] Analyze fetch failed:", err);
-            }
-            // Any failure mode — fetch error, non-200, model returned !ok,
-            // schema validation rejection — retries with a fresh frame. We
-            // don't retry indefinitely though; 5 attempts is the ceiling
-            // before we give up and the simulation continues.
-            if (!success && attempt < 5 && !cancelled) {
-                setTimeout(analyze, 800);
-            }
-        };
-
-        analyze();
-        return () => {
-            cancelled = true;
-        };
-    }, [selectedCam, roiActive, roiPoints, getModalVideo]);
+    // Receive each YOLO tick. Stored in a ref so the telemetry interval can
+    // read the latest without re-rendering this component every 330ms.
+    const handleDetections = useCallback((boxes: YoloBox[]) => {
+        detectionsRef.current = boxes;
+    }, []);
 
     useEffect(() => {
         if (!selectedCam) return;
@@ -531,8 +356,6 @@ const InteractiveLabV2 = () => {
         prevVRef.current = selectedCam.regime.vMean;
         tracksRef.current = [];
         nextIdRef.current = 1000 + Math.floor(Math.random() * 8000);
-        apiResultRef.current = null;
-        setVisionOnline(false);
 
         if (!roiActive) {
             setTelemetry({
@@ -544,75 +367,102 @@ const InteractiveLabV2 = () => {
         }
 
         const tick = () => {
-            const regime = selectedCam.regime;
-            const api = apiResultRef.current;
+            const boxes = detectionsRef.current;
 
-            // The analyze call is one-shot — once we have a result for this
-            // ROI, hold it for the lifetime of the ROI. The 1.3s tick still
-            // runs so the displayed numbers visibly drift (live-feel jitter
-            // on a fixed snapshot) and tracks age in/out naturally.
-            let r: ReturnType<typeof tickPINN>;
-            let targetCount: number;
-            if (api) {
-                const a = tickFromApi(prevVRef.current, api.result);
-                prevVRef.current = a.v_now;
-                r = a;
-                targetCount = a.targetCount;
-            } else {
-                r = tickPINN(prevVRef.current, regime);
-                prevVRef.current = r.v_now;
-                targetCount = regime.logCount;
-                // Honest empty state on `clear` regime — sometimes show no
-                // detections so the panel doesn't invent cars on an empty road.
-                if (regime.severity === 'clear' && Math.random() < 0.45) targetCount = 0;
-            }
+            // Boxes whose centers fall inside the user's ROI polygon. The
+            // telemetry only reflects what they selected.
+            const inRoi = boxes.filter((b) =>
+                pointInPoly(b.x + b.w / 2, b.y + b.h / 2, roiPoints),
+            );
+            const count = inRoi.length;
 
-            // Update tracked vehicles toward the target count. Each existing
-            // track has a chance to drop per tick; new tracks fill the gap.
+            // Density estimate scales with what's actually visible in the
+            // ROI. The constant maps "boxes in ROI" → "veh/mi" at a
+            // believable spread (4 boxes ≈ 32 veh/mi). Tunable.
+            const rho = Math.max(0, count * 8 + (Math.random() - 0.5) * 3);
+
+            // Speed via Greenshields equilibrium: v = V_F * (1 - rho/RHO_MAX).
+            // Higher density → slower. EMA-smoothed so the displayed mph
+            // doesn't whiplash when a box appears or disappears.
+            const RHO_MAX = 150;
+            const vEquil = V_F * (1 - Math.min(1, rho / RHO_MAX));
+            const v_now = Math.max(8, prevVRef.current * 0.75 + vEquil * 0.25);
+            prevVRef.current = v_now;
+
+            const flowPerMin = count <= 0 ? 0 : count * 3.2 + (Math.random() - 0.5) * 1.5;
+
+            // Severity bands by visible count inside the ROI.
+            const severity: Severity =
+                count >= 12 ? 'shock' :
+                count >= 6 ? 'heavy' :
+                count >= 2 ? 'stable' :
+                'clear';
+
+            const recSpeedValue =
+                severity === 'shock' ? 25 :
+                severity === 'heavy' ? 40 :
+                severity === 'stable' ? 55 :
+                65;
+
+            const trend = (Math.random() - 0.4) * 25;
+
+            // BotSORT log: persist a stable ID per detected box across ticks
+            // using a nearest-neighbor match on box centers. Boxes that
+            // disappear for a tick age out; new boxes get fresh IDs.
             const now = new Date();
-            tracksRef.current = tracksRef.current.filter(() => Math.random() > 0.30);
-            // Cap at 4 visible entries (the panel only shows 4 anyway).
-            const visibleTarget = Math.min(targetCount, 4);
-            while (tracksRef.current.length < visibleTarget) {
-                tracksRef.current.push({
-                    id: nextIdRef.current++,
-                    type: VEHICLE_TYPES[Math.floor(Math.random() * VEHICLE_TYPES.length)],
-                    firstSeen: now,
-                });
-            }
-            // Trim if we're over (e.g. target dropped from 4 to 1).
-            if (tracksRef.current.length > visibleTarget) {
-                tracksRef.current = tracksRef.current.slice(0, visibleTarget);
-            }
+            const matched = new Set<number>();
+            const nextTracks: Track[] = [];
+            inRoi.forEach((b) => {
+                const cx = b.x + b.w / 2;
+                const cy = b.y + b.h / 2;
+                // Find nearest existing track within 12% of frame as a match.
+                let best: { t: Track; d: number } | null = null;
+                for (const t of tracksRef.current) {
+                    if (matched.has(t.id) || !t.lastCx) continue;
+                    const d = Math.hypot(cx - t.lastCx, cy - t.lastCy);
+                    if (!best || d < best.d) best = { t, d };
+                }
+                if (best && best.d < 12) {
+                    matched.add(best.t.id);
+                    nextTracks.push({ ...best.t, lastCx: cx, lastCy: cy, lastCls: b.cls, lastConf: b.conf });
+                } else {
+                    nextTracks.push({
+                        id: nextIdRef.current++,
+                        type: classToType(b.cls),
+                        firstSeen: now,
+                        lastCx: cx,
+                        lastCy: cy,
+                        lastCls: b.cls,
+                        lastConf: b.conf,
+                    });
+                }
+            });
+            tracksRef.current = nextTracks;
 
-            const logs = tracksRef.current.map((t) => ({
+            const logs = nextTracks.slice(0, 4).map((t) => ({
                 id: t.id,
                 type: t.type,
-                speed: Math.max(0, prevVRef.current + (Math.random() * 8 - 4)).toFixed(1),
-                conf: (0.85 + Math.random() * 0.14).toFixed(2),
+                speed: Math.max(0, v_now + (Math.random() * 8 - 4)).toFixed(1),
+                conf: (t.lastConf ?? 0.9).toFixed(2),
                 time: t.firstSeen.toISOString().split('T')[1].slice(0, 8),
             }));
 
             setTelemetry({
-                flow: r.flow,
-                density: r.density,
-                avgSpeed: r.avgSpeed,
-                trend: r.trend,
-                recSpeed: r.recSpeed,
-                congestionWidth: r.congestionWidth,
-                severity: r.severity,
+                flow: flowPerMin.toFixed(1),
+                density: rho.toFixed(1),
+                avgSpeed: v_now.toFixed(1),
+                trend: trend.toFixed(1),
+                recSpeed: `${recSpeedValue} MPH ${severityLabel(severity)}`,
+                congestionWidth: `${severityWidth(severity)}%`,
+                severity,
                 logs,
             });
         };
 
         tick();
-        const interval = setInterval(tick, 1300);
+        const interval = setInterval(tick, 1000);
         return () => clearInterval(interval);
-        // visionOnline intentionally not in deps — the tick reads apiResultRef
-        // directly; adding visionOnline would rebuild the interval on every
-        // status flip and reset the sim cadence.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedCam, roiActive]);
+    }, [selectedCam, roiActive, roiPoints]);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -738,6 +588,20 @@ const InteractiveLabV2 = () => {
                             >
                                 <HlsPlayer src={isNightTime && selectedCam?.preRecordedUrl ? selectedCam.preRecordedUrl : (selectedCam?.url || '')} />
 
+                                {/* In-browser YOLO (coco-ssd) — live bounding
+                                    boxes around detected vehicles. The same
+                                    detections are passed to handleDetections so
+                                    the telemetry panel is driven by real
+                                    counts, not a regime simulation. */}
+                                <YoloOverlay
+                                    getVideo={getModalVideo}
+                                    enabled={!!selectedCam}
+                                    roiPoints={roiPoints}
+                                    roiActive={roiActive}
+                                    onDetections={handleDetections}
+                                    onReady={() => setDetectorReady(true)}
+                                />
+
                                 {/* SVG Overlay for drawing polygon */}
                                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none z-30">
                                     {roiPoints.length > 0 && (
@@ -794,11 +658,13 @@ const InteractiveLabV2 = () => {
                                     <X className="w-5 h-5" />
                                 </button>
                                 
-                                {/* Live AI Badge — flips between real CV and simulation fallback */}
-                                <div className={`absolute top-6 right-6 z-40 flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-md rounded border ${visionOnline ? 'bg-brand-cyan/10 border-brand-cyan/30' : 'bg-white/5 border-white/20'}`}>
-                                    <div className={`w-2 h-2 rounded-full animate-pulse ${visionOnline ? 'bg-brand-cyan' : 'bg-white/40'}`}></div>
-                                    <span className={`text-[10px] font-bold tracking-widest uppercase ${visionOnline ? 'text-brand-cyan' : 'text-white/60'}`}>
-                                        {visionOnline ? 'Live AI Vision' : 'Simulation Mode'}
+                                {/* Detector status badge — reflects whether the
+                                    in-browser YOLO model has finished loading
+                                    and is producing live detections. */}
+                                <div className={`absolute top-6 right-6 z-40 flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-md rounded border ${detectorReady ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-white/5 border-white/20'}`}>
+                                    <div className={`w-2 h-2 rounded-full animate-pulse ${detectorReady ? 'bg-emerald-400' : 'bg-white/40'}`}></div>
+                                    <span className={`text-[10px] font-bold tracking-widest uppercase ${detectorReady ? 'text-emerald-300' : 'text-white/60'}`}>
+                                        {detectorReady ? 'Live YOLO Detection' : 'Initializing detector…'}
                                     </span>
                                 </div>
                             </div>
