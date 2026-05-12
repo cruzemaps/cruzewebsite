@@ -35,8 +35,21 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Build
+        env:
+          # Vite inlines VITE_* at build time. Add a secret in repo Settings →
+          # Secrets and variables → Actions to enable each integration. Missing
+          # secrets resolve to "" and the code falls back to safe placeholders.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+          VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
+          VITE_CALCOM_USER: ${{ secrets.VITE_CALCOM_USER }}
+          VITE_DATAROOM_PASSWORD: ${{ secrets.VITE_DATAROOM_PASSWORD }}
+          VITE_DATAROOM_URL: ${{ secrets.VITE_DATAROOM_URL }}
+          VITE_FRAME_ANALYZE_URL: ${{ secrets.VITE_FRAME_ANALYZE_URL }}
         run: npm run build
-                        
+
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
