@@ -177,7 +177,8 @@ function EmailGate({ onSuccess }: { onSuccess: () => void }) {
 
     track("investor_cta_click", { tier: "email_gate", firm });
 
-    // Persist the lead via the SECURITY DEFINER RPC (migration 006).
+    // Persist the lead via the SECURITY DEFINER RPC (migrations 006 + 013).
+    // session_id stitches this row to the originating investor_visits row.
     // Failure is non-fatal — the gate experience still proceeds.
     try {
       await supabase.rpc("capture_investor_lead", {
@@ -186,6 +187,7 @@ function EmailGate({ onSuccess }: { onSuccess: () => void }) {
         p_firm: firm,
         p_user_agent: navigator.userAgent,
         p_referrer: document.referrer,
+        p_session_id: sessionStorage.getItem("investor_session_id"),
       });
     } catch {
       // ignored
