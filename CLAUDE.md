@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-Package manager: a `bun.lock` is checked in but the deploy workflow uses `npm ci`. Use `npm` to keep lockfiles consistent unless deliberately switching.
+Package manager: **npm is the source of truth.** `package-lock.json` is committed; `bun.lock` is gitignored (it drifted whenever someone ran `npm install`, and Cloudflare Pages' `bun install --frozen-lockfile` caught the drift — a recurring failure mode). Use `npm` for installs that need to be reproducible. Bun is fine locally if you want install speed; just don't commit `bun.lock`. CF Pages build command should be `npm ci --legacy-peer-deps && npm run build`.
 
 - `npm run dev` — Vite dev server on `http://localhost:8080` (host `::`, see [vite.config.ts](vite.config.ts))
 - `npm run build` — production build to `dist/` **plus** `node scripts/prerender.mjs` (per-route HTML emitter + sitemap.xml + robots.txt)

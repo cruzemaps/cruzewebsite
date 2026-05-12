@@ -33,3 +33,8 @@ supabase/.branches/
 supabase/.env
 supabase/.env.*
 supabase/docker/
+
+# Lockfile policy: npm (package-lock.json) is the source of truth. bun.lock
+# is ignored so it can't drift and break Cloudflare Pages' frozen-lockfile
+# install. Use bun locally for install speed if you want; just don't commit.
+bun.lock
