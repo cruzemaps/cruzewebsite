@@ -78,6 +78,11 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
     // get filtered out by the confidence threshold below. Reset when the
     // detection effect tears down.
     const loggedSample = useRef(false);
+    // Visible debug: most-recent raw stats so users can see why nothing is
+    // being drawn without opening DevTools.
+    const [debug, setDebug] = useState<{ total: number; passing: number; topClass: string; topScore: number }>({
+        total: 0, passing: 0, topClass: "—", topScore: 0,
+    });
 
     // While loading, update a 0.5s heartbeat so the elapsed-seconds display
     // ticks live. Stops once status flips to ready or error.
@@ -184,7 +189,7 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                 // traffic-cam vehicles entirely. Passing both as arguments
                 // makes the model return more candidates and we filter them
                 // ourselves below.
-                const preds = await model.detect(video, 24, 0.05);
+                const preds = await model.detect(video, 24, 0.02);
                 if (stop) return;
                 if (!loggedSample.current) {
                     loggedSample.current = true;
@@ -195,11 +200,12 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                 }
                 const vw = video.videoWidth;
                 const vh = video.videoHeight;
-                // 0.15 is the practical floor for COCO-SSD lite on small,
+                // 0.10 is the practical floor for COCO-SSD lite on small,
                 // grainy traffic-cam frames — cars at distance routinely
-                // score 0.20-0.35, well below the original 0.4 threshold.
+                // score 0.10-0.35. Raised back if we see false positives.
+                const SCORE_FLOOR = 0.10;
                 const next: Box[] = preds
-                    .filter((p) => VEHICLE_CLASSES.has(p.class) && p.score >= 0.15)
+                    .filter((p) => VEHICLE_CLASSES.has(p.class) && p.score >= SCORE_FLOOR)
                     .slice(0, 24)
                     .map((p) => ({
                         cls: p.class as Box["cls"],
@@ -211,6 +217,18 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                     }));
                 setBoxes(next);
                 onDetections?.(next);
+                // Update the visible debug stats so the user can see exactly
+                // what the model returned without opening DevTools. Useful
+                // for tuning SCORE_FLOOR against the live feed.
+                const top = preds.length
+                    ? preds.reduce((a, b) => (a.score > b.score ? a : b))
+                    : null;
+                setDebug({
+                    total: preds.length,
+                    passing: next.length,
+                    topClass: top?.class ?? "—",
+                    topScore: top ? top.score : 0,
+                });
             } catch (err) {
                 // The most common error here is a cross-origin video that
                 // hasn't been tagged with crossOrigin="anonymous". We log
@@ -319,13 +337,22 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                     );
                 })}
             </svg>
-            {/* Small status badge so you can tell the detector is live. */}
+            {/* Detector status + raw stats so you can see what's happening
+                without opening DevTools. If "passing" is 0 while "raw" is
+                non-zero, the score floor is too high for this stream. If
+                "raw" is also 0, the model isn't producing any output (likely
+                a video/canvas readability issue). */}
             {status === "ready" && (
-                <div className="absolute bottom-6 right-6 flex items-center gap-1.5 px-2 py-1 bg-black/60 backdrop-blur rounded border border-white/10">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[9px] font-bold text-emerald-300 tracking-widest uppercase">
-                        Detector · {boxes.length} veh
-                    </span>
+                <div className="absolute bottom-6 right-6 flex flex-col gap-1 px-3 py-2 bg-black/75 backdrop-blur rounded-lg border border-white/15 font-mono">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-[10px] font-bold text-emerald-300 tracking-widest uppercase">
+                            Detector · {boxes.length} drawn
+                        </span>
+                    </div>
+                    <div className="text-[9px] text-white/55">
+                        raw {debug.total} · passing {debug.passing} · top {debug.topClass}:{debug.topScore.toFixed(2)}
+                    </div>
                 </div>
             )}
         </div>
