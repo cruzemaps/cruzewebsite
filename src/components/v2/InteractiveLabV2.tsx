@@ -288,7 +288,13 @@ const AIOverlay = ({ camId, roiPoints }: { camId?: number, roiPoints?: {x: numbe
 
 const InteractiveLabV2 = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
-    const [selectedCam, setSelectedCam] = useState<typeof CAMERAS[0] | null>(null);
+    // Single-feed lab: auto-select the one camera so the viewer is visible
+    // the whole time instead of behind a click-to-open modal. No grid, no
+    // close button, no AnimatePresence — the camera + telemetry panel just
+    // render inline on the page. The setter is kept (unused) so the existing
+    // dead modal click handlers don't break before we strip the JSX below.
+    const [selectedCam, setSelectedCam] = useState<typeof CAMERAS[0] | null>(CAMERAS[0]);
+    void setSelectedCam;
     const [forceNightMode, setForceNightMode] = useState(false);
     
     // Determine if it is night time (9 PM to 8 AM) or forced
@@ -469,30 +475,21 @@ const InteractiveLabV2 = () => {
         return () => clearInterval(timer);
     }, []);
 
-    // Prevent scrolling when modal is open and reset ROI when closing
-    useEffect(() => {
-        if (selectedCam) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-            setRoiPoints([]);
-            setRoiActive(false);
-        }
-    }, [selectedCam]);
-
     return (
-        <section id="interactive-lab" className="pt-16 pb-24 md:pt-20 md:pb-28 bg-brand-charcoal relative overflow-hidden">
+        <section id="interactive-lab" className="pb-24 bg-brand-charcoal">
             <div className="container mx-auto px-6 max-w-7xl">
-                
-                <div className="text-center mb-16 relative z-10">
-                    <div className="inline-flex items-center gap-2 mb-4">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${isNightTime ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'} border`}>
-                            {isNightTime ? <Moon className="w-4 h-4" /> : <Radio className="w-4 h-4 animate-pulse" />}
-                            <span className="text-xs font-bold tracking-widest uppercase">
-                                {isNightTime ? 'Pre-recorded Daytime Feed' : 'Live Network Feed'}
-                            </span>
-                        </div>
-                        <button 
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${isNightTime ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'} border`}>
+                        {isNightTime ? <Moon className="w-4 h-4" /> : <Radio className="w-4 h-4 animate-pulse" />}
+                        <span className="text-xs font-bold tracking-widest uppercase">
+                            {isNightTime ? 'Pre-recorded Daytime Feed' : 'Live Network Feed'}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-white/40 uppercase">
+                            {currentTime.toLocaleTimeString('en-US', { hour12: false })} TX
+                        </span>
+                        <button
                             onClick={() => setForceNightMode(!forceNightMode)}
                             className="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-white/30 hover:text-white/80 bg-white/5 hover:bg-white/10 rounded border border-white/10 transition-colors"
                             title="Toggle Night Mode (Shift+N)"
@@ -500,71 +497,16 @@ const InteractiveLabV2 = () => {
                             Test Night
                         </button>
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
-                        Cruze Live
-                    </h2>
-                    <p className="text-white/50 max-w-2xl mx-auto font-body">
-                        Real-time traffic monitoring across major Texas corridors. Click any feed to engage the AI Processing Engine.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-                    {CAMERAS.map((cam) => (
-                        <motion.div 
-                            layoutId={`card-${cam.id}`}
-                            key={cam.id} 
-                            onClick={() => setSelectedCam(cam)}
-                            className="bg-[#131821] rounded-2xl border border-white/10 overflow-hidden flex flex-col relative group hover:border-brand-cyan/50 transition-colors cursor-pointer shadow-lg hover:shadow-brand-cyan/10"
-                        >
-                            <div className="absolute top-3 left-3 z-30 flex items-center gap-1.5 px-2 py-1 bg-black/60 backdrop-blur-md rounded border border-white/10">
-                                <div className={`w-2 h-2 rounded-full ${isNightTime ? 'bg-indigo-500' : 'bg-red-500 animate-pulse'}`}></div>
-                                <span className="text-[10px] font-bold text-white tracking-wider uppercase">
-                                    {isNightTime ? 'Recorded' : 'Live'}
-                                </span>
-                            </div>
-                            
-                            <div className="absolute top-3 right-3 z-30 px-2 py-1 bg-black/60 backdrop-blur-md rounded border border-white/10">
-                                <span className="text-[10px] font-mono text-white/80 uppercase">
-                                    {currentTime.toLocaleTimeString('en-US', { hour12: false })} TX
-                                </span>
-                            </div>
-
-                            <div className="relative aspect-video bg-[#0B0E14] flex items-center justify-center overflow-hidden border-b border-white/5">
-                                <div className="absolute inset-0 flex items-center justify-center z-10">
-                                    <Camera className="w-6 h-6 text-white/10 animate-pulse" />
-                                </div>
-                                <HlsPlayer src={isNightTime && cam.preRecordedUrl ? cam.preRecordedUrl : cam.url} />
-                            </div>
-
-                            <div className="p-4 bg-gradient-to-b from-[#131821] to-[#0B0E14]">
-                                <h4 className="text-white font-display font-bold text-lg mb-1 group-hover:text-brand-cyan transition-colors">{cam.city}</h4>
-                                <div className="flex items-center gap-1.5 text-brand-orange/80 text-sm mb-3">
-                                    <MapPin className="w-3.5 h-3.5" />
-                                    <span className="font-medium truncate">{cam.location}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs text-white/40 border-t border-white/5 pt-3">
-                                    <span className="font-mono">LAT: {cam.lat.toFixed(4)}</span>
-                                    <span className="font-mono">LNG: {cam.lng.toFixed(4)}</span>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
                 </div>
             </div>
 
-            {/* Modal */}
-            <AnimatePresence>
+            {/* Inline camera + telemetry panel — always visible, no click-to-open. */}
+            <div className="container mx-auto px-6 max-w-7xl">
                 {selectedCam && (
-                    <React.Fragment>
-                        <motion.div 
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
-                            onClick={() => setSelectedCam(null)}
-                        />
-                        <motion.div 
-                            layoutId={`card-${selectedCam.id}`}
-                            className="fixed inset-4 md:inset-10 lg:inset-x-20 lg:inset-y-10 bg-[#0B0E14] border border-white/10 rounded-2xl z-50 overflow-hidden flex flex-col lg:flex-row shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-                        >
+                    <div
+                        className="bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden flex flex-col lg:flex-row shadow-2xl"
+                        style={{ minHeight: '70vh' }}
+                    >
                             {/* Left Side: Video & AI Overlay */}
                             <div 
                                 className={`relative flex-1 bg-black overflow-hidden flex items-center justify-center ${!roiActive ? 'cursor-crosshair' : ''}`}
@@ -652,11 +594,6 @@ const InteractiveLabV2 = () => {
                                         {selectedCam?.lat?.toFixed(4)}, {selectedCam?.lng?.toFixed(4)}
                                     </div>
                                 </div>
-                                
-                                {/* Close button */}
-                                <button onClick={() => setSelectedCam(null)} className="absolute top-6 left-6 z-40 p-2.5 bg-black/50 hover:bg-black text-white rounded-full transition-colors border border-white/10 backdrop-blur">
-                                    <X className="w-5 h-5" />
-                                </button>
                                 
                                 {/* Detector status badge — reflects whether the
                                     in-browser YOLO model has finished loading
@@ -746,10 +683,9 @@ const InteractiveLabV2 = () => {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
-                    </React.Fragment>
+                    </div>
                 )}
-            </AnimatePresence>
+            </div>
         </section>
     );
 };
