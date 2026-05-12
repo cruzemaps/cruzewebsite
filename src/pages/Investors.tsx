@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavbarV2 from "@/components/v2/NavbarV2";
 import InvestorPitchSections from "@/components/v2/InvestorPitchSections";
 import SEO from "@/components/SEO";
@@ -24,11 +24,60 @@ import { SITE } from "@/lib/seo";
 
 type Tier = "public" | "email" | "dataroom";
 
+const OWNER_EMAIL = "anudeep.bonagiri@gmail.com";
+
+// Best-effort visit logger. Skips when the visitor self-identifies as the
+// owner (localStorage flag, ?identify=owner query param, or signed-in as
+// OWNER_EMAIL). All failures are swallowed — this must not break the page.
+async function logInvestorVisit() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("identify") === "owner") {
+      localStorage.setItem("cruze_owner", "1");
+    }
+    if (localStorage.getItem("cruze_owner") === "1") return;
+
+    const { data } = await supabase.auth.getUser();
+    if (data?.user?.email?.toLowerCase() === OWNER_EMAIL) {
+      localStorage.setItem("cruze_owner", "1");
+      return;
+    }
+
+    // Per-tab session id so a later investor_leads submission can be stitched
+    // back to the originating visit.
+    let sessionId = sessionStorage.getItem("investor_session_id");
+    if (!sessionId) {
+      sessionId = (crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      sessionStorage.setItem("investor_session_id", sessionId);
+    }
+
+    // Dedupe per-tab so a SPA re-mount doesn't double-log.
+    if (sessionStorage.getItem("investor_visit_logged") === "1") return;
+    sessionStorage.setItem("investor_visit_logged", "1");
+
+    await supabase.rpc("log_investor_visit", {
+      p_session_id: sessionId,
+      p_path: window.location.pathname,
+      p_referrer: document.referrer || null,
+      p_user_agent: navigator.userAgent,
+      p_utm_source: params.get("utm_source"),
+      p_utm_medium: params.get("utm_medium"),
+      p_utm_campaign: params.get("utm_campaign"),
+    });
+  } catch {
+    // ignored
+  }
+}
+
 export default function Investors() {
   const [tier, setTier] = useState<Tier>(() =>
     sessionStorage.getItem("investor_dataroom") === "1" ? "dataroom" :
     sessionStorage.getItem("investor_email") ? "email" : "public"
   );
+
+  useEffect(() => {
+    logInvestorVisit();
+  }, []);
 
   return (
     <div className="min-h-screen bg-brand-charcoal text-white font-body selection:bg-brand-cyan/30">
