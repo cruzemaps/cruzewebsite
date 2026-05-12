@@ -302,7 +302,11 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                 {boxes.map((b, i) => {
                     const inRoi = roiClosed ? pointInPolygon(b.x + b.w / 2, b.y + b.h / 2, roiPoints) : true;
                     const color = inRoi ? CLASS_COLOR[b.cls] : "#6B7280";
-                    const opacity = inRoi ? 0.95 : 0.35;
+                    const opacity = inRoi ? 0.95 : 0.4;
+                    // Stroke widths are in viewBox units (0-100 scale). At 1.0
+                    // that's ~1% of the video width — visible but not heavy.
+                    // The previous version used 0.35 with non-scaling-stroke
+                    // which resolved to 0.35 CSS pixels (sub-pixel, invisible).
                     return (
                         <g key={i} opacity={opacity}>
                             <rect
@@ -310,28 +314,28 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                                 y={b.y}
                                 width={b.w}
                                 height={b.h}
-                                fill="transparent"
+                                fill={color}
+                                fillOpacity={0.12}
                                 stroke={color}
-                                strokeWidth={0.35}
-                                vectorEffect="non-scaling-stroke"
+                                strokeWidth={0.6}
                             />
                             <rect
                                 x={b.x}
-                                y={Math.max(0, b.y - 2.2)}
-                                width={Math.max(8, b.cls.length * 1.6)}
-                                height={2.2}
+                                y={Math.max(0, b.y - 4)}
+                                width={Math.max(12, b.cls.length * 2.4 + 4)}
+                                height={4}
                                 fill={color}
-                                opacity={0.9}
+                                opacity={0.95}
                             />
                             <text
-                                x={b.x + 0.5}
-                                y={Math.max(1.6, b.y - 0.5)}
-                                fontSize="1.6"
+                                x={b.x + 1}
+                                y={Math.max(3, b.y - 1)}
+                                fontSize="3"
                                 fontFamily="ui-monospace, monospace"
                                 fontWeight="700"
                                 fill="#0B0E14"
                             >
-                                {b.cls}
+                                {b.cls} {b.conf.toFixed(2)}
                             </text>
                         </g>
                     );
