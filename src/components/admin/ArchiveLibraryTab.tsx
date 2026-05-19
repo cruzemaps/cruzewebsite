@@ -74,21 +74,51 @@ type ArchivedInvite = {
   created_at: string;
 };
 
-export default function ArchiveLibraryTab({ isDemo }: { isDemo: boolean }) {
+export default function ArchiveLibraryTab({
+  isDemo,
+  drillDownSection,
+  drillDownToken = 0,
+  onOpenRoleAudit,
+}: {
+  isDemo: boolean;
+  drillDownSection?: string;
+  drillDownToken?: number;
+  onOpenRoleAudit?: () => void;
+}) {
+  const [archiveTab, setArchiveTab] = useState("users");
+
+  useEffect(() => {
+    if (drillDownToken > 0 && drillDownSection) {
+      setArchiveTab(drillDownSection);
+    }
+  }, [drillDownToken, drillDownSection]);
+
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 flex items-start gap-3">
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 flex flex-col sm:flex-row sm:items-start gap-3">
         <AlertTriangle size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-amber-200/90 leading-relaxed">
+        <div className="text-sm text-amber-200/90 leading-relaxed flex-1">
           <strong className="text-amber-300">Archive vs. permanent delete.</strong>{" "}
           Archived records stay in the database and can be restored at any time. Permanent delete
           removes the row completely; the action is captured in the deletion audit log but the
           original data is gone. Use permanent delete only for test data, duplicates, or
           GDPR/CCPA-style requests.
         </div>
+        {onOpenRoleAudit && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={onOpenRoleAudit}
+            className="text-brand-cyan hover:text-brand-cyan hover:bg-white/5 shrink-0"
+          >
+            Role change audit
+            <ExternalLink size={12} className="ml-1.5" />
+          </Button>
+        )}
       </div>
 
-      <Tabs defaultValue="users" className="w-full">
+      <Tabs value={archiveTab} onValueChange={setArchiveTab} className="w-full">
         <TabsList className="bg-[#0F131C] border border-white/10">
           <TabsTrigger value="users" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
             <UsersIcon size={14} className="mr-2" /> Users

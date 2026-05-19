@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { ArrowLeft, ShieldAlert, Users, FileCheck, History, Mail, FileSignature, Archive } from "lucide-react";
@@ -13,9 +13,27 @@ import InvitationsTab from "@/components/admin/InvitationsTab";
 import LOIsTab from "@/components/admin/LOIsTab";
 import ArchiveLibraryTab from "@/components/admin/ArchiveLibraryTab";
 
+type AdminTab = "users" | "pilots" | "invitations" | "lois" | "archive" | "audit";
+
 const AdminPortal = () => {
   const { user, signOut } = useAuth();
-  const [counts, setCounts] = useState({ users: 0, pendingPilots: 0, openInvites: 0, lois: 0 });
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<AdminTab>("users");
+  const [usersDrillToken, setUsersDrillToken] = useState(0);
+  const [pilotsDrillToken, setPilotsDrillToken] = useState(0);
+  const [invitesDrillToken, setInvitesDrillToken] = useState(0);
+  const [loisDrillToken, setLoisDrillToken] = useState(0);
+  const [archiveDrillToken, setArchiveDrillToken] = useState(0);
+  const [archiveDrillSection, setArchiveDrillSection] = useState<string | undefined>();
+  const [usersStatusFilter, setUsersStatusFilter] = useState<string | undefined>();
+  const [pilotsStatusFilter, setPilotsStatusFilter] = useState<string | undefined>();
+  const [counts, setCounts] = useState({
+    users: 0,
+    pendingUsers: 0,
+    pendingPilots: 0,
+    openInvites: 0,
+    lois: 0,
+  });
   // Audit (demo storage cleanup): canonical demo flag is sessionStorage now;
   // legacy localStorage fallback removed so we don't pick up another tab's
   // poisoned state. Mirrors UsersTab/FleetDashboard.
@@ -23,7 +41,7 @@ const AdminPortal = () => {
 
   useEffect(() => {
     if (isDemo) {
-      setCounts({ users: 42, pendingPilots: 7, openInvites: 3, lois: 12 });
+      setCounts({ users: 42, pendingUsers: 1, pendingPilots: 7, openInvites: 3, lois: 12 });
       return;
     }
     (async () => {
@@ -32,8 +50,9 @@ const AdminPortal = () => {
       // tell whether "0 users" meant empty or RLS-denied. Track each error
       // independently and surface the first failure so the admin knows the
       // count is unreliable.
-      const [usersRes, pendingRes, invitesRes, loisRes] = await Promise.all([
+      const [usersRes, pendingUsersRes, pendingRes, invitesRes, loisRes] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("pilot_applications").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("invitations").select("*", { count: "exact", head: true }).is("accepted_at", null),
         supabase.from("loi_signatures").select("*", { count: "exact", head: true }).is("archived_at", null),
@@ -41,6 +60,7 @@ const AdminPortal = () => {
 
       setCounts({
         users: usersRes.count || 0,
+        pendingUsers: pendingUsersRes.count || 0,
         pendingPilots: pendingRes.count || 0,
         openInvites: invitesRes.count || 0,
         lois: loisRes.count || 0,
@@ -48,6 +68,7 @@ const AdminPortal = () => {
 
       const failures: string[] = [];
       if (usersRes.error) failures.push(`users (${usersRes.error.message})`);
+      if (pendingUsersRes.error) failures.push(`pending users (${pendingUsersRes.error.message})`);
       if (pendingRes.error) failures.push(`pending pilots (${pendingRes.error.message})`);
       if (invitesRes.error) failures.push(`open invitations (${invitesRes.error.message})`);
       if (loisRes.error) failures.push(`signed LOIs (${loisRes.error.message})`);
@@ -56,6 +77,57 @@ const AdminPortal = () => {
       }
     })();
   }, [isDemo]);
+
+  const drillToStat = (target: "users" | "pilots" | "invitations" | "lois") => {
+    setActiveTab(target);
+    switch (target) {
+      case "users":
+        // Total user count includes every profile — match that in the table.
+        setUsersStatusFilter("all");
+        setUsersDrillToken((t) => t + 1);
+        break;
+      case "pilots":
+        setPilotsStatusFilter("pending");
+        setPilotsDrillToken((t) => t + 1);
+        break;
+      case "invitations":
+        setInvitesDrillToken((t) => t + 1);
+        break;
+      case "lois":
+        setLoisDrillToken((t) => t + 1);
+        break;
+    }
+    requestAnimationFrame(() => {
+      tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  const drillToPendingUsers = () => {
+    setActiveTab("users");
+    setUsersStatusFilter("pending");
+    setUsersDrillToken((t) => t + 1);
+    requestAnimationFrame(() => {
+      tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  const attentionItems = [
+    counts.pendingUsers > 0 && {
+      key: "pending-users",
+      label: `${counts.pendingUsers} user${counts.pendingUsers === 1 ? "" : "s"} awaiting approval`,
+      onClick: drillToPendingUsers,
+    },
+    counts.pendingPilots > 0 && {
+      key: "pending-pilots",
+      label: `${counts.pendingPilots} pilot application${counts.pendingPilots === 1 ? "" : "s"} to review`,
+      onClick: () => drillToStat("pilots"),
+    },
+    counts.openInvites > 0 && {
+      key: "open-invites",
+      label: `${counts.openInvites} open invitation${counts.openInvites === 1 ? "" : "s"}`,
+      onClick: () => drillToStat("invitations"),
+    },
+  ].filter(Boolean) as { key: string; label: string; onClick: () => void }[];
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white">
@@ -82,8 +154,8 @@ const AdminPortal = () => {
 
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="mb-8">
-          <h1 className="font-display text-3xl md:text-4xl font-bold mb-2">Operations Hub</h1>
-          <p className="text-white/50">User management, pilot pipeline, audit trail.</p>
+          <h1 className="font-display text-3xl md:text-4xl font-bold mb-2">Admin Portal</h1>
+          <p className="text-white/50">Users, pilot pipeline, invitations, LOIs, and compliance tools.</p>
         </div>
 
         {isDemo && (
@@ -93,16 +165,64 @@ const AdminPortal = () => {
         )}
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Stat icon={<Users size={18} />} label="Users" value={counts.users} />
-          <Stat icon={<FileCheck size={18} />} label="Pending pilots" value={counts.pendingPilots} />
-          <Stat icon={<Mail size={18} />} label="Open invitations" value={counts.openInvites} />
-          {/* Audit (2nd pass) #6: tile filters archived LOIs out, so the
-              label needs to match — "Signed LOIs" implied a total. */}
-          <Stat icon={<FileSignature size={18} />} label="Active LOIs" value={counts.lois} />
+          <Stat
+            icon={<Users size={18} />}
+            label="Users"
+            value={counts.users}
+            onClick={() => drillToStat("users")}
+            hint="View all users"
+          />
+          <Stat
+            icon={<FileCheck size={18} />}
+            label="Pending pilots"
+            value={counts.pendingPilots}
+            onClick={() => drillToStat("pilots")}
+            hint="Review pending applications"
+          />
+          <Stat
+            icon={<Mail size={18} />}
+            label="Open invitations"
+            value={counts.openInvites}
+            onClick={() => drillToStat("invitations")}
+            hint="View open invitations"
+          />
+          <Stat
+            icon={<FileSignature size={18} />}
+            label="Active LOIs"
+            value={counts.lois}
+            onClick={() => drillToStat("lois")}
+            hint="View active LOIs"
+          />
         </div>
 
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="bg-[#0F131C] border border-white/10">
+        {attentionItems.length > 0 && (
+          <section
+            aria-label="Needs attention"
+            className="mb-8 rounded-xl border border-brand-orange/25 bg-brand-orange/5 p-4"
+          >
+            <h2 className="text-sm font-semibold text-brand-orange uppercase tracking-wide mb-3">
+              Needs attention
+            </h2>
+            <ul className="space-y-2">
+              {attentionItems.map((item) => (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    onClick={item.onClick}
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-white/90 hover:bg-white/5 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/50"
+                  >
+                    {item.label}
+                    <span className="ml-2 text-brand-cyan text-xs">Review →</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <div ref={tabsRef} className="scroll-mt-24">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as AdminTab)} className="w-full">
+          <TabsList className="bg-[#0F131C] border border-white/10 flex flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="users" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
               <Users size={14} className="mr-2" /> Users
             </TabsTrigger>
@@ -115,49 +235,91 @@ const AdminPortal = () => {
             <TabsTrigger value="lois" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
               <FileSignature size={14} className="mr-2" /> LOIs
             </TabsTrigger>
-            <TabsTrigger value="archive" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
+            <span className="hidden sm:block w-px h-6 bg-white/10 mx-1 self-center" aria-hidden />
+            <TabsTrigger value="archive" className="data-[state=active]:bg-white/10 data-[state=active]:text-white/90 text-white/50">
               <Archive size={14} className="mr-2" /> Archive
             </TabsTrigger>
-            <TabsTrigger value="audit" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
+            <TabsTrigger value="audit" className="data-[state=active]:bg-white/10 data-[state=active]:text-white/90 text-white/50">
               <History size={14} className="mr-2" /> Audit
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6">
-            <UsersTab isDemo={isDemo} />
+            <UsersTab
+              isDemo={isDemo}
+              drillDownToken={usersDrillToken}
+              drillDownStatusFilter={usersStatusFilter}
+            />
           </TabsContent>
           <TabsContent value="pilots" className="mt-6">
-            <PilotsTab isDemo={isDemo} />
+            <PilotsTab
+              isDemo={isDemo}
+              drillDownToken={pilotsDrillToken}
+              drillDownStatusFilter={pilotsStatusFilter}
+            />
           </TabsContent>
           <TabsContent value="invitations" className="mt-6">
-            <InvitationsTab isDemo={isDemo} />
+            <InvitationsTab isDemo={isDemo} drillDownToken={invitesDrillToken} />
           </TabsContent>
           <TabsContent value="lois" className="mt-6">
-            <LOIsTab isDemo={isDemo} />
+            <LOIsTab isDemo={isDemo} drillDownToken={loisDrillToken} />
           </TabsContent>
           <TabsContent value="archive" className="mt-6">
-            <ArchiveLibraryTab isDemo={isDemo} />
+            <ArchiveLibraryTab
+              isDemo={isDemo}
+              drillDownSection={archiveDrillSection}
+              drillDownToken={archiveDrillToken}
+              onOpenRoleAudit={() => setActiveTab("audit")}
+            />
           </TabsContent>
           <TabsContent value="audit" className="mt-6">
-            <AuditTab isDemo={isDemo} />
+            <AuditTab
+              isDemo={isDemo}
+              onOpenDeletionLog={() => {
+                setActiveTab("archive");
+                setArchiveDrillSection("audit");
+                setArchiveDrillToken((t) => t + 1);
+              }}
+            />
           </TabsContent>
         </Tabs>
+        </div>
       </main>
     </div>
   );
 };
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+function Stat({
+  icon,
+  label,
+  value,
+  onClick,
+  hint,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  onClick: () => void;
+  hint: string;
+}) {
   return (
-    <Card className="bg-[#0F131C] border-white/10">
-      <CardContent className="p-5 flex items-center gap-4">
-        <div className="w-10 h-10 rounded-lg bg-brand-cyan/10 text-brand-cyan flex items-center justify-center">{icon}</div>
-        <div>
-          <div className="font-display text-2xl font-bold">{value.toLocaleString()}</div>
-          <div className="text-white/50 text-xs">{label}</div>
-        </div>
-      </CardContent>
-    </Card>
+    <button
+      type="button"
+      onClick={onClick}
+      title={hint}
+      aria-label={`${label}: ${value.toLocaleString()}. ${hint}`}
+      className="text-left rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/50"
+    >
+      <Card className="bg-[#0F131C] border-white/10 transition-colors hover:border-brand-cyan/40 hover:bg-[#121820] cursor-pointer h-full">
+        <CardContent className="p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-brand-cyan/10 text-brand-cyan flex items-center justify-center">{icon}</div>
+          <div>
+            <div className="font-display text-2xl font-bold">{value.toLocaleString()}</div>
+            <div className="text-white/50 text-xs">{label}</div>
+          </div>
+        </CardContent>
+      </Card>
+    </button>
   );
 }
 

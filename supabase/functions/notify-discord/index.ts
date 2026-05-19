@@ -30,6 +30,10 @@ interface PilotApplicationRow {
   fleet_size: string | null;
   status: string;
   notes: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  fms_provider: string | null;
+  website: string | null;
   created_at: string;
 }
 
@@ -128,9 +132,21 @@ function pilotEmbed(row: PilotApplicationRow) {
     { name: "Truck class", value: row.truck_size || "(unspecified)", inline: true },
   ];
 
+  if (row.contact_name) {
+    fields.push({ name: "Contact", value: row.contact_name, inline: true });
+  }
+  if (row.contact_email) {
+    fields.push({ name: "Email", value: row.contact_email, inline: true });
+  }
+  if (row.fms_provider) {
+    fields.push({ name: "FMS", value: row.fms_provider, inline: true });
+  }
+  if (row.website) {
+    fields.push({ name: "Website", value: row.website, inline: false });
+  }
   if (row.notes) {
     fields.push({
-      name: "Notes",
+      name: "Admin notes",
       value: row.notes.length > 1024 ? row.notes.slice(0, 1020) + "…" : row.notes,
       inline: false,
     });

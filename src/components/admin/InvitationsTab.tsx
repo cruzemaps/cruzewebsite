@@ -24,7 +24,13 @@ const DEMO_INVITES: Invite[] = [
   { id: "i1", email: "new.investor@example.com", role: "admin", token: "demo-token-1", expires_at: "2026-05-11T00:00:00Z", accepted_at: null, created_at: "2026-05-04T00:00:00Z" },
 ];
 
-export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
+export default function InvitationsTab({
+  isDemo,
+  drillDownToken = 0,
+}: {
+  isDemo: boolean;
+  drillDownToken?: number;
+}) {
   const { user } = useAuth();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +59,12 @@ export default function InvitationsTab({ isDemo }: { isDemo: boolean }) {
   useEffect(() => {
     load();
   }, [isDemo]);
+
+  useEffect(() => {
+    if (drillDownToken > 0) {
+      setShowAll(false);
+    }
+  }, [drillDownToken]);
 
   const create = async () => {
     if (!email.includes("@")) return toast.error("Enter a valid email.");

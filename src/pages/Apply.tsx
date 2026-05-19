@@ -23,24 +23,16 @@ import {
   renderLOIText,
   suggestInitials,
 } from "@/lib/loi";
+import { pilotInsertFromWizard, TERMINAL_PILOT_STATUSES } from "@/lib/pilotApplication";
+import {
+  clearAllDrafts,
+  loadWizardDraft,
+  saveSessionDraft,
+  scheduleDraftPersist,
+  type WizardDraft,
+} from "@/lib/applyDraft";
 
-type WizardData = {
-  companyName: string;
-  website: string;
-  fleetSize: string;
-  truckSize: string;
-  primaryLanes: string;
-  fmsProvider: string;
-  fmsOther: string;
-  contactEmail: string;
-  contactName: string;
-  contactPhone: string;
-  contactTitle: string;
-  notes: string;
-  // LOI
-  loiAgreed: boolean;
-  loiInitials: string;
-};
+type WizardData = WizardDraft;
 
 const STEPS = [
   { key: "company", label: "Company", icon: Building },
@@ -57,62 +49,42 @@ export default function Apply() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restoredRef = useRef(false);
 
-  // On mount, restore any pending application that was parked in
-  // sessionStorage when an unauthenticated user tried to submit. This is
-  // the other half of the "Apply → Login → resume" loop. (Audit #2)
-  const initialData: WizardData = (() => {
-    const base: WizardData = {
-      companyName: "",
-      website: "",
-      fleetSize: "",
-      truckSize: "",
-      primaryLanes: "",
-      fmsProvider: "",
-      fmsOther: "",
-      contactEmail: user?.email || "",
-      contactName: "",
-      contactPhone: "",
-      contactTitle: "",
-      notes: "",
-      loiAgreed: false,
-      loiInitials: "",
-    };
-    try {
-      const parked = sessionStorage.getItem("pending_application");
-      if (parked) {
-        const restored = JSON.parse(parked);
-        // The user has to re-sign because the LOI text is captured at
-        // signing time. Discard agreement/initials but keep everything else.
-        return {
-          ...base,
-          ...restored,
-          loiAgreed: false,
-          loiInitials: "",
-          contactEmail: user?.email || restored.contactEmail || "",
-        };
-      }
-    } catch { /* fall through to base */ }
-    return base;
-  })();
+  const [data, setData] = useState<WizardData>({
+    companyName: "",
+    website: "",
+    fleetSize: "",
+    truckSize: "",
+    primaryLanes: "",
+    fmsProvider: "",
+    fmsOther: "",
+    contactEmail: user?.email || "",
+    contactName: "",
+    contactPhone: "",
+    contactTitle: "",
+    notes: "",
+    loiAgreed: false,
+    loiInitials: "",
+  });
 
-  const [data, setData] = useState<WizardData>(initialData);
-
-  // Once we've consumed the parked form, clear it so a future visit
-  // doesn't auto-restore it again.
+  // Restore session + DB drafts (Apply → Login → resume).
   useEffect(() => {
-    if (sessionStorage.getItem("pending_application")) {
-      sessionStorage.removeItem("pending_application");
-      // If the user is now signed in and we restored data, jump them past
-      // the steps they already filled. Heuristic: skip to the LOI step
-      // (4) if all earlier steps validate.
-      if (user && [0, 1, 2, 3].every((i) => stepValid(i, initialData))) {
+    let cancelled = false;
+    (async () => {
+      const restored = await loadWizardDraft(user?.id, user?.email ?? undefined);
+      if (cancelled) return;
+      setData(restored);
+      if (!restoredRef.current && user && [0, 1, 2, 3].every((i) => stepValid(i, restored))) {
+        restoredRef.current = true;
         setStep(4);
-        toast.success("We restored your previous answers. Just sign the LOI to finish.");
+        toast.success("We restored your saved answers. Sign the LOI to finish.");
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, user?.email]);
 
   // Clear any pending submit timer on unmount so navigating away during
   // the success animation doesn't navigate us back unexpectedly. (Audit #17)
@@ -130,11 +102,18 @@ export default function Apply() {
     }
   }, [step, data.contactName, data.loiInitials]);
 
-  const update = <K extends keyof WizardData>(key: K, value: WizardData[K]) =>
-    setData((prev) => ({ ...prev, [key]: value }));
+  const update = <K extends keyof WizardData>(key: K, value: WizardData[K]) => {
+    setData((prev) => {
+      const next = { ...prev, [key]: value };
+      scheduleDraftPersist(user?.id, next);
+      return next;
+    });
+  };
 
   const advance = () => {
     if (step === 0) track("application_started", { fleet_size: data.fleetSize });
+    track("application_step_completed", { step: step + 1, step_key: STEPS[step].key });
+    scheduleDraftPersist(user?.id, data);
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   };
 
@@ -151,40 +130,47 @@ export default function Apply() {
     setSubmitting(true);
 
     if (!user) {
-      // Not signed in: park the form so we can resume after signup.
-      sessionStorage.setItem("pending_application", JSON.stringify(data));
+      saveSessionDraft(data);
       navigate("/login?role=fleet_owner&apply=1");
       setSubmitting(false);
       return;
     }
 
-    // Order matters here. We insert the pilot_applications row first so
-    // the LOI can reference it. If the LOI insert later fails, we roll back
-    // the pilot row by deleting it — this prevents orphan applications
-    // + spurious Discord pings (audit #19).
+    const { data: existing } = await supabase
+      .from("pilot_applications")
+      .select("id, status")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing && !(TERMINAL_PILOT_STATUSES as readonly string[]).includes(existing.status)) {
+      setSubmitting(false);
+      toast.error("You already have an application in progress.", {
+        action: { label: "View dashboard", onClick: () => navigate("/fleet-dashboard") },
+      });
+      return;
+    }
+
     const { data: pilotRow, error: pilotErr } = await supabase
       .from("pilot_applications")
-      .insert({
-        user_id: user.id,
-        company_name: data.companyName,
-        truck_size: data.truckSize,
-        fleet_size: data.fleetSize,
-        notes: [
-          data.website && `Website: ${data.website}`,
-          data.primaryLanes && `Primary lanes: ${data.primaryLanes}`,
-          data.fmsProvider && `FMS provider: ${data.fmsProvider}${data.fmsProvider === "Other" && data.fmsOther ? ` (${data.fmsOther})` : ""}`,
-          data.contactName && `Contact: ${data.contactName}`,
-          data.contactTitle && `Title: ${data.contactTitle}`,
-          data.contactPhone && `Phone: ${data.contactPhone}`,
-          data.notes && `Notes: ${data.notes}`,
-        ].filter(Boolean).join("\n"),
-      })
+      .insert(pilotInsertFromWizard(user.id, data))
       .select("id")
       .single();
 
     if (pilotErr) {
       setSubmitting(false);
-      return toast.error(pilotErr.message);
+      const dup =
+        pilotErr.message.includes("pilot_applications_one_active_per_user") ||
+        pilotErr.code === "23505";
+      if (dup) {
+        toast.error("You already have an active application.", {
+          action: { label: "View dashboard", onClick: () => navigate("/fleet-dashboard") },
+        });
+      } else {
+        toast.error(pilotErr.message);
+      }
+      return;
     }
 
     const signedDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -197,21 +183,26 @@ export default function Apply() {
       initials: data.loiInitials,
     });
 
-    const { error: loiErr } = await supabase.from("loi_signatures").insert({
-      user_id: user.id,
-      pilot_application_id: pilotRow?.id ?? null,
-      participant_name: data.contactName,
-      participant_company: data.companyName,
-      participant_title: data.contactTitle || null,
-      fleet_size: data.fleetSize,
-      agreed: true,
-      initials: data.loiInitials.trim().toUpperCase(),
-      loi_version: LOI_VERSION,
-      loi_full_text: loiFullText,
-      performance_fee_min_pct: PERFORMANCE_FEE_MIN_PCT,
-      performance_fee_max_pct: PERFORMANCE_FEE_MAX_PCT,
-      user_agent: navigator.userAgent,
-    });
+    const { data: loiRow, error: loiErr } = await supabase
+      .from("loi_signatures")
+      .insert({
+        user_id: user.id,
+        pilot_application_id: pilotRow?.id ?? null,
+        participant_name: data.contactName,
+        participant_company: data.companyName,
+        participant_title: data.contactTitle || null,
+        contact_email: data.contactEmail,
+        fleet_size: data.fleetSize,
+        agreed: true,
+        initials: data.loiInitials.trim().toUpperCase(),
+        loi_version: LOI_VERSION,
+        loi_full_text: loiFullText,
+        performance_fee_min_pct: PERFORMANCE_FEE_MIN_PCT,
+        performance_fee_max_pct: PERFORMANCE_FEE_MAX_PCT,
+        user_agent: navigator.userAgent,
+      })
+      .select("id")
+      .single();
 
     if (loiErr) {
       // Roll back the pilot row so we don't leave an orphan + the Discord
@@ -236,6 +227,16 @@ export default function Apply() {
       toast.error("Couldn't sign the LOI: " + loiErr.message + ". Your application was rolled back; please try again.");
       return;
     }
+
+    if (loiRow?.id) {
+      supabase.functions
+        .invoke("capture-loi-metadata", {
+          body: { loi_id: loiRow.id, user_agent: navigator.userAgent },
+        })
+        .catch((err) => console.warn("LOI metadata capture:", err));
+    }
+
+    await clearAllDrafts();
 
     setSubmitting(false);
     track("application_submitted", { fleet_size: data.fleetSize, fms: data.fmsProvider, loi_signed: true });

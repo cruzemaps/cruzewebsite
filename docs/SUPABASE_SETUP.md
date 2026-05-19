@@ -47,7 +47,20 @@ Dashboard → **Database** → **Replication** → toggle on for:
 - `public.invitations`
 - `public.role_history`
 
-## 5. Email (for invitations)
+## 5. Pilot application emails (fleet apply flow)
+
+Deploy the `send-pilot-email` Edge Function and wire **Database Webhooks**:
+
+1. `pilot_applications` **INSERT** → `send-pilot-email` (confirmation to `contact_email` or profile email)
+2. `pilot_applications` **UPDATE** → `send-pilot-email` (status change; includes `fleet_visible_message` when set)
+
+Secrets: `RESEND_API_KEY`, optional `PILOT_FROM_ADDRESS`, `SITE_BASE_URL`.
+
+Also deploy `capture-loi-metadata` — called from `/apply` after LOI insert to store IP + user agent.
+
+Run migration **`20260518_014_pilot_application_enhancements.sql`** for structured columns, drafts, and one-active-application-per-user.
+
+## 6. Email (for invitations)
 
 The invitation flow currently generates a tokenized link in the admin portal that you copy and send manually. To send automatically:
 
@@ -56,7 +69,7 @@ The invitation flow currently generates a tokenized link in the admin portal tha
 
 A starter Edge Function is intentionally not included — the chosen provider depends on your domain and deliverability setup. Keep the manual copy-link flow until you wire it.
 
-## 6. Supabase storage for the press kit (optional)
+## 7. Supabase storage for the press kit (optional)
 
 If you want the `/press` download links to actually serve files:
 
@@ -64,7 +77,7 @@ If you want the `/press` download links to actually serve files:
 2. Upload `cruze-brand-assets.zip`, `cruze-fact-sheet.pdf`, `cruze-founders.zip`, `cruze-product-screens.zip`.
 3. In `src/pages/Press.tsx`, replace the `/press/...` paths with the public Storage URLs (or proxy them through the Pages site).
 
-## 7. Verify
+## 8. Verify
 
 After all the above:
 

@@ -33,6 +33,7 @@ type FunnelEvent =
   | "cities_cta_click"
   | "investor_cta_click"
   | "application_started"
+  | "application_step_completed"
   | "application_submitted"
   | "signup_completed"
   | "login_succeeded"

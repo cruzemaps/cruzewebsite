@@ -38,7 +38,15 @@ const DEMO_USERS: Profile[] = [
   { id: "u4", email: "founder@example.com", first_name: "Anudeep", last_name: "Bonagiri", role: "admin", status: "active", created_at: "2024-09-01T10:00:00Z" },
 ];
 
-export default function UsersTab({ isDemo }: { isDemo: boolean }) {
+export default function UsersTab({
+  isDemo,
+  drillDownToken = 0,
+  drillDownStatusFilter,
+}: {
+  isDemo: boolean;
+  drillDownToken?: number;
+  drillDownStatusFilter?: string;
+}) {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -164,6 +172,15 @@ export default function UsersTab({ isDemo }: { isDemo: boolean }) {
   useEffect(() => {
     load();
   }, [isDemo]);
+
+  useEffect(() => {
+    if (drillDownToken > 0 && drillDownStatusFilter) {
+      setStatusFilter(drillDownStatusFilter);
+      setRoleFilter("all");
+      setQuery("");
+      setSelected(new Set());
+    }
+  }, [drillDownToken, drillDownStatusFilter]);
 
   const filtered = useMemo(() => {
     return users.filter((u) => {

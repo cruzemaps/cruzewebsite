@@ -34,10 +34,22 @@ const DEMO_LOIS: LOIRow[] = [
   },
 ];
 
-export default function LOIsTab({ isDemo }: { isDemo: boolean }) {
+export default function LOIsTab({
+  isDemo,
+  drillDownToken = 0,
+}: {
+  isDemo: boolean;
+  drillDownToken?: number;
+}) {
   const [lois, setLois] = useState<LOIRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (drillDownToken > 0) {
+      setQuery("");
+    }
+  }, [drillDownToken]);
 
   useEffect(() => {
     (async () => {

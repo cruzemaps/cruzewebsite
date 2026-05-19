@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Shield, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 type ProfileMini = {
   id: string;
@@ -46,7 +46,13 @@ function profileLabel(p: ProfileMini | undefined, fallbackId: string): string {
 // truncated at 200 newest rows.
 const PAGE_SIZE = 50;
 
-export default function AuditTab({ isDemo }: { isDemo: boolean }) {
+export default function AuditTab({
+  isDemo,
+  onOpenDeletionLog,
+}: {
+  isDemo: boolean;
+  onOpenDeletionLog?: () => void;
+}) {
   const [rows, setRows] = useState<DemoRow[]>([]);
   const [profiles, setProfiles] = useState<Map<string, ProfileMini>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -110,6 +116,21 @@ export default function AuditTab({ isDemo }: { isDemo: boolean }) {
   return (
     <Card className="bg-[#0F131C] border-white/10">
       <CardContent className="p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-white/50">
+          <p>Role and status changes from admin actions (including impersonation opens).</p>
+          {onOpenDeletionLog && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={onOpenDeletionLog}
+              className="text-brand-cyan hover:text-brand-cyan hover:bg-white/5"
+            >
+              Permanent deletion log
+              <ExternalLink size={12} className="ml-1.5" />
+            </Button>
+          )}
+        </div>
         {totalCount !== null && totalCount > 0 && (
           <div className="flex items-center justify-between mb-4 text-xs text-white/50">
             <span>
