@@ -318,6 +318,42 @@ function How() {
   );
 }
 
+/* ----------------------------------------------------- Moat / defensibility */
+
+function Moat() {
+  const rows: [string, string][] = [
+    ["The incumbents are pointed the other way.", "Google and Waze make their money getting one driver to their own destination fastest. Cruze asks a few drivers to ease off so everyone moves. That trade-off cuts against their core product, which is a big reason it has stayed unbuilt."],
+    ["It gets sharper the more road it covers.", "Every corridor and every guided driver improves where Cruze predicts waves and how well it smooths them. Coverage compounds into a better product, so a head start is hard to close."],
+    ["The hard part is the whole stack.", "Reading live traffic from cameras, predicting waves with physics, and turning that into a single safe speed cue, all on real roads, is the work. That combination is the lead we are building."],
+  ];
+  return (
+    <section id="moat" className="border-y" style={{ borderColor: line, background: bg2 }}>
+      <div className="mx-auto max-w-4xl px-5 sm:px-6 py-16 md:py-28">
+        <Reveal>
+          <p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>Defensibility</p>
+          <h2 className="font-bold tracking-[-0.02em] leading-[1.05]" style={{ fontFamily: display, color: text, fontSize: "clamp(1.9rem, 4vw, 3rem)" }}>Why this is hard to copy.</h2>
+          <p className="mt-5 text-lg leading-relaxed max-w-2xl" style={{ color: muted, fontFamily: body }}>
+            The research behind it is public. Doing it on live roads, and getting better the more roads you cover, is not.
+          </p>
+        </Reveal>
+        <div className="mt-10">
+          {rows.map(([lead, copy], i) => (
+            <Reveal key={lead} delay={i * 0.08}>
+              <div className="py-6 border-t flex flex-col md:flex-row md:gap-10" style={{ borderColor: line, fontFamily: body }}>
+                <div className="md:w-2/5 font-semibold mb-2 md:mb-0 flex items-start gap-3" style={{ color: text, fontFamily: display }}>
+                  <span className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: accent }} />
+                  {lead}
+                </div>
+                <p className="md:w-3/5 text-[15px] leading-relaxed" style={{ color: muted }}>{copy}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ----------------------------------------------------- Audiences */
 
 function Audiences() {
@@ -497,6 +533,7 @@ export default function V3() {
       <LaneDivider />
       <How />
       <ProductShowcase />
+      <Moat />
       <LaneDivider />
       <Audiences />
       <Team />
