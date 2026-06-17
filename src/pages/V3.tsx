@@ -6,6 +6,8 @@ import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight }
 import LiveFeed, { FEEDS } from "@/components/v3/LiveFeed";
 import TruckScene from "@/components/v3/TruckScene";
 import ContactForm from "@/components/v3/ContactForm";
+import RoadRail from "@/components/v3/RoadRail";
+import LaneDivider from "@/components/v3/LaneDivider";
 
 /**
  * V3 — redesign sandbox. Isolated route (/v3), unlinked, noindex'd. Dark and
@@ -201,7 +203,7 @@ function Problem() {
     { icon: Smartphone, h: "The phone can already help", t: "A phone knows your speed and position and can suggest a small change in real time. That is enough to bend the flow." },
   ];
   return (
-    <section className="mx-auto max-w-6xl px-5 sm:px-6 py-16 md:py-28">
+    <section id="problem" className="mx-auto max-w-6xl px-5 sm:px-6 py-16 md:py-28">
       <Reveal>
         <div className="max-w-3xl">
           <p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>The problem</p>
@@ -237,7 +239,7 @@ function Problem() {
 
 function Insight() {
   return (
-    <section className="border-y" style={{ borderColor: line, background: bg2 }}>
+    <section id="insight" className="border-y" style={{ borderColor: line, background: bg2 }}>
       <div className="mx-auto max-w-4xl px-5 sm:px-6 py-16 md:py-24 text-center">
         <Reveal>
           <p className="text-xs uppercase tracking-[0.18em] mb-6" style={{ color: accent, fontFamily: body }}>Why it can work</p>
@@ -293,7 +295,7 @@ function Audiences() {
     { k: "For cities and DOTs", h: "More out of the roads you already have.", p: "Smoothing waves lets a corridor carry more cars with no construction. Because Cruze reads your existing cameras, you can see real flow on your own roads before anything reaches a driver.", to: "/for-cities", cta: "How it works for cities" },
   ];
   return (
-    <section className="border-t" style={{ borderColor: line, background: bg2 }}>
+    <section id="audiences" className="border-t" style={{ borderColor: line, background: bg2 }}>
       <div className="mx-auto max-w-6xl px-5 sm:px-6 py-16 md:py-28">
         <Reveal><p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>Who it's for</p></Reveal>
         <div className="grid md:grid-cols-2 gap-5">
@@ -409,12 +411,17 @@ export default function V3() {
         <title>Cruze — redesign preview</title>
       </Helmet>
       <Nav />
+      <RoadRail />
       <DriveHero />
       <LiveProof />
       <Problem />
+      <LaneDivider />
       <Insight />
+      <LaneDivider />
       <How />
+      <LaneDivider />
       <Audiences />
+      <LaneDivider />
       <Team />
       <Contact />
       <Footer />

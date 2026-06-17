@@ -158,6 +158,10 @@ export default function TruckScene({ p }: { p: number }) {
   useEffect(() => {
     const root = rootRef.current;
     if (!root || typeof (Element.prototype as any).animate !== "function") return;
+    // Respect reduced-motion: skip the continuous loops (wheels/parallax stay
+    // still). The scroll-driven story (cars, brake lights, sky) still updates,
+    // since that is user-driven motion, not autoplay.
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const anims: { a: Animation }[] = [];
 
     root.querySelectorAll<HTMLElement>('[data-anim="x"]').forEach((el) => {
