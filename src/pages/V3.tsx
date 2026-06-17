@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent, useReducedMotion } from "framer-motion";
+import SEO from "@/components/SEO";
 import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight } from "lucide-react";
 import LiveCameras from "@/components/v3/LiveFeed";
 import TruckScene from "@/components/v3/TruckScene";
@@ -34,15 +34,20 @@ const CAMERA_MAP_URL = "https://cruze-camera-visualization.vercel.app";
 function useFonts() {
   useEffect(() => {
     if (document.getElementById("v3-fonts")) return;
+    // preconnect first so the font CSS + files start fetching sooner
+    const pre1 = Object.assign(document.createElement("link"), { rel: "preconnect", href: "https://fonts.googleapis.com" });
+    const pre2 = Object.assign(document.createElement("link"), { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" });
     const l = document.createElement("link");
     l.id = "v3-fonts";
     l.rel = "stylesheet";
     l.href = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600&display=swap";
-    document.head.appendChild(l);
+    document.head.append(pre1, pre2, l);
   }, []);
 }
 
 function Reveal({ children, delay = 0, y = 28 }: { children: React.ReactNode; delay?: number; y?: number }) {
+  const reduce = useReducedMotion();
+  if (reduce) return <div>{children}</div>; // no entrance motion for reduced-motion users
   return (
     <motion.div initial={{ opacity: 0, y }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-70px" }} transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}>
       {children}
@@ -519,10 +524,9 @@ export default function V3() {
   useFonts();
   return (
     <div style={{ background: bg, color: text, fontFamily: body }}>
-      <Helmet>
-        <meta name="robots" content="noindex, nofollow" />
-        <title>Cruze — redesign preview</title>
-      </Helmet>
+      {/* Reads the "/v3" entry from src/lib/seo.ts (title, description, OG,
+          canonical, JSON-LD, noindex). The prerender bakes it into the static HTML. */}
+      <SEO />
       <Nav />
       <RoadRail />
       <DriveHero />

@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+
+// Visible focus ring for keyboard users (inline styles can't express :focus-visible).
+const FOCUS_CSS = `.v3-field{outline:none}.v3-field:focus-visible{outline:2px solid #E8590C;outline-offset:1px;border-color:#E8590C}`;
 
 /**
  * "Talk to the team" message form. Tries to store the message in Supabase
@@ -23,6 +26,14 @@ const display = "'Space Grotesk', ui-sans-serif, system-ui, sans-serif";
 export default function ContactForm() {
   const [form, setForm] = useState({ name: "", email: "", org: "", message: "" });
   const [state, setState] = useState<"idle" | "sending" | "done" | "mailto">("idle");
+
+  useEffect(() => {
+    if (document.getElementById("v3-field-css")) return;
+    const s = document.createElement("style");
+    s.id = "v3-field-css";
+    s.textContent = FOCUS_CSS;
+    document.head.appendChild(s);
+  }, []);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -71,7 +82,6 @@ export default function ContactForm() {
     color: text,
     fontFamily: body,
     fontSize: 15,
-    outline: "none",
   } as React.CSSProperties;
 
   return (
@@ -79,20 +89,20 @@ export default function ContactForm() {
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs mb-1.5" style={{ color: muted }}>Name</label>
-          <input required value={form.name} onChange={set("name")} style={input} placeholder="Your name" />
+          <input required value={form.name} onChange={set("name")} className="v3-field" style={input} placeholder="Your name" />
         </div>
         <div>
           <label className="block text-xs mb-1.5" style={{ color: muted }}>Email</label>
-          <input required type="email" value={form.email} onChange={set("email")} style={input} placeholder="you@company.com" />
+          <input required type="email" value={form.email} onChange={set("email")} className="v3-field" style={input} placeholder="you@company.com" />
         </div>
       </div>
       <div className="mt-4">
         <label className="block text-xs mb-1.5" style={{ color: muted }}>Company or agency <span style={{ opacity: 0.6 }}>(optional)</span></label>
-        <input value={form.org} onChange={set("org")} style={input} placeholder="Fleet, DOT, fund, etc." />
+        <input value={form.org} onChange={set("org")} className="v3-field" style={input} placeholder="Fleet, DOT, fund, etc." />
       </div>
       <div className="mt-4">
         <label className="block text-xs mb-1.5" style={{ color: muted }}>Message</label>
-        <textarea required value={form.message} onChange={set("message")} rows={4} style={{ ...input, resize: "vertical" }} placeholder="What are you working on, and how can we help?" />
+        <textarea required value={form.message} onChange={set("message")} rows={4} className="v3-field" style={{ ...input, resize: "vertical" }} placeholder="What are you working on, and how can we help?" />
       </div>
       <button
         type="submit"

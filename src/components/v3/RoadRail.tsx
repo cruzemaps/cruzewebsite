@@ -52,9 +52,9 @@ export default function RoadRail() {
   const pct = (i: number) => (i / (n - 1)) * 100;
 
   return (
-    <div className="hidden xl:block" aria-hidden style={{ position: "fixed", left: 26, top: "50%", transform: "translateY(-50%)", height: "min(600px, 66vh)", width: 26, zIndex: 40 }}>
+    <nav className="hidden xl:block" aria-label="Page sections" style={{ position: "fixed", left: 26, top: "50%", transform: "translateY(-50%)", height: "min(600px, 66vh)", width: 26, zIndex: 40 }}>
       {/* track — clean hairline with an orange progress fill */}
-      <div style={{ position: "absolute", left: 12, top: 0, bottom: 0, width: 1.5, background: "rgba(255,255,255,0.10)", overflow: "hidden" }}>
+      <div aria-hidden style={{ position: "absolute", left: 12, top: 0, bottom: 0, width: 1.5, background: "rgba(255,255,255,0.10)", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: `${pct(active)}%`, background: accent, transition: "height .55s cubic-bezier(.22,1,.36,1)" }} />
       </div>
 
@@ -66,6 +66,8 @@ export default function RoadRail() {
           <button
             key={id}
             onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
+            aria-label={`Go to ${label}`}
+            aria-current={here ? "true" : undefined}
             className="group"
             style={{ position: "absolute", top: `${pct(i)}%`, left: 0, transform: "translateY(-50%)", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
           >
@@ -79,6 +81,6 @@ export default function RoadRail() {
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

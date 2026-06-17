@@ -205,7 +205,7 @@ export default function TruckScene({ p }: { p: number }) {
   const horizon = mixHex("3a2016", "120c0a", night);
 
   return (
-    <div ref={rootRef} style={{ position: "absolute", inset: 0, overflow: "hidden", background: `linear-gradient(180deg, ${skyTop} 0%, ${skyMid} 55%, ${horizon} 78%, #120e0c 100%)` }}>
+    <div ref={rootRef} aria-hidden role="presentation" style={{ position: "absolute", inset: 0, overflow: "hidden", background: `linear-gradient(180deg, ${skyTop} 0%, ${skyMid} 55%, ${horizon} 78%, #120e0c 100%)` }}>
       {/* stars (fade in as night falls) */}
       <div style={{ position: "absolute", inset: 0, opacity: night }}>
         {STARS.map((s, i) => (

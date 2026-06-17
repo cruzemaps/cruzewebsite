@@ -70,6 +70,32 @@ export const ROUTES: RouteMeta[] = [
     priority: 1.0,
   },
   {
+    // Redesign preview. noindex (keeps it out of search + the sitemap) until it
+    // is promoted to "/". The prerender bakes this clean meta into
+    // dist/v3/index.html. On promotion, move this copy into the "/" entry above.
+    path: "/v3",
+    title: "Cruze — Clear traffic jams before they form",
+    description:
+      "Most jams have no crash and no bottleneck. Cruze predicts stop-and-go waves before they form and guides a few drivers to smooth them out. No new hardware, no waiting on self-driving. Piloting in Texas.",
+    keywords:
+      "phantom traffic jams, stop-and-go waves, traffic flow optimization, congestion cost, fleet fuel savings, eco-driving, physics-informed AI, computer vision traffic, Texas DOT cameras",
+    noindex: true,
+    jsonLd: [
+      orgJsonLd,
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "Cruze",
+        applicationCategory: "TravelApplication",
+        operatingSystem: "iOS, Android, Web",
+        description:
+          "Traffic-flow intelligence that dissolves phantom jams by coordinating driver speeds, no new hardware required.",
+      },
+    ],
+    changefreq: "monthly",
+    priority: 0.5,
+  },
+  {
     path: "/for-fleets",
     title: "Cruze for Fleets | Cut Fuel, Reclaim Driver Hours",
     description:

@@ -57,7 +57,7 @@ function Phone() {
   const advisory = phase === 1;
 
   return (
-    <div style={{ perspective: 1400 }}>
+    <div aria-hidden style={{ perspective: 1400 }}>
       <div
         style={{
           width: "clamp(248px, 78vw, 300px)", aspectRatio: "300 / 620", margin: "0 auto",
