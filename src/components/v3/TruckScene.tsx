@@ -134,14 +134,16 @@ function Truck({ brake, night }: { brake: number; night: number }) {
 /* A small car ahead. */
 function Car({ x, color, brake }: { x: number; color: string; brake: number }) {
   return (
-    <g transform={`translate(${x},0)`}>
-      <ellipse cx="34" cy="60" rx="42" ry="6" fill="rgba(0,0,0,0.4)" />
-      <path d="M2 44 q4-22 22-24 h18 q14 0 22 12 l14 12 v12 q0 6-6 6 H6 q-4 0-4-4 z" fill={color} />
-      <path d="M24 22 h14 q10 0 16 9 l8 9 H24 z" fill="#9fd2e6" opacity="0.8" />
-      <circle cx="22" cy="62" r="9" fill="#0c0e11" /><circle cx="22" cy="62" r="3.5" fill="#5b626d" />
-      <circle cx="64" cy="62" r="9" fill="#0c0e11" /><circle cx="64" cy="62" r="3.5" fill="#5b626d" />
-      <rect x="2" y="44" width="6" height="10" rx="2" fill={`rgba(255,55,40,${brake})`} />
-      {brake > 0.3 && <rect x="-4" y="44" width="6" height="10" rx="3" fill={`rgba(255,55,40,${brake * 0.5})`} />}
+    <g transform={`translate(${x},118)`}>
+      {/* brake-light glow behind, so a jam reads as a wall of red */}
+      {brake > 0.08 && <ellipse cx="2" cy="74" rx={14 + brake * 26} ry={26} fill="rgba(255,45,28,0.55)" opacity={brake} />}
+      <ellipse cx="52" cy="96" rx="58" ry="9" fill="rgba(0,0,0,0.4)" />
+      <path d="M6 70 q7-34 34-36 h28 q22 0 34 19 l20 17 v18 q0 8-8 8 H12 q-6 0-6-6 z" fill={color} />
+      <path d="M36 36 h22 q15 0 24 14 l11 12 H36 z" fill="#9fd2e6" opacity="0.85" />
+      <circle cx="34" cy="96" r="14" fill="#0c0e11" /><circle cx="34" cy="96" r="5.5" fill="#5b626d" />
+      <circle cx="98" cy="96" r="14" fill="#0c0e11" /><circle cx="98" cy="96" r="5.5" fill="#5b626d" />
+      {/* rear brake-light cluster */}
+      <rect x="2" y="62" width="10" height="20" rx="2.5" fill={`rgba(255,48,30,${0.25 + brake * 0.75})`} />
     </g>
   );
 }
@@ -186,12 +188,13 @@ export default function TruckScene({ p }: { p: number }) {
   const cruze = smooth(0.6, 0.82, p);
   const night = smooth(0.4, 0.92, p);
 
-  const baseGap = 150 - cong * 70 + cruze * 50;
-  const cars = [0, 1, 2, 3, 4].map((i) => {
+  // Cars ahead of the truck: tight queue when jammed, spread out when flowing.
+  const baseGap = 122 - cong * 62 + cruze * 36;
+  const cars = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => {
     const guided = cruze > 0.4 && i % 2 === 0;
-    return { x: 70 + i * baseGap, color: guided ? "#E8590C" : i % 2 ? "#c9d0d8" : "#8a93a0", brake: guided ? 0 : cong, guided };
+    return { x: 14 + i * baseGap, color: guided ? "#E8590C" : i % 2 ? "#c9d0d8" : "#8a93a0", brake: guided ? 0 : cong, guided };
   });
-  const guidedXs = cars.filter((c) => c.guided).map((c) => c.x + 34);
+  const guidedXs = cars.filter((c) => c.guided).map((c) => c.x + 52);
 
   const skyTop = mixHex("0a1730", "03050a", night);
   const skyMid = mixHex("28344f", "0a1018", night);
@@ -269,13 +272,13 @@ export default function TruckScene({ p }: { p: number }) {
 
       {/* lead traffic + truck in the lower band */}
       <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "47%" }}>
-        <div style={{ position: "absolute", right: "5%", bottom: "16%", width: "clamp(86px, 13%, 190px)", height: "40%" }}>
-          <svg viewBox="0 0 760 70" width="100%" height="100%" style={{ overflow: "visible" }}>
+        <div style={{ position: "absolute", left: "44%", right: "2%", bottom: "8%", height: "50%" }}>
+          <svg viewBox="0 0 1120 250" width="100%" height="100%" preserveAspectRatio="xMinYMax meet" style={{ overflow: "visible" }}>
             {/* swarm coordination links between Cruze-guided cars */}
             {guidedXs.length > 1 && guidedXs.slice(0, -1).map((gx, i) => (
-              <line key={i} className="tsx-link" x1={gx} y1={44} x2={guidedXs[i + 1]} y2={44} stroke="#E8590C" strokeWidth="2" strokeDasharray="6 6" opacity={cruze * 0.9} />
+              <line key={i} className="tsx-link" x1={gx} y1={150} x2={guidedXs[i + 1]} y2={150} stroke="#E8590C" strokeWidth="3" strokeDasharray="8 8" opacity={cruze * 0.9} />
             ))}
-            {guidedXs.map((gx, i) => <circle key={i} cx={gx} cy={44} r="3" fill="#E8590C" opacity={cruze} />)}
+            {guidedXs.map((gx, i) => <circle key={i} cx={gx} cy={150} r="4" fill="#E8590C" opacity={cruze} />)}
             {cars.map((c, i) => <Car key={i} x={c.x} color={c.color} brake={c.brake} />)}
           </svg>
         </div>
