@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight } from "lucide-react";
-import LiveFeed, { FEEDS } from "@/components/v3/LiveFeed";
+import LiveCameras from "@/components/v3/LiveFeed";
 import TruckScene from "@/components/v3/TruckScene";
 import ContactForm from "@/components/v3/ContactForm";
 import RoadRail from "@/components/v3/RoadRail";
@@ -154,7 +154,6 @@ function DriveHero() {
 /* ------------------------------------------------------ Live proof */
 
 function LiveProof() {
-  const [active, setActive] = useState(FEEDS[0]);
   return (
     <section id="live" className="border-y" style={{ borderColor: line, background: bg2 }}>
       <div className="mx-auto max-w-6xl px-5 sm:px-6 py-16 md:py-28 grid lg:grid-cols-[1fr_1.1fr] gap-10 lg:gap-12 items-center">
@@ -176,19 +175,7 @@ function LiveProof() {
           </div>
         </Reveal>
         <Reveal delay={0.1}>
-          <div className="rounded-2xl overflow-hidden border shadow-2xl" style={{ borderColor: line, background: "#000" }}>
-            <div className="aspect-video relative">
-              <LiveFeed key={active.id} src={active.url} />
-              <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs text-white" style={{ background: "rgba(0,0,0,0.55)", fontFamily: body }}>
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> LIVE <span className="opacity-50">·</span> {active.city}, {active.location}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto" style={{ background: "#07090C" }}>
-              {FEEDS.map((f) => (
-                <button key={f.id} onClick={() => setActive(f)} className="text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-colors" style={{ fontFamily: body, color: active.id === f.id ? "#fff" : "rgba(255,255,255,0.5)", background: active.id === f.id ? "rgba(255,255,255,0.12)" : "transparent" }}>{f.city}</button>
-              ))}
-            </div>
-          </div>
+          <LiveCameras />
         </Reveal>
       </div>
     </section>
