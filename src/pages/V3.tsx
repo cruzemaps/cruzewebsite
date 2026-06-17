@@ -223,6 +223,49 @@ function Problem() {
   );
 }
 
+/* --------------------------------------------------------- The stakes */
+
+function Stakes() {
+  const stats = [
+    { n: "$74B", l: "lost by U.S. drivers to congestion in 2024", s: "INRIX 2024" },
+    { n: "4B hrs", l: "Americans spent sitting in traffic that year", s: "INRIX 2024" },
+    { n: "$108.8B", l: "in extra cost to the trucking industry alone", s: "ATRI, 2022" },
+    { n: "6.4B gal", l: "of diesel burned by trucks idling in traffic", s: "ATRI, 2022" },
+  ];
+  return (
+    <section id="stakes" className="border-y" style={{ borderColor: line, background: bg2 }}>
+      <div className="mx-auto max-w-6xl px-5 sm:px-6 py-16 md:py-24">
+        <Reveal>
+          <div className="max-w-3xl mb-12">
+            <p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>The stakes</p>
+            <h2 className="font-bold tracking-[-0.02em] leading-[1.05]" style={{ fontFamily: display, color: text, fontSize: "clamp(1.9rem, 4vw, 3rem)" }}>
+              It is not just annoying. It is one of the most expensive problems we ignore.
+            </h2>
+          </div>
+        </Reveal>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px rounded-2xl overflow-hidden border" style={{ borderColor: line, background: line }}>
+          {stats.map((s, i) => (
+            <Reveal key={s.n} delay={i * 0.07}>
+              <div className="p-6 md:p-8 h-full" style={{ background: bg, fontFamily: body }}>
+                <div className="font-bold tracking-[-0.02em]" style={{ fontFamily: display, color: accent, fontSize: "clamp(2rem, 4.4vw, 3.1rem)", lineHeight: 1 }}>{s.n}</div>
+                <div className="mt-3 text-[14px] leading-snug" style={{ color: text }}>{s.l}</div>
+                <div className="mt-3 text-xs" style={{ color: muted }}>{s.s}</div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal>
+          <p className="mt-8 text-lg leading-relaxed max-w-3xl" style={{ color: muted, fontFamily: body }}>
+            Not all of that is ours to fix. But a big slice is not full roads or crashes, it is stop-and-go
+            waves rippling through traffic that was moving fine a second ago. That slice is exactly what
+            Cruze is built to remove.
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 /* ------------------------------------------------------- Insight (trimmed) */
 
 function Insight() {
@@ -403,6 +446,7 @@ export default function V3() {
       <DriveHero />
       <LiveProof />
       <Problem />
+      <Stakes />
       <Insight />
       <LaneDivider />
       <How />
