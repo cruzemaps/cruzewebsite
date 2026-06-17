@@ -10,6 +10,10 @@ import { AnalyticsListener } from "./components/AnalyticsListener";
 import V2 from "./pages/V2";
 import { Loader2 } from "lucide-react";
 
+// Redesign sandbox — isolated route, not linked, noindex'd. Lazy so it never
+// touches the homepage bundle.
+const V3 = lazy(() => import("./pages/V3"));
+
 // Lazy-load every non-homepage route. The homepage stays eager so first paint
 // has zero waterfall. Everything else is split into its own chunk.
 const Investors = lazy(() => import("./pages/Investors"));
@@ -60,6 +64,8 @@ const App = () => (
             <Routes>
               {/* Public marketing */}
               <Route path="/" element={<V2 />} />
+              {/* Redesign preview — isolated, unlinked, noindex'd */}
+              <Route path="/v3" element={<V3 />} />
               <Route path="/for-fleets" element={<ForFleets />} />
               <Route path="/for-cities" element={<ForCities />} />
               <Route path="/investors" element={<Investors />} />
