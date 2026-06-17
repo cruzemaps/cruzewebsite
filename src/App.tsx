@@ -7,8 +7,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AnalyticsListener } from "./components/AnalyticsListener";
-import V2 from "./pages/V2";
+import V3 from "./pages/V3";
 import { Loader2 } from "lucide-react";
+
+// V3 is the homepage and stays eager so first paint has zero waterfall. The old
+// V2 design is kept lazy at /v2 as a fast rollback lever.
+const V2 = lazy(() => import("./pages/V2"));
 
 // Lazy-load every non-homepage route. The homepage stays eager so first paint
 // has zero waterfall. Everything else is split into its own chunk.
@@ -59,7 +63,11 @@ const App = () => (
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               {/* Public marketing */}
-              <Route path="/" element={<V2 />} />
+              <Route path="/" element={<V3 />} />
+              {/* Old design kept reachable for rollback/QA */}
+              <Route path="/v2" element={<V2 />} />
+              {/* Old preview URL now redirects to the promoted homepage */}
+              <Route path="/v3" element={<Navigate to="/" replace />} />
               <Route path="/for-fleets" element={<ForFleets />} />
               <Route path="/for-cities" element={<ForCities />} />
               <Route path="/investors" element={<Investors />} />

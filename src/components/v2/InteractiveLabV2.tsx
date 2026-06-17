@@ -479,10 +479,10 @@ const InteractiveLabV2 = () => {
         <section id="interactive-lab" className="pb-24 bg-brand-charcoal">
             <div className="container mx-auto px-6 max-w-7xl">
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${isNightTime ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'} border`}>
-                        {isNightTime ? <Moon className="w-4 h-4" /> : <Radio className="w-4 h-4 animate-pulse" />}
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-500 border-red-500/20 border">
+                        <Radio className="w-4 h-4 animate-pulse" />
                         <span className="text-xs font-bold tracking-widest uppercase">
-                            {isNightTime ? 'Pre-recorded Daytime Feed' : 'Live Network Feed'}
+                            Live Network Feed
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -528,7 +528,12 @@ const InteractiveLabV2 = () => {
                                     setRoiPoints([...roiPoints, {x, y}]);
                                 }}
                             >
-                                <HlsPlayer src={isNightTime && selectedCam?.preRecordedUrl ? selectedCam.preRecordedUrl : (selectedCam?.url || '')} />
+                                {/* Always show the real camera feed so the YOLO demo runs on actual
+                                    traffic. We no longer swap in the cruze-web.mp4 promo clip at night
+                                    (it has no vehicles to detect, so the demo looked broken). The
+                                    HlsPlayer still falls back gracefully if a feed is truly down.
+                                    TODO(anudeep): add a recorded daytime traffic loop as the night/offline fallback. */}
+                                <HlsPlayer src={selectedCam?.url || ''} />
 
                                 {/* In-browser YOLO (coco-ssd) — live bounding
                                     boxes around detected vehicles. The same

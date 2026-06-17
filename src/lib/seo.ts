@@ -59,15 +59,41 @@ const softwareJsonLd = {
 // + prerendered HTML automatically.
 export const ROUTES: RouteMeta[] = [
   {
+    // Homepage. Carries the current (V3) design's copy. The /v3 preview route
+    // now redirects here (see src/App.tsx); there is no separate /v3 entry.
     path: "/",
-    title: "Cruze | Dissolve Traffic, Not Just Avoid It",
+    title: "Cruze | Clear traffic jams before they form",
     description:
-      "Cruze coordinates driver speeds with swarm intelligence and physics-informed AI to dissolve phantom traffic jams, saving fuel, time, and lives.",
+      "Most jams have no crash and no bottleneck. Cruze predicts stop-and-go waves before they form and guides a few drivers to smooth them out. No new hardware, no waiting on self-driving. Piloting in Texas.",
     keywords:
-      "swarm navigation, traffic dissolution, phantom traffic jams, fleet routing, eco-driving, physics-informed AI, smart navigation",
-    jsonLd: [orgJsonLd, softwareJsonLd],
+      "phantom traffic jams, stop-and-go waves, traffic flow optimization, congestion cost, fleet fuel savings, eco-driving, physics-informed AI, computer vision traffic, Texas DOT cameras",
+    // Honest JSON-LD: Organization + SoftwareApplication with no invented
+    // aggregateRating (the old softwareJsonLd faked a 4.8 / 127-review score).
+    jsonLd: [
+      orgJsonLd,
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "Cruze",
+        applicationCategory: "TravelApplication",
+        operatingSystem: "iOS, Android, Web",
+        description:
+          "Traffic-flow intelligence that dissolves phantom jams by coordinating driver speeds, no new hardware required.",
+      },
+    ],
     changefreq: "weekly",
     priority: 1.0,
+  },
+  {
+    // Previous homepage design, kept reachable only for rollback/QA. noindex so
+    // it is never crawled as a duplicate of the live homepage; not linked anywhere.
+    path: "/v2",
+    title: "Cruze | Dissolve Traffic, Not Just Avoid It",
+    description:
+      "Cruze coordinates driver speeds with swarm intelligence to dissolve phantom traffic jams.",
+    noindex: true,
+    changefreq: "yearly",
+    priority: 0.1,
   },
   {
     path: "/for-fleets",
