@@ -8,6 +8,7 @@ import TruckScene from "@/components/v3/TruckScene";
 import ContactForm from "@/components/v3/ContactForm";
 import RoadRail from "@/components/v3/RoadRail";
 import LaneDivider from "@/components/v3/LaneDivider";
+import ProductShowcase from "@/components/v3/ProductShowcase";
 
 /**
  * V3 — redesign sandbox. Isolated route (/v3), unlinked, noindex'd. Dark and
@@ -419,6 +420,7 @@ export default function V3() {
       <Insight />
       <LaneDivider />
       <How />
+      <ProductShowcase />
       <LaneDivider />
       <Audiences />
       <LaneDivider />
