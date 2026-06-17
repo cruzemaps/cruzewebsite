@@ -28,7 +28,7 @@ const display = "'Space Grotesk', ui-sans-serif, system-ui, sans-serif";
 const body = "'Inter Tight', ui-sans-serif, system-ui, sans-serif";
 
 // Deployed camera-visualization (Vercel project: cruze-camera-visualization).
-// TODO(anudeep): confirm this is the live production URL.
+// Confirmed live: returns 200 and serves the "Cruze Camera Globe" dashboard.
 const CAMERA_MAP_URL = "https://cruze-camera-visualization.vercel.app";
 
 function useFonts() {
