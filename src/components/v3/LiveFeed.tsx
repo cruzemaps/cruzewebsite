@@ -29,9 +29,22 @@ type Status = "connecting" | "live" | "offline";
 export default function LiveCameras() {
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<Status>("connecting");
+  const [ready, setReady] = useState(false); // lazy: only load HLS once near viewport
   const videoRef = useRef<HTMLVideoElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const failed = useRef<Set<number>>(new Set());
   const retry = useRef<number>();
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => { if (entries.some((e) => e.isIntersecting)) { setReady(true); io.disconnect(); } },
+      { rootMargin: "300px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const scheduleRetry = () => {
     window.clearTimeout(retry.current);
@@ -44,7 +57,7 @@ export default function LiveCameras() {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !ready) return;
     let hls: any = null;
     let cancelled = false;
     setStatus("connecting");
@@ -98,7 +111,7 @@ export default function LiveCameras() {
     }
 
     return () => { cancelled = true; if (hls) hls.destroy(); };
-  }, [index]);
+  }, [index, ready]);
 
   useEffect(() => () => window.clearTimeout(retry.current), []);
 
@@ -112,7 +125,7 @@ export default function LiveCameras() {
   const cur = FEEDS[index];
 
   return (
-    <div className="rounded-2xl overflow-hidden border shadow-2xl" style={{ borderColor: line, background: "#000" }}>
+    <div ref={cardRef} className="rounded-2xl overflow-hidden border shadow-2xl" style={{ borderColor: line, background: "#000" }}>
       <div className="aspect-video relative">
         <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline style={{ opacity: status === "live" ? 1 : 0.25, transition: "opacity .3s" }} />
 

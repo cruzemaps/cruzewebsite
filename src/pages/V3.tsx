@@ -325,7 +325,7 @@ function Team() {
               to claim customers or savings we have not earned. If you run a fleet or a road network
               and want to be early, that is exactly who we want to hear from.
             </p>
-            <a href="#contact" className="mt-8 inline-flex px-6 py-3 rounded-full font-medium text-[15px] transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff", fontFamily: body }}>Say hello</a>
+            <a href="#contact" className="mt-8 inline-flex px-6 py-3 rounded-full font-medium text-[15px] transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff", fontFamily: body }}>Talk to us</a>
           </div>
         </Reveal>
         <Reveal delay={0.1}>
@@ -403,14 +403,12 @@ export default function V3() {
       <DriveHero />
       <LiveProof />
       <Problem />
-      <LaneDivider />
       <Insight />
       <LaneDivider />
       <How />
       <ProductShowcase />
       <LaneDivider />
       <Audiences />
-      <LaneDivider />
       <Team />
       <Contact />
       <Footer />
