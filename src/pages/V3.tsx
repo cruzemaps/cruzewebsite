@@ -387,6 +387,52 @@ function Team() {
   );
 }
 
+/* ----------------------------------------------------- How a pilot works */
+
+function Pilot() {
+  const steps = [
+    { t: "Pick a corridor", d: "You name a road that hurts. We point Cruze at the traffic cameras already on it. Nothing gets installed." },
+    { t: "See your baseline", d: "Within days you get the real picture of that road: where waves form, and what they cost in fuel and time." },
+    { t: "Run a guided test", d: "A small group of drivers gets gentle speed cues on that corridor. We measure what actually changes." },
+    { t: "Review together", d: "Fuel, hard stops, and throughput against the baseline. You decide whether to widen it from there." },
+  ];
+  return (
+    <section id="pilot" className="border-t" style={{ borderColor: line, background: bg }}>
+      <div className="mx-auto max-w-6xl px-5 sm:px-6 py-16 md:py-28">
+        <Reveal>
+          <div className="max-w-2xl mb-12 md:mb-16">
+            <p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>How a pilot works</p>
+            <h2 className="font-bold tracking-[-0.02em] leading-[1.05]" style={{ fontFamily: display, color: text, fontSize: "clamp(1.9rem, 4vw, 3rem)" }}>Trying it is easy on purpose.</h2>
+            <p className="mt-5 text-lg leading-relaxed" style={{ color: muted, fontFamily: body }}>
+              No hardware on the road. No long contract. A pilot starts on the cameras and corridors you already run.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+          <div className="hidden lg:block absolute top-5 left-[11%] right-[11%] h-px" style={{ background: line }} />
+          {steps.map((s, i) => (
+            <Reveal key={s.t} delay={i * 0.08}>
+              <div className="relative" style={{ fontFamily: body }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-5 relative z-10" style={{ background: bg, border: `1.5px solid ${accent}`, color: accent, fontFamily: display, fontWeight: 700 }}>{i + 1}</div>
+                <div className="font-semibold text-lg mb-2" style={{ color: text, fontFamily: display }}>{s.t}</div>
+                <p className="text-[15px] leading-relaxed" style={{ color: muted }}>{s.d}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal>
+          <div className="mt-12 flex flex-col sm:flex-row sm:items-center gap-4" style={{ fontFamily: body }}>
+            <a href="#contact" className="inline-flex justify-center px-6 py-3 rounded-full font-medium text-[15px] transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff" }}>Start with one corridor</a>
+            <span className="text-sm" style={{ color: muted }}>Most pilots begin with a single road in Texas.</span>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 /* ----------------------------------------------------- Contact */
 
 function Contact() {
@@ -454,6 +500,7 @@ export default function V3() {
       <LaneDivider />
       <Audiences />
       <Team />
+      <Pilot />
       <Contact />
       <Footer />
     </div>
