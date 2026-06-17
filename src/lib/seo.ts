@@ -62,7 +62,7 @@ export const ROUTES: RouteMeta[] = [
     // Homepage. Carries the current (V3) design's copy. The /v3 preview route
     // now redirects here (see src/App.tsx); there is no separate /v3 entry.
     path: "/",
-    title: "Cruze — Clear traffic jams before they form",
+    title: "Cruze | Clear traffic jams before they form",
     description:
       "Most jams have no crash and no bottleneck. Cruze predicts stop-and-go waves before they form and guides a few drivers to smooth them out. No new hardware, no waiting on self-driving. Piloting in Texas.",
     keywords:

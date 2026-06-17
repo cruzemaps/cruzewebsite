@@ -17,8 +17,8 @@ const muted = "#9AA0A8";
 const line = "rgba(255,255,255,0.12)";
 const field = "rgba(255,255,255,0.04)";
 
-// TODO(anudeep): confirm the inbox you want these to land in.
-const CONTACT_EMAIL = "team@cruzemaps.com";
+// Inbox for contact-form submissions and the mailto fallback.
+const CONTACT_EMAIL = "info@cruzemaps.com";
 
 const body = "'Inter Tight', ui-sans-serif, system-ui, sans-serif";
 const display = "'Space Grotesk', ui-sans-serif, system-ui, sans-serif";

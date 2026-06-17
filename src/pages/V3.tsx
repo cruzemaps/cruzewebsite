@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useMotionValueEvent, useReducedMotion } from "framer-motion";
 import SEO from "@/components/SEO";
-import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight } from "lucide-react";
+import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight, Award } from "lucide-react";
 import LiveCameras from "@/components/v3/LiveFeed";
 import TruckScene from "@/components/v3/TruckScene";
 import ContactForm from "@/components/v3/ContactForm";
@@ -390,8 +390,8 @@ function Audiences() {
 
 function Team() {
   const people = [
-    ["Anudeep Bonagiri", "Co-founder", "CS at UT San Antonio. Leads the model, the product, and the company."],
-    ["Srisanth Santhalkumar", "Co-founder", "Builds across the engineering and the day-to-day of getting Cruze off the ground."],
+    ["Anudeep Bonagiri", "Co-founder & CEO", "Computer science and neuroscience at UT San Antonio. Leads the model, the product, and the company."],
+    ["Sreesanth Senthilkumar", "Co-founder", "Builds across the engineering and the day-to-day of getting Cruze off the ground."],
     ["Founding engineers", "Three on the team", "Computer vision, traffic modeling, and the app."],
     ["Based in", "Texas", "Starting on the corridors we know best."],
   ];
@@ -402,6 +402,10 @@ function Team() {
           <div>
             <p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>Where we are</p>
             <h2 className="font-bold tracking-[-0.02em] leading-[1.05]" style={{ fontFamily: display, color: text, fontSize: "clamp(1.9rem, 4vw, 3rem)" }}>Early, and honest about it.</h2>
+            <div className="mt-6 inline-flex items-center gap-2.5 px-3.5 py-2 rounded-full" style={{ background: "rgba(232,89,12,0.1)", border: "1px solid rgba(232,89,12,0.3)", fontFamily: body }}>
+              <Award size={15} style={{ color: accent }} />
+              <span style={{ color: text, fontSize: 13.5 }}>First place and $35,000 at the UTSA Draper Data Science Business Plan Competition, 2026</span>
+            </div>
             <p className="mt-6 text-lg leading-relaxed" style={{ color: muted, fontFamily: body }}>
               We are a pre-seed company. There is a working detection model on live feeds, a physics
               engine still being built, and our first pilot roads lined up in Texas. We are not going
