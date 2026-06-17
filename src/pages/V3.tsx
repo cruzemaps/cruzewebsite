@@ -11,10 +11,9 @@ import LaneDivider from "@/components/v3/LaneDivider";
 import ProductShowcase from "@/components/v3/ProductShowcase";
 
 /**
- * V3 — redesign sandbox. Isolated route (/v3), unlinked, noindex'd. Dark and
- * cinematic: a real Cruze semi drives a dusk highway and the scene reacts to
- * scroll (open road -> phantom jam -> Cruze clears it). Nav and CTAs link into
- * the existing cruzemaps.com pages so this isn't an island.
+ * Cruze homepage. Dark and cinematic: a real Cruze semi drives a dusk highway
+ * and the scene reacts to scroll (open road -> phantom jam -> Cruze clears it).
+ * (Formerly the /v3 redesign; promoted to "/". /v3 now redirects here.)
  */
 
 const bg = "#0B0D11";
@@ -502,7 +501,7 @@ function Footer() {
       <div className="mx-auto max-w-6xl px-5 sm:px-6 py-12 grid sm:grid-cols-[1.5fr_1fr_1fr] gap-8" style={{ fontFamily: body }}>
         <div>
           <div className="font-bold text-xl mb-2" style={{ fontFamily: display, color: text }}>Cruze</div>
-          <p className="text-sm max-w-xs" style={{ color: muted }}>Pre-seed. Building in Texas. This is a design preview, not the live site.</p>
+          <p className="text-sm max-w-xs" style={{ color: muted }}>Pre-seed traffic intelligence. Building in Texas.</p>
         </div>
         {cols.map((col) => (
           <div key={col.h}>
