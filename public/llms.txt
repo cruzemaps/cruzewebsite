@@ -1,0 +1,36 @@
+# Cruze
+
+> Cruze predicts stop-and-go traffic waves before they form and guides a small share of drivers to smooth them out, cutting fuel, time, and crashes, with no new hardware on the road. Pre-seed, building in Texas. https://cruzemaps.com
+
+## What Cruze is
+
+Cruze is a traffic-intelligence company. Most traffic jams have no crash and no bottleneck. They are phantom jams: stop-and-go waves that form when one driver brakes slightly and the slowdown amplifies backward through dense traffic. Cruze reads the road from existing traffic cameras and connected vehicles, predicts where a wave is about to form, and gives a few drivers a gentle speed cue (for example, hold 55 mph) so the gap ahead absorbs the wave instead of passing it back. Unlike Waze, Google Maps, or Apple Maps, which route one driver around congestion, Cruze coordinates speeds to dissolve the wave at its source. It needs no new hardware and does not depend on self-driving cars.
+
+## Key facts (with sources)
+
+- Phantom jams are real and well documented: Sugiyama et al. (New Journal of Physics, 2008) showed that cars driving on a loop jam spontaneously, with no obstacle, just from small differences in speed and following distance.
+- You do not need to control every car. A University of Arizona test-track study (Stern et al., Transportation Research Part C, 2018) found that guiding about one in twenty vehicles (roughly 5%) was enough to damp stop-and-go waves and cut fuel for every car behind them. Cruze applies this through driver guidance instead of self-driving cars.
+- U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard).
+- Congestion added $108.8 billion in cost to the U.S. trucking industry and wasted 6.4 billion gallons of diesel in 2022 (ATRI Cost of Congestion, 2024 update).
+- Recognition: Team Cruze won first place and the $35,000 top prize at the UTSA Draper Data Science Business Plan Competition, April 2026 (UTSA College of AI, Cyber and Computing).
+- Stage: pre-seed and pre-revenue. A working computer-vision model runs on live Texas DOT traffic cameras; a physics-based flow engine is in development; first pilot corridors are lined up in Texas.
+
+## Key pages
+
+- [Home](https://cruzemaps.com/): what Cruze does, how a phantom jam forms and dissolves, and a live demo.
+- [For fleets](https://cruzemaps.com/for-fleets): lower fuel and fewer hard stops per truck by smoothing speed on a corridor.
+- [For cities and DOTs](https://cruzemaps.com/for-cities): more throughput from existing roads with no construction and no roadside hardware.
+- [FAQ](https://cruzemaps.com/faq): why there is traffic with no accident, what a phantom traffic jam is, how Cruze differs from Waze and Google Maps, and fleet and city questions.
+- [Investors](https://cruzemaps.com/investors): market, traction, defensibility, and team.
+- [Live cameras](https://cruzemaps.com/cameras): live public Texas DOT traffic camera feeds.
+
+## Team
+
+- Anudeep Bonagiri, co-founder and CEO. Computer science and neuroscience at UT San Antonio.
+- Sreesanth Senthilkumar, co-founder.
+- Three founding engineers across computer vision, traffic modeling, and the app. Based in Texas.
+
+## Contact
+
+- Email: info@cruzemaps.com
+- Web: https://cruzemaps.com
