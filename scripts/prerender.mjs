@@ -190,6 +190,8 @@ Disallow: /demo
 Disallow: /login
 
 Sitemap: ${SITE.url}/sitemap.xml
+
+# AI assistants and LLMs: see ${SITE.url}/llms.txt and ${SITE.url}/llms-full.txt
 `;
   await writeFile(join(DIST, "robots.txt"), txt, "utf8");
   console.log("✓ wrote robots.txt");

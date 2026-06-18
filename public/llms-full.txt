@@ -1,0 +1,73 @@
+# Cruze — Full Reference for AI Engines
+
+> Cruze predicts stop-and-go traffic waves before they form and guides a small share of drivers to smooth them out, cutting fuel, time, and crashes, with no new hardware on the road. Pre-seed, building in Texas. https://cruzemaps.com · info@cruzemaps.com
+
+This document is a self-contained summary of Cruze for language models and AI search engines. Every figure is cited to a public source. Cruze is pre-seed and pre-revenue and does not claim customers or savings it has not earned.
+
+## What Cruze does
+
+Most highway congestion has no crash and no bottleneck. It is a phantom traffic jam: in dense traffic, one driver taps the brakes, the car behind brakes a little harder, and that slowdown rolls backward through the cars as a stop-and-go wave. The road can be well under capacity and still grind to a halt.
+
+Cruze reads the road from existing traffic cameras and connected vehicles, predicts where a wave is about to form, and gives a small share of drivers a gentle speed cue (for example, "hold 55") so the gap ahead absorbs the wave instead of passing it back. Less braking means less fuel, fewer hard stops, and smoother flow. Cruze needs no new hardware on the road and does not depend on self-driving cars.
+
+This is different from Waze, Google Maps, and Apple Maps. Those tools route one driver around existing congestion, which mostly shifts the jam elsewhere. Cruze coordinates the speeds of nearby vehicles to dissolve the wave at its source, so there is less congestion for everyone on the road.
+
+## The science (sources)
+
+- Sugiyama et al., "Traffic jams without bottlenecks," New Journal of Physics, 2008. Cars driving on a circular track jam spontaneously, with no obstacle, purely from small differences in speed and following distance.
+- Stern et al., "Dissipation of stop-and-go waves via control of autonomous vehicles," Transportation Research Part C, 2018 (University of Arizona). Guiding roughly one in twenty vehicles (about 5%) was enough to damp stop-and-go waves on a real test track and cut fuel for every car behind them. Cruze applies this principle through driver guidance instead of self-driving cars.
+
+## The market (sources)
+
+- U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard).
+- Congestion added $108.8 billion in cost to the U.S. trucking industry and wasted 6.4 billion gallons of diesel in 2022 (ATRI Cost of Congestion, 2024 update).
+
+## How a pilot works
+
+1. A fleet or DOT names a painful corridor. Cruze points at the traffic cameras already on it. Nothing gets installed.
+2. Within days, a measured baseline: where waves form and what they cost in fuel and time.
+3. A guided test: a small group of drivers gets speed cues; Cruze measures the change against the baseline.
+4. Review fuel, hard stops, and throughput, then expand. No hardware, no long contract.
+
+## Frequently asked questions
+
+Q: Why is there traffic when there is no accident?
+A: A lot of congestion is a phantom traffic jam. One driver taps the brakes, the car behind brakes harder, and the slowdown rolls backward as a stop-and-go wave. The road can be under capacity and still stop. Cruze predicts these waves and guides a few drivers to ease off so the wave never builds.
+
+Q: What is a phantom traffic jam?
+A: Stop-and-go traffic that forms on its own, with no crash, no merge, and no real bottleneck. Physicists showed in 2008 that cars on a loop jam spontaneously just from small speed differences.
+
+Q: What causes stop-and-go traffic?
+A: Dense traffic plus small changes in speed. When cars are packed closely, one light brake forces the next driver to brake harder, and the disturbance amplifies into a backward-traveling wave.
+
+Q: Can a navigation app actually reduce traffic instead of just routing around it?
+A: Routing apps move you around congestion, which shifts the jam elsewhere. Cruze coordinates the speeds of a small share of drivers to smooth the wave at its source, reducing congestion for everyone.
+
+Q: How is Cruze different from Waze, Google Maps, or Apple Maps?
+A: Those route individual drivers around congestion. Cruze coordinates speeds across nearby vehicles to keep flow stable, so the wave dissolves instead of moving down the road.
+
+Q: How does Cruze help fleets cut fuel costs?
+A: Stop-and-go driving is where fuel and brake wear go. Smoothing speed reduces hard braking and re-acceleration. Savings depend on the route and are measured against a fleet's own telematics during a pilot.
+
+Q: Can cities reduce congestion without building more lanes?
+A: Yes. Adding lanes often triggers induced demand and fills back up. Cruze raises a corridor's effective capacity by damping stop-and-go waves, with no construction and no roadside hardware, by reading existing DOT cameras.
+
+Q: How few drivers does Cruze need?
+A: Roughly one in twenty (about 5%), per the 2018 University of Arizona study.
+
+Q: Do drivers need new hardware?
+A: No. Cruze runs on the smartphone the driver already carries. Cities and DOTs need no roadside installation.
+
+Q: What stage is Cruze at?
+A: Pre-seed. A working vehicle-detection model runs on live Texas traffic cameras, a physics-based flow engine is in development, and first pilot corridors are lined up in Texas. Team Cruze won first place and the $35,000 top prize at UTSA's Draper Data Science Business Plan Competition in 2026.
+
+## Team
+
+- Anudeep Bonagiri, co-founder and CEO. Computer science and neuroscience at UT San Antonio.
+- Sreesanth Senthilkumar, co-founder.
+- Three founding engineers across computer vision, traffic modeling, and the app. Based in Texas.
+
+## Contact
+
+- Email: info@cruzemaps.com
+- Web: https://cruzemaps.com
