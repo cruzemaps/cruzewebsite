@@ -120,33 +120,68 @@ function DriveHero() {
   ];
   const beat = p < 0.34 ? 0 : p < 0.66 ? 1 : 2;
 
+  // Height-aware sizing so the hero text never collides with the truck/cars on
+  // short laptop screens (13" displays etc.). Width clamps alone don't account
+  // for viewport height, which is what runs out on a wide-but-short laptop.
+  useEffect(() => {
+    if (document.getElementById("v3-hero-css")) return;
+    const s = document.createElement("style");
+    s.id = "v3-hero-css";
+    s.textContent = `
+      .v3-hero-top { padding-top: 6.5rem; }
+      @media (max-height: 860px) {
+        .v3-hero-top { padding-top: 5rem; }
+        .v3-hero-h1 { font-size: clamp(1.8rem, 4.4vw, 3.2rem) !important; }
+        .v3-hero-body { font-size: 1rem !important; line-height: 1.5 !important; }
+      }
+      @media (max-height: 720px) {
+        .v3-hero-top { padding-top: 4.25rem; }
+        .v3-hero-h1 { font-size: clamp(1.55rem, 3.8vw, 2.4rem) !important; }
+        .v3-hero-body { font-size: 0.9rem !important; margin-top: 0.75rem !important; }
+        .v3-hero-cta { margin-top: 1rem !important; }
+      }
+      @media (max-height: 600px) {
+        .v3-hero-body { display: none !important; }
+        .v3-hero-h1 { font-size: 1.45rem !important; }
+      }
+    `;
+    document.head.appendChild(s);
+  }, []);
+
   return (
     <section id="drive" ref={ref} style={{ height: "360vh", position: "relative" }}>
       <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
         <TruckScene p={p} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(7,9,12,0.82) 0%, rgba(7,9,12,0.1) 26%, transparent 46%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(100deg, rgba(7,9,12,0.94) 0%, rgba(7,9,12,0.5) 40%, rgba(7,9,12,0) 66%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(7,9,12,0.82) 0%, rgba(7,9,12,0.12) 30%, transparent 50%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(100deg, rgba(7,9,12,0.94) 0%, rgba(7,9,12,0.5) 42%, rgba(7,9,12,0) 68%)", pointerEvents: "none" }} />
 
-        <div className="absolute inset-x-0 top-0 z-10">
-          <div className="mx-auto max-w-6xl px-5 sm:px-6 pt-24 md:pt-28">
-            <motion.div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} /> Pre-seed traffic-intelligence company
-            </motion.div>
-            <motion.div key={beat} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="max-w-3xl">
-              <div className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.5)", fontFamily: body }}>{beats[beat].tag}</div>
-              <h1 className="font-bold tracking-[-0.025em] leading-[1.0]" style={{ fontFamily: display, color: text, fontSize: "clamp(2.2rem, 5.4vw, 4.6rem)" }}>{beats[beat].h}</h1>
-              <p className="mt-5 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl md:max-w-2xl" style={{ color: "rgba(255,255,255,0.8)", fontFamily: body }}>{beats[beat].t}</p>
-            </motion.div>
+        <div className="relative z-10 h-full flex flex-col">
+          {/* Text zone: stays in the top band, never reaches the truck/cars below */}
+          <div className="v3-hero-top flex-none">
+            <div className="mx-auto max-w-6xl px-5 sm:px-6">
+              <motion.div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] mb-4" style={{ color: accent, fontFamily: body }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} /> Pre-seed traffic-intelligence company
+              </motion.div>
+              <motion.div key={beat} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="max-w-2xl">
+                <div className="text-sm mb-2.5" style={{ color: "rgba(255,255,255,0.5)", fontFamily: body }}>{beats[beat].tag}</div>
+                <h1 className="v3-hero-h1 font-bold tracking-[-0.025em] leading-[1.02]" style={{ fontFamily: display, color: text, fontSize: "clamp(2.2rem, 5.4vw, 4.4rem)" }}>{beats[beat].h}</h1>
+                <p className="v3-hero-body mt-4 text-base sm:text-lg leading-relaxed max-w-xl" style={{ color: "rgba(255,255,255,0.82)", fontFamily: body }}>{beats[beat].t}</p>
+                <div className="v3-hero-cta mt-6 flex flex-wrap items-center gap-3" style={{ fontFamily: body }}>
+                  <a href="#live" className="text-[14px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff" }}>See it live</a>
+                  <a href="#contact" className="text-[14px] font-medium px-5 py-2.5 rounded-full border transition-colors hover:border-white" style={{ borderColor: "rgba(255,255,255,0.28)", color: "#fff" }}>Talk to us</a>
+                </div>
+              </motion.div>
+            </div>
           </div>
-        </div>
 
-        <div className="absolute inset-x-0 bottom-7 z-10">
-          <div className="mx-auto max-w-6xl px-5 sm:px-6 flex items-center gap-3" style={{ fontFamily: body }}>
-            {[0, 1, 2].map((i) => <span key={i} className="h-1 rounded-full transition-all duration-300" style={{ width: i === beat ? 42 : 16, background: i === beat ? accent : "rgba(255,255,255,0.28)" }} />)}
-            <span className="ml-3 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>{beat < 2 ? "keep scrolling" : "the jam is gone"}</span>
-            <div className="ml-auto hidden sm:flex gap-3">
-              <a href="#live" className="text-[14px] font-medium px-5 py-2 rounded-full" style={{ background: accent, color: "#fff" }}>See it live</a>
-              <a href="#contact" className="text-[14px] font-medium px-5 py-2 rounded-full border" style={{ borderColor: "rgba(255,255,255,0.25)", color: "#fff" }}>Talk to us</a>
+          {/* Spacer: the truck and cars animate behind this region */}
+          <div className="flex-1 min-h-0" />
+
+          {/* Bottom: just the thin progress dots, over the empty road */}
+          <div className="flex-none pb-5 sm:pb-6">
+            <div className="mx-auto max-w-6xl px-5 sm:px-6 flex items-center gap-3" style={{ fontFamily: body }}>
+              {[0, 1, 2].map((i) => <span key={i} className="h-1 rounded-full transition-all duration-300" style={{ width: i === beat ? 42 : 16, background: i === beat ? accent : "rgba(255,255,255,0.28)" }} />)}
+              <span className="ml-3 text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{beat < 2 ? "keep scrolling" : "the jam is gone"}</span>
             </div>
           </div>
         </div>
