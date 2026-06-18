@@ -64,8 +64,9 @@ const App = () => (
             <Routes>
               {/* Public marketing */}
               <Route path="/" element={<V3 />} />
-              {/* Old design kept reachable for rollback/QA */}
+              {/* Old design kept reachable for rollback/QA, at /v2 and the friendlier /old */}
               <Route path="/v2" element={<V2 />} />
+              <Route path="/old" element={<V2 />} />
               {/* Old preview URL now redirects to the promoted homepage */}
               <Route path="/v3" element={<Navigate to="/" replace />} />
               <Route path="/for-fleets" element={<ForFleets />} />
