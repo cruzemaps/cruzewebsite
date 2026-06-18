@@ -137,9 +137,11 @@ export const ROUTES: RouteMeta[] = [
   },
   {
     path: "/faq",
-    title: "Cruze FAQ | How Swarm Routing Works",
+    title: "Cruze FAQ | Phantom Traffic Jams, Fleets, and Cities",
     description:
-      "Answers to the most common questions about Cruze, swarm intelligence routing, fleet integration, and city deployments.",
+      "Why is there traffic when there is no accident? What is a phantom traffic jam? How can Cruze cut fleet fuel and reduce city congestion without new lanes? Plain answers.",
+    keywords:
+      "phantom traffic jam, why is there traffic with no accident, what causes stop and go traffic, how to reduce traffic, reduce highway congestion, fleet fuel savings, eco driving, traffic flow optimization",
     changefreq: "monthly",
     priority: 0.6,
   },
