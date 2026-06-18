@@ -96,6 +96,16 @@ export const ROUTES: RouteMeta[] = [
     priority: 0.1,
   },
   {
+    // Same previous design as /v2, at a friendlier URL. noindex, not linked.
+    path: "/old",
+    title: "Cruze | Dissolve Traffic, Not Just Avoid It",
+    description:
+      "Cruze coordinates driver speeds with swarm intelligence to dissolve phantom traffic jams.",
+    noindex: true,
+    changefreq: "yearly",
+    priority: 0.1,
+  },
+  {
     path: "/for-fleets",
     title: "Cruze for Fleets | Cut Fuel, Reclaim Driver Hours",
     description:
