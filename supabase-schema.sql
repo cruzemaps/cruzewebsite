@@ -12,7 +12,13 @@ alter table public.profiles enable row level security;
 
 -- Create Policies for Profiles
 create policy "Users can view own profile" on profiles for select using (auth.uid() = id);
-create policy "Users can update own profile" on profiles for update using (auth.uid() = id);
+-- Self-update must not let a user change their own role (privilege escalation).
+-- WITH CHECK pins role to its current value; privileged changes go through the
+-- admin policy + change_user_role() RPC. See migration 016 for the full version
+-- (which also pins status/organization_id added in migration 002).
+create policy "Users can update own profile" on profiles for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id and role = (select p.role from public.profiles p where p.id = auth.uid()));
 
 -- 2. Trigger to automatically create a profile when a user signs up
 create or replace function public.handle_new_user()
