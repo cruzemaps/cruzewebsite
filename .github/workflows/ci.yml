@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Complements the existing workflows: deploy.yml (build + publish on push)
+# and lighthouse.yml (perf budget on PRs). This adds the lint + type-check
+# layer those don't cover.
+jobs:
+  lint-typecheck:
+    name: Lint + type-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        # react-simple-maps@1.x declares peer react@^16 while the project
+        # runs on react@18; matches deploy.yml's install behavior.
+        run: npm ci --legacy-peer-deps
+
+      - name: ESLint
+        # Surface lint findings without blocking during rollout (~49
+        # pre-existing errors). Flip `continue-on-error` off once clean.
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Type-check
+        # Hard gate: `tsc --noEmit` is clean today, so this blocks any new
+        # type regression. (The production build lives in deploy.yml /
+        # lighthouse.yml, so it isn't duplicated here.)
+        run: npx tsc --noEmit -p tsconfig.app.json
