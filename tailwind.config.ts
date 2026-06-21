@@ -14,14 +14,14 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Unbounded', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        display: ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        body: ['Inter Tight', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         serif: ['Lora', 'serif'],
       },
       colors: {
         brand: {
-          orange: "#FF8C00",
-          charcoal: "#0B0E14",
+          orange: "#E8590C",
+          charcoal: "#0B0D11",
           cyan: "#00F2FF",
         },
         border: "hsl(var(--border))",

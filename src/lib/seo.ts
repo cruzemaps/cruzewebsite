@@ -13,7 +13,7 @@ export const SITE = {
   themeColor: "#0B0E14",
   brand: {
     cyan: "#00F2FF",
-    orange: "#FF8C00",
+    orange: "#E8590C",
     charcoal: "#0B0E14",
   },
 } as const;
