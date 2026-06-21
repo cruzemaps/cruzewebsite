@@ -25,9 +25,10 @@ describe("resolveOgImage", () => {
     expect(resolveOgImage("/og/fleets.png")).toBe(`${SITE.url}/og/fleets.png`);
   });
 
-  it("does not treat a protocol-relative-looking path as absolute", () => {
-    // "//cdn/x" has no http(s) scheme, so it is treated as site-relative.
-    expect(resolveOgImage("/cameras")).toBe(`${SITE.url}/cameras`);
+  it("does not treat a protocol-relative path as absolute", () => {
+    // "//cdn/x" has no http(s) scheme, so the relative branch prefixes the
+    // site origin (it is NOT recognized as an absolute URL).
+    expect(resolveOgImage("//cdn/x")).toBe(`${SITE.url}//cdn/x`);
   });
 });
 
