@@ -101,7 +101,10 @@ function Hero({ onTryDemo, onApply }: { onTryDemo: () => void; onApply: () => vo
 }
 
 // ROI calculator. Numbers are illustrative pilot averages; tune as data grows.
-function ROISection() {
+// Exported (alongside ComparisonStrip below) so the component test suite can
+// mount these two logic-bearing sections in isolation without dragging in the
+// full MarketingLayout (Navbar -> useAuth -> Supabase).
+export function ROISection() {
   const [trucks, setTrucks] = useState(50);
   const [milesPerTruckYear, setMilesPerTruckYear] = useState(80000);
   const [mpg, setMpg] = useState(6.5);
@@ -275,7 +278,7 @@ function BenefitsGrid() {
   );
 }
 
-function ComparisonStrip() {
+export function ComparisonStrip() {
   const rows = [
     { feature: "Routes around traffic", cruze: true, others: true },
     { feature: "Predicts congestion", cruze: true, others: true },
