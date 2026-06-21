@@ -12,8 +12,7 @@ Package manager: **npm is the source of truth.** `package-lock.json` is committe
 - `npm run preview` — serve the built `dist/` locally
 - `npm run lint` — flat-config ESLint (`eslint.config.js`); `@typescript-eslint/no-unused-vars` is disabled and `react-refresh/only-export-components` is a warning
 - `npm run deploy` — build + push `dist/` to `gh-pages` branch via `gh-pages` package (CI also auto-deploys via `.github/workflows/deploy.yml` on push to `main`)
-
-There is no test runner configured.
+- `npm test` / `npm run test:watch` — **Vitest** unit suite (config in [vitest.config.ts](vitest.config.ts)). Two flavours: pure-logic `src/lib/*.test.ts` run in a fast Node environment (the default), and React component tests `src/**/*.test.tsx` that opt into jsdom per-file via a `// @vitest-environment jsdom` docblock. `.github/workflows/test.yml` hard-gates `tsc --noEmit` + `npm test` on every PR.
 
 ## Architecture
 
