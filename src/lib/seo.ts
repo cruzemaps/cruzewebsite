@@ -9,7 +9,7 @@ export const SITE = {
   shortDescription:
     "Cruze transforms every smartphone into an active traffic actuator. We coordinate driver speeds with swarm intelligence to dissolve phantom jams before they form.",
   twitter: "@CruzeMaps",
-  ogImage: "https://og.cruzemaps.com/",
+  ogImage: "/og-image.png",
   themeColor: "#0B0E14",
   brand: {
     cyan: "#00F2FF",
