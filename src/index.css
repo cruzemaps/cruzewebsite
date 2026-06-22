@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Inter+Tight:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,8 +15,8 @@
     --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 25 100% 55%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 21 90% 48%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 222 47% 12%;
     --secondary-foreground: 210 40% 98%;
@@ -24,7 +24,7 @@
     --muted: 222 30% 15%;
     --muted-foreground: 215 20% 55%;
 
-    --accent: 30 100% 50%;
+    --accent: 21 90% 48%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84.2% 60.2%;
@@ -32,23 +32,23 @@
 
     --border: 222 30% 18%;
     --input: 222 30% 18%;
-    --ring: 25 100% 55%;
+    --ring: 21 90% 48%;
 
     --radius: 0.75rem;
 
     /* Custom Cruze tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(25 100% 55%) 0%, hsl(35 100% 60%) 50%, hsl(45 100% 55%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(21 90% 48%) 0%, hsl(28 90% 52%) 50%, hsl(34 88% 56%) 100%);
     --gradient-dark: linear-gradient(180deg, hsl(222 47% 6%) 0%, hsl(222 47% 3%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(222 47% 10%) 0%, hsl(222 47% 6%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(25 100% 55% / 0.15) 0%, transparent 70%);
-    --gradient-flow: linear-gradient(90deg, hsl(25 100% 55%) 0%, hsl(35 100% 60%) 25%, hsl(25 100% 55%) 50%, hsl(35 100% 60%) 75%, hsl(25 100% 55%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(21 90% 48% / 0.15) 0%, transparent 70%);
+    --gradient-flow: linear-gradient(90deg, hsl(21 90% 48%) 0%, hsl(30 88% 56%) 25%, hsl(21 90% 48%) 50%, hsl(30 88% 56%) 75%, hsl(21 90% 48%) 100%);
 
-    --shadow-glow: 0 0 60px hsl(25 100% 55% / 0.3);
+    --shadow-glow: 0 0 60px hsl(21 90% 48% / 0.3);
     --shadow-card: 0 25px 50px -12px hsl(0 0% 0% / 0.5);
-    --shadow-button: 0 10px 40px hsl(25 100% 55% / 0.4);
+    --shadow-button: 0 10px 40px hsl(21 90% 48% / 0.4);
 
     --font-display: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-body: 'Inter Tight', 'Inter', sans-serif;
     --font-serif: 'Lora', serif;
   }
 

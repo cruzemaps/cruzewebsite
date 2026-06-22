@@ -561,7 +561,7 @@ const InteractiveLabV2 = () => {
                                         />
                                     )}
                                     {!roiActive && roiPoints.map((p, i) => (
-                                        <circle key={i} cx={`${p.x}`} cy={`${p.y}`} r="1" fill={i === 0 ? "#FF8C00" : "#00F2FF"} />
+                                        <circle key={i} cx={`${p.x}`} cy={`${p.y}`} r="1" fill={i === 0 ? "#E8590C" : "#00F2FF"} />
                                     ))}
                                 </svg>
 
