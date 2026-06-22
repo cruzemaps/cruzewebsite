@@ -9,10 +9,29 @@ import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 // what the server sees vs. what the client thinks. Helps narrow the
 // "row violates RLS" failures to a specific layer.
 
-function decodeJwt(token?: string | null): any {
+// Shape of the Supabase JWT payload, limited to the claims this page reads.
+interface DecodedJwt {
+  sub?: string;
+  email?: string;
+  app_role?: string;
+  app_status?: string;
+  exp?: number;
+}
+
+// The profile columns this diagnostic selects.
+interface ProfileRow {
+  id: string;
+  role: string | null;
+  status: string | null;
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+}
+
+function decodeJwt(token?: string | null): DecodedJwt | null {
   if (!token) return null;
   try {
-    return JSON.parse(atob(token.split(".")[1]));
+    return JSON.parse(atob(token.split(".")[1])) as DecodedJwt;
   } catch {
     return null;
   }
@@ -23,7 +42,7 @@ export default function Diag() {
   const [serverChecks, setServerChecks] = useState<{
     isAdmin: boolean | null;
     isAdminError: string | null;
-    profileRow: any;
+    profileRow: ProfileRow | null;
     profileError: string | null;
     insertOk: boolean | null;
     insertError: string | null;
@@ -42,7 +61,7 @@ export default function Diag() {
     rpcError: null,
   });
   const [running, setRunning] = useState(false);
-  const [decoded, setDecoded] = useState<any>(null);
+  const [decoded, setDecoded] = useState<DecodedJwt | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
   // Pull the live access token + decoded JWT once on mount AND every time
@@ -153,7 +172,7 @@ export default function Diag() {
                 <Row label="email" value={decoded.email ?? "(missing)"} />
                 <Row label="app_role (custom claim)" value={decoded.app_role ?? "(missing — auth hook may not be installed)"} accent={!decoded.app_role} />
                 <Row label="app_status (custom claim)" value={decoded.app_status ?? "(missing — auth hook may not be installed)"} accent={!decoded.app_status} />
-                <Row label="exp (expires)" value={new Date(decoded.exp * 1000).toLocaleString()} />
+                <Row label="exp (expires)" value={decoded.exp ? new Date(decoded.exp * 1000).toLocaleString() : "(missing)"} />
               </>
             ) : (
               <p className="text-yellow-400 text-sm">No JWT in client. You're not signed in to Supabase. Demo bypass alone doesn't give you a real session.</p>
