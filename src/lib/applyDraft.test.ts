@@ -87,11 +87,18 @@ describe("loadWizardDraft merge precedence", () => {
     expect(draft.fleetSize).toBe("150"); // server field with no local override survives
   });
 
-  it("ignores an empty-object server draft (treats it as no draft)", async () => {
+  it("an empty-object server draft does not wipe a local session edit", async () => {
+    // The server path runs (rpc is called) and returns {}; the merge must leave
+    // the more-recent session edit and the defaults intact rather than clobber
+    // them. Asserted against a session value because a force-overridden field
+    // (contactEmail) or a still-default field can't distinguish "{} merged" from
+    // "{} skipped" — only a surviving local edit pins observable behavior.
     rpc.mockResolvedValueOnce({ data: {}, error: null });
+    saveSessionDraft({ companyName: "Local Co" } as WizardDraft);
     const draft = await loadWizardDraft("user-1", "ops@acme.com");
-    expect(draft.companyName).toBe("");
-    expect(draft.contactEmail).toBe("ops@acme.com");
+    expect(rpc).toHaveBeenCalledWith("get_pilot_draft");
+    expect(draft.companyName).toBe("Local Co"); // session edit survives an empty server draft
+    expect(draft.fleetSize).toBe(""); // untouched default
   });
 
   it("NEVER restores loiAgreed/loiInitials, even if a draft tries to smuggle them in", async () => {
