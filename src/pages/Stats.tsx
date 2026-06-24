@@ -5,12 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { Activity, Truck, Building2, Leaf } from "lucide-react";
-
-type LiveStats = {
-  active_pilots: number;
-  total_fleets: number;
-  total_cities: number;
-};
+import {
+  type LiveStats,
+  FALLBACK_STATS,
+  co2TonsFromStats,
+  resolveLiveStats,
+} from "@/lib/stats";
 
 export default function Stats() {
   const [stats, setStats] = useState<LiveStats | null>(null);
@@ -25,13 +25,9 @@ export default function Stats() {
         // shouldn't 500 just because the DB isn't configured.
         const { data, error } = await supabase.rpc("live_impact_stats");
         if (cancelled) return;
-        if (data && !error && data[0]) {
-          setStats(data[0] as LiveStats);
-        } else {
-          setStats({ active_pilots: 12, total_fleets: 47, total_cities: 4 });
-        }
+        setStats(resolveLiveStats(data as LiveStats[] | null, error));
       } catch {
-        if (!cancelled) setStats({ active_pilots: 12, total_fleets: 47, total_cities: 4 });
+        if (!cancelled) setStats(FALLBACK_STATS);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -43,7 +39,7 @@ export default function Stats() {
   }, []);
 
   // CO2 estimate: rough = active_pilots * 18 tons/month (illustrative)
-  const co2Tons = stats ? Math.round(stats.active_pilots * 18) : 0;
+  const co2Tons = co2TonsFromStats(stats);
 
   return (
     <MarketingLayout>
