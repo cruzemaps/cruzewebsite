@@ -46,7 +46,10 @@ async function loadInitialized(): Promise<Analytics> {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  // resetAllMocks (not clearAllMocks): also drops any mockReturnValue set by a
+  // prior test, so the before-init flag tests read posthog's *default* undefined
+  // return rather than a leaked value — robust to test reordering.
+  vi.resetAllMocks();
   vi.unstubAllEnvs();
 });
 
