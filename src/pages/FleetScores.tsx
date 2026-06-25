@@ -140,14 +140,18 @@ const Shell = ({ children }: { children: React.ReactNode }) => {
 
 // Panel shown until the manager connects to the backend (no token yet). Supports
 // either a username/password login OR pasting a backend session token directly.
+// This is the fallback path: it only appears when the transparent Supabase-to-backend
+// SSO exchange is unavailable.
 function ConnectPanel({
   onLogin,
   onToken,
   error,
+  signedIn,
 }: {
   onLogin: (u: string, p: string) => void;
   onToken: (t: string) => void;
   error: string | null;
+  signedIn: boolean;
 }) {
   const [mode, setMode] = useState<"login" | "token">("login");
   const [username, setUsername] = useState("");
@@ -158,8 +162,9 @@ function ConnectPanel({
     <div className="mx-auto mt-6 max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-8">
       <h1 className="font-display text-2xl font-semibold text-white">Connect the fleet backend</h1>
       <p className="mt-2 text-sm leading-relaxed text-white/60">
-        Driver scores come from the Cruze fleet API. Sign in with your manager
-        credentials, or paste a backend session token.
+        {signedIn
+          ? "Single sign-on to the fleet backend is not available right now. Sign in with your manager credentials, or paste a backend session token to continue."
+          : "Driver scores come from the Cruze fleet API. Sign in with your manager credentials, or paste a backend session token."}
       </p>
       <p className="mt-2 text-xs text-white/40">
         Backend: <span className="font-mono">{CRUZE_API_URL}</span>
@@ -259,14 +264,21 @@ function ConnectPanel({
       )}
 
       <p className="mt-6 border-t border-white/5 pt-4 text-xs leading-relaxed text-white/40">
-        TODO (production SSO): replace this manual login with a Supabase-to-backend
-        session bridge so managers do not authenticate twice.
+        Normally your Cruze sign-in connects to the fleet backend automatically.
+        This manual step appears only when that single sign-on is unavailable.
       </p>
     </div>
   );
 }
 
 const FleetScores = () => {
+  // Bridge the website's Supabase session to a backend token via the SSO exchange.
+  // The hook uses this access token to mint a backend session transparently; if the
+  // exchange is unavailable it falls back to the manual ConnectPanel below.
+  const { session } = useAuth();
+  const supabaseAccessToken =
+    (session?.access_token as string | undefined) ?? null;
+
   const {
     status,
     data,
@@ -277,7 +289,7 @@ const FleetScores = () => {
     setToken,
     logout,
     refresh,
-  } = useFleetScores(7);
+  } = useFleetScores(7, { supabaseAccessToken });
 
   // Default sort: worst overall first (ascending), the most actionable view.
   const [sortKey, setSortKey] = useState<SortKey>("overall");
@@ -358,10 +370,31 @@ const FleetScores = () => {
     </th>
   );
 
+  if (status === "exchanging") {
+    return (
+      <Shell>
+        <div className="mx-auto mt-6 flex max-w-md flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-orange" />
+          <p className="font-display text-lg font-semibold text-white">
+            Signed in
+          </p>
+          <p className="text-sm leading-relaxed text-white/60">
+            Connecting to the fleet backend...
+          </p>
+        </div>
+      </Shell>
+    );
+  }
+
   if (status === "needs_auth") {
     return (
       <Shell>
-        <ConnectPanel onLogin={login} onToken={setToken} error={error} />
+        <ConnectPanel
+          onLogin={login}
+          onToken={setToken}
+          error={error}
+          signedIn={Boolean(supabaseAccessToken)}
+        />
       </Shell>
     );
   }
