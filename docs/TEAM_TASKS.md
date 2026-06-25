@@ -115,7 +115,7 @@ You asked us to remove the partner trust strip until you're ready to disclose. W
 
 Tier 3 of the investor page expects two environment variables wired in Cloudflare Pages:
 
-- `VITE_DATAROOM_PASSWORD` — the password investors enter (use something memorable like a 4-word passphrase)
+- `VITE_DATAROOM_PASSWORD_HASH` — the hex SHA-256 of the password investors enter. Generate it with `printf '%s' 'your 4-word passphrase' | shasum -a 256`. We ship the *hash* (not the plaintext) so the password can't be read out of the client bundle. (`VITE_DATAROOM_PASSWORD` plaintext still works as a legacy fallback but logs a warning — prefer the hash.)
 - `VITE_DATAROOM_URL` — base URL for your dataroom (Notion, DocSend, Carta, etc.)
 
 Then update the `items` array in `src/pages/Investors.tsx`'s `DataroomSection` to point at real document links: deck, financial model, customer pipeline, pilot outcome reports, cap table, references.
