@@ -45,6 +45,7 @@ const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const RoutePlanner = lazy(() => import("./pages/RoutePlanner"));
 const MissionControl = lazy(() => import("./pages/MissionControl"));
 const FleetDashboard = lazy(() => import("./pages/FleetDashboard"));
+const FleetScores = lazy(() => import("./pages/FleetScores"));
 const AdminPortal = lazy(() => import("./pages/AdminPortal"));
 
 const queryClient = new QueryClient();
@@ -119,6 +120,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={["fleet_owner"]}>
                     <FleetDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/fleet-scores"
+                element={
+                  <ProtectedRoute allowedRoles={["fleet_owner", "admin"]}>
+                    <FleetScores />
                   </ProtectedRoute>
                 }
               />
