@@ -36,6 +36,9 @@ const DemoHandoff = lazy(() => import("./pages/DemoHandoff"));
 const Diag = lazy(() => import("./pages/Diag"));
 const LOIView = lazy(() => import("./pages/LOIView"));
 const UIInterns = lazy(() => import("./pages/UIInterns"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Support = lazy(() => import("./pages/Support"));
+const Terms = lazy(() => import("./pages/Terms"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
@@ -88,6 +91,11 @@ const App = () => (
               {/* Hidden internal CV test page — not linked, noindex'd in SEO */}
               <Route path="/lab" element={<Lab />} />
               <Route path="/route-planner" element={<RoutePlanner />} />
+
+              {/* Legal & support (required for App Store + Google Play submission) */}
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/terms" element={<Terms />} />
 
               {/* Auth */}
               <Route path="/login" element={<Login />} />

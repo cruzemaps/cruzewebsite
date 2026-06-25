@@ -215,6 +215,30 @@ export const ROUTES: RouteMeta[] = [
     priority: 0.6,
   },
   {
+    path: "/privacy",
+    title: "Privacy Policy | Cruze",
+    description:
+      "How Cruze collects, uses, and protects driver data, including location, microphone, motion, and account information. Cruze does not sell your data or use it for advertising tracking.",
+    changefreq: "yearly",
+    priority: 0.4,
+  },
+  {
+    path: "/support",
+    title: "Support | Cruze",
+    description:
+      "Get help with the Cruze driver app: account deletion, permissions, location and connection troubleshooting, and how to reach our team.",
+    changefreq: "monthly",
+    priority: 0.5,
+  },
+  {
+    path: "/terms",
+    title: "Terms of Service | Cruze",
+    description:
+      "The terms that govern your use of the Cruze driver app. Cruze provides driver advisories; the driver is solely responsible for operating the vehicle and obeying all traffic laws at all times.",
+    changefreq: "yearly",
+    priority: 0.4,
+  },
+  {
     path: "/login",
     title: "Sign In | Cruze",
     description: "Sign in to your Cruze account.",
