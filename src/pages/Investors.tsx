@@ -274,11 +274,20 @@ function DataroomGate({ onSuccess }: { onSuccess: () => void }) {
     // friction gate. We compare against a SHA-256 hash so the plaintext password
     // never ships in the client bundle; plaintext is honored only as a legacy
     // fallback. See src/lib/dataroom.ts.
-    const result = await verifyDataroomPassword(pw, {
-      hash: import.meta.env.VITE_DATAROOM_PASSWORD_HASH as string,
-      plaintext: import.meta.env.VITE_DATAROOM_PASSWORD as string,
-    });
-    await new Promise((r) => setTimeout(r, 300));
+    let result: Awaited<ReturnType<typeof verifyDataroomPassword>>;
+    try {
+      result = await verifyDataroomPassword(pw, {
+        hash: import.meta.env.VITE_DATAROOM_PASSWORD_HASH as string,
+        plaintext: import.meta.env.VITE_DATAROOM_PASSWORD as string,
+      });
+      await new Promise((r) => setTimeout(r, 300));
+    } catch {
+      // Web Crypto unavailable (e.g. served over an insecure context) or digest
+      // failed — never leave the button stuck in the submitting state.
+      setSubmitting(false);
+      toast.error("Couldn't verify the password in this browser. Email investors@cruzemaps.com.");
+      return;
+    }
     setSubmitting(false);
     if (result === "unconfigured") {
       toast.error("Dataroom not yet configured. Email investors@cruzemaps.com.");
