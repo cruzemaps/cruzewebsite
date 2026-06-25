@@ -239,6 +239,14 @@ export const ROUTES: RouteMeta[] = [
     priority: 0.4,
   },
   {
+    // Protected fleet manager dashboard (driver safety/efficiency scores).
+    // noindex: behind auth, never crawlable.
+    path: "/fleet-scores",
+    title: "Fleet Driver Scores | Cruze",
+    description: "Live driver safety and efficiency scores for your Cruze fleet.",
+    noindex: true,
+  },
+  {
     path: "/login",
     title: "Sign In | Cruze",
     description: "Sign in to your Cruze account.",
