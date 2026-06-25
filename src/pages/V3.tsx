@@ -534,10 +534,11 @@ function Footer() {
   const cols = [
     { h: "Product", links: [["For fleets", "/for-fleets"], ["For cities & DOTs", "/for-cities"], ["Route planner", "/route-planner"], ["Live cameras", "/cameras"]] },
     { h: "Company", links: [["Insights", "/insights"], ["Investors", "/investors"], ["Press", "/press"], ["FAQ", "/faq"]] },
+    { h: "Legal & support", links: [["Support", "/support"], ["Privacy policy", "/privacy"], ["Terms of service", "/terms"]] },
   ];
   return (
     <footer className="border-t" style={{ borderColor: line, background: bg }}>
-      <div className="mx-auto max-w-6xl px-5 sm:px-6 py-12 grid sm:grid-cols-[1.5fr_1fr_1fr] gap-8" style={{ fontFamily: body }}>
+      <div className="mx-auto max-w-6xl px-5 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8" style={{ fontFamily: body }}>
         <div>
           <div className="font-bold text-xl mb-2" style={{ fontFamily: display, color: text }}>Cruze</div>
           <p className="text-sm max-w-xs" style={{ color: muted }}>Pre-seed traffic intelligence. Building in Texas.</p>
