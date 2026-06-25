@@ -5,11 +5,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 // its own session-token auth (POST /api/login -> Bearer token), separate from the
 // website's Supabase auth.
 //
-// PRODUCTION-SSO TODO: this phase obtains the backend token via a direct manager
-// login (or a pre-pasted token). The production design should bridge the website's
-// Supabase session to a backend session token (a short-lived exchange endpoint that
-// trusts the Supabase JWT and mints a backend token), so the manager never types a
-// second set of credentials. Until that bridge ships, keep the explicit login below.
+// SSO BRIDGE: when the manager already has a Supabase session, the hook first tries
+// the backend's exchange endpoint (POST /auth/exchange with the Supabase access
+// token) to transparently mint a backend session token, so they never type a second
+// set of credentials. If the exchange is unavailable (503 sso-not-configured) or the
+// Supabase JWT is rejected (401), the hook falls back to the manual manager-login /
+// pasted-token path below — that fallback is intentionally preserved.
 
 // Configurable backend base. Defaults to the local Functions host used in dev.
 export const CRUZE_API_URL: string =
@@ -68,11 +69,19 @@ export interface FleetScoresResponse {
 }
 
 export type FleetScoresStatus =
+  | "exchanging" // bridging the Supabase session to a backend token via SSO
   | "needs_auth" // no token yet; show the connect-backend panel
   | "loading"
   | "ready"
   | "empty" // authenticated but the fleet returned zero drivers
   | "error";
+
+interface UseFleetScoresOptions {
+  // The current Supabase access token (JWT). When present and no backend token
+  // is cached yet, the hook attempts the SSO exchange before falling back to the
+  // manual login / token-paste path.
+  supabaseAccessToken?: string | null;
+}
 
 interface UseFleetScores {
   status: FleetScoresStatus;
@@ -95,17 +104,27 @@ function readStoredToken(): string | null {
   }
 }
 
-export function useFleetScores(initialWindowDays = 7): UseFleetScores {
+export function useFleetScores(
+  initialWindowDays = 7,
+  options: UseFleetScoresOptions = {}
+): UseFleetScores {
+  const { supabaseAccessToken = null } = options;
+
   const [token, setTokenState] = useState<string | null>(() => readStoredToken());
   const [windowDays, setWindowDays] = useState(initialWindowDays);
   const [data, setData] = useState<FleetScoresResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<FleetScoresStatus>(() =>
-    readStoredToken() ? "loading" : "needs_auth"
-  );
+  const [status, setStatus] = useState<FleetScoresStatus>(() => {
+    if (readStoredToken()) return "loading";
+    // A Supabase session is available: we'll attempt the SSO exchange first.
+    return "needs_auth";
+  });
 
   // Used to ignore responses from a stale fetch (token/window changed mid-flight).
   const reqIdRef = useRef(0);
+  // Guards the SSO exchange so it runs at most once per Supabase access token —
+  // a 503/401 must fall back to manual entry, not retry-loop on every render.
+  const exchangeAttemptedFor = useRef<string | null>(null);
 
   const persistToken = useCallback((next: string | null) => {
     try {
@@ -160,6 +179,66 @@ export function useFleetScores(initialWindowDays = 7): UseFleetScores {
   useEffect(() => {
     fetchScores();
   }, [fetchScores]);
+
+  // SSO bridge: exchange the Supabase access token for a backend session token.
+  // Returns true if a backend token was obtained, false if the caller should fall
+  // back to the manual login / token-paste path (exchange not configured, JWT
+  // rejected, or the backend was unreachable).
+  const exchangeSupabaseSession = useCallback(
+    async (supabaseJwt: string): Promise<boolean> => {
+      try {
+        const res = await fetch(`${CRUZE_API_URL}/auth/exchange`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${supabaseJwt}`,
+          },
+          body: JSON.stringify({ supabase_jwt: supabaseJwt }),
+        });
+        // 503: the backend's SUPABASE_JWT_SECRET isn't set, so SSO is off for now.
+        // 401: the Supabase JWT was invalid/expired for the backend's purposes.
+        // Either way, degrade quietly to the manual fallback rather than erroring.
+        if (res.status === 503 || res.status === 401) return false;
+        if (!res.ok) return false;
+        const json = (await res.json()) as {
+          auth_token?: string;
+          auth_token_expires_in?: number;
+          email?: string;
+        };
+        const nextToken = json.auth_token ?? null;
+        if (!nextToken) return false;
+        persistToken(nextToken);
+        // fetchScores re-runs via effect once token state updates.
+        return true;
+      } catch {
+        // Network failure / backend unreachable: fall back to manual entry.
+        return false;
+      }
+    },
+    [persistToken]
+  );
+
+  useEffect(() => {
+    // Only attempt the exchange when we have a Supabase session, no backend token
+    // cached yet, and we haven't already tried for this exact Supabase token.
+    if (!supabaseAccessToken) return;
+    if (token) return;
+    if (exchangeAttemptedFor.current === supabaseAccessToken) return;
+
+    exchangeAttemptedFor.current = supabaseAccessToken;
+    let cancelled = false;
+    setStatus("exchanging");
+    setError(null);
+    exchangeSupabaseSession(supabaseAccessToken).then((ok) => {
+      if (cancelled) return;
+      // On success, token state updates and fetchScores runs via its effect. On
+      // failure, drop to needs_auth so the manual ConnectPanel is shown.
+      if (!ok) setStatus("needs_auth");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseAccessToken, token, exchangeSupabaseSession]);
 
   const login = useCallback(
     async (username: string, password: string) => {
