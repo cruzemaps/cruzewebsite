@@ -14,6 +14,73 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "why-adding-lanes-doesnt-fix-traffic",
+    title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-06-26",
+    excerpt:
+      "Widening a highway feels like the obvious fix, but expanded roads tend to fill right back up within a few years. Here is why, what the research actually shows, and what works instead.",
+    body: `Adding lanes does not fix traffic, at least not for long. It is the most intuitive fix in the world: the road is full, so make the road bigger. But again and again, widened highways fill back up to roughly the same level of congestion within a few years, and the region is left with a bigger, more expensive road that still jams at rush hour. The reason has a name that every transportation planner knows and most drivers have never heard: induced demand.
+
+This article explains what induced demand is, the research that pinned it down, why it is so reliable that economists call it a law, the famous highway that became a cautionary tale, and what actually moves the needle on congestion when pouring more concrete does not. If you have ever watched a years-long widening project finish and felt the relief evaporate within a season or two, this is why.
+
+## What is induced demand?
+
+Induced demand is the principle that increasing the supply of a road increases the amount it gets used. When you add capacity to a congested highway, you lower the effective cost of driving it, meaning the time it takes. People respond to that lower cost exactly the way they respond to a lower price on anything else: they consume more of it.
+
+That extra driving comes from several places at once. Some people who used to avoid the corridor at peak times start driving it again because it is briefly faster. Some who took side streets or transit shift onto the now-roomier highway. Some make trips they would have skipped or combined before. And over a longer horizon, the cleared-up road reshapes where people choose to live, work, and build, which generates entirely new trips that did not exist before. Each of these is a rational individual decision. Added together, they refill the new lanes.
+
+The key insight is that traffic demand is not a fixed quantity sitting in a queue, waiting for enough road to drain through. It is elastic. It expands and contracts in response to how easy driving is. Build more road and, given a little time, more driving appears to fill it.
+
+## The research: a "fundamental law" of road congestion
+
+This is not a hunch. It is one of the better-measured effects in transportation economics. In 2011, economists Gilles Duranton and Matthew Turner published a study in the American Economic Review titled "The Fundamental Law of Road Congestion," analyzing decades of data across U.S. metropolitan areas. Their finding was stark: vehicle miles traveled rise in close to direct proportion to the lane miles of road you add. The elasticity they measured was near one, meaning a roughly 10% increase in road capacity produced roughly a 10% increase in driving.
+
+In plain terms, the new lanes get used up almost exactly as fast as you build them. That is why they called it a fundamental law rather than a tendency. The relationship was strong enough, and consistent enough across cities, to behave like a rule.
+
+> Vehicle travel rises in close proportion to the lane capacity you add. Build more road and, given a little time, more driving appears to fill it.
+
+Crucially, Duranton and Turner also found that expanding public transit did not durably reduce road congestion either, because any space freed up on the road by new transit riders gets backfilled by induced car trips just the same. The congestion equilibrium is sticky. Whatever you do to relieve it on the supply side, driving demand tends to rise to meet the new capacity.
+
+## The Katy Freeway: a cautionary tale
+
+The most cited real-world illustration is the Katy Freeway, Interstate 10 west of Houston. It was widened in stages and, after a major expansion completed around 2008, became one of the widest freeways in the world, reaching well over 20 lanes across at its broadest point including frontage and managed lanes. If sheer width could beat congestion, this was the experiment.
+
+It did not. Within a few years, peak-period travel times on the corridor had climbed back up, in some analyses ending up worse than before the widening. The road was enormous and it was still congested at rush hour, because the new capacity pulled in exactly the additional trips that induced demand predicts. The Katy Freeway is now shorthand among planners for the limits of widening: you can build the widest highway on the continent and still sit in traffic on it.
+
+## Why phantom jams make widening even less effective
+
+There is a second reason lanes disappoint, and it is one most people miss. Even setting induced demand aside, a wide and under-capacity highway will still throw stop-and-go waves the moment traffic density and driver behavior cross a stability threshold. These are [phantom traffic jams](/insights/phantom-traffic-jams): congestion with no crash, no merge, and no bottleneck behind it, formed purely by the way humans amplify each other's braking in dense traffic.
+
+Lanes raise the ceiling on how many cars a road can hold, but they do nothing to change the physics of how drivers respond to one another. A 2008 experiment by physicist Yuki Sugiyama and colleagues showed that a single lane of cars, asked only to cruise at a steady speed, will spontaneously generate a backward-traveling jam with no obstacle present at all (Sugiyama et al., New Journal of Physics, 2008). Add five more lanes and you have simply created five more places for that same wave to form. You can have all the lanes you want and still wave-jam in every one of them. We unpack the mechanism in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident).
+
+## What this costs while we keep widening
+
+The stakes are not abstract. In 2024, U.S. drivers lost more than 4 billion hours and about $74 billion to congestion (INRIX 2024 Global Traffic Scorecard). Freight pays an outsized share: congestion added $108.8 billion in operating cost and wasted 6.4 billion gallons of diesel for the trucking industry in 2022 (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). Highway widening, meanwhile, runs into the tens or hundreds of millions of dollars per mile and takes years of construction, during which congestion usually gets worse before the new lanes open and refill. Spending at that scale for a benefit that erodes within a few years is a hard trade to justify, which is why the conversation among forward-looking DOTs has shifted from adding capacity to using existing capacity better.
+
+## What actually reduces congestion
+
+If you cannot build your way out, what works? The honest answer is that nothing erases congestion in a growing region, but several approaches genuinely outperform widening per dollar, because they target demand and flow rather than raw capacity.
+
+- **Pricing the road.** Congestion pricing and managed lanes work because they attack the actual cause: driving is underpriced at peak times. By putting a price on the scarce peak capacity, they shift some trips to other times, routes, or modes, and keep the priced lanes flowing. This is the demand-side lever induced demand implies.
+
+- **Operating the road you have.** Ramp metering, adaptive signal timing, incident management, and other intelligent transportation system tools squeeze more reliable throughput out of existing lanes by smoothing how traffic enters and moves, without pouring concrete.
+
+- **Smoothing the flow itself.** Because so much congestion is stop-and-go waves rather than raw volume, damping those waves recovers throughput the lanes already have. A University of Arizona study (Stern et al., Transportation Research Part C, 2018) found that guiding just one vehicle in twenty, about 5%, to hold a steadier speed was enough to dissolve the stop-and-go waves human drivers kept generating, and to cut fuel use for every car behind them. You do not need more road or self-driving cars to get that benefit. You need a small share of better-timed speeds in the right place.
+
+These are not silver bullets, and we will not pretend they are. But they share a logic that widening lacks: they make better use of the road that already exists instead of betting on capacity that demand will quietly reclaim.
+
+## Where Cruze comes in
+
+This is the gap [Cruze](/) is built to fill. Instead of adding lanes, we help a road carry its existing traffic more smoothly. Cruze reads the flow from the [traffic cameras already on the poles](/cameras), with no new hardware on the highway, predicts where a stop-and-go wave is about to form, and gives a small share of drivers a gentle, well-timed speed cue so the wave never builds. It is the 5% finding turned into a product: change how a few drivers move, a few seconds early, and the whole stream behind them stops wave-jamming.
+
+For a [city or DOT](/for-cities), that means more throughput and more reliable travel times from the lanes you already own, measured against the cameras you already have, at a fraction of the cost and timeline of a widening. For a [fleet](/for-fleets), it is fuel saved and hard stops avoided on every congested corridor. You can watch a phantom jam form and then dissolve on our [homepage](/).
+
+Adding lanes feels like the answer because the problem looks like not enough road. But the research is clear that capacity gets reclaimed by demand, and the physics is clear that wide roads still wave-jam. The durable wins come from using the road better, not just building more of it. That is the whole idea behind dissolving congestion at its source instead of paving over it.`,
+    tags: ["city-dot", "traffic-physics"],
+  },
+  {
     slug: "phantom-traffic-jams",
     title: "Phantom Traffic Jams: Why Traffic Happens for No Reason",
     author: "Anudeep Bonagiri",
@@ -77,7 +144,7 @@ Most real-world congestion is a blend. A genuine bottleneck pushes density high 
 
 The instinct, when a road jams, is to widen it. The evidence on this is humbling. Highway expansions tend to fill back up to a similar level of congestion within a few years, a pattern economists call induced demand. The research is strong enough that Duranton and Turner described a "fundamental law of road congestion": vehicle travel rises in close proportion to the lane capacity you add (American Economic Review, 2011). Build more road and, over time, more driving appears to fill it, and you are back where you started, now with a bigger road to maintain.
 
-Phantom jams sharpen the point. Even a wide, under-capacity highway will throw stop-and-go waves once density and driver behavior cross the instability threshold. Lanes raise the ceiling on volume, but they do not change the physics of how humans amplify each other's braking. You can have all the lanes you want and still wave-jam in every one of them. We expand on this for road owners in our work on [cities and DOTs](/for-cities).
+Phantom jams sharpen the point. Even a wide, under-capacity highway will throw stop-and-go waves once density and driver behavior cross the instability threshold. Lanes raise the ceiling on volume, but they do not change the physics of how humans amplify each other's braking. You can have all the lanes you want and still wave-jam in every one of them. We go deeper on the economics of capacity in [why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic), and expand on this for road owners in our work on [cities and DOTs](/for-cities).
 
 ## Why navigation apps cannot solve phantom jams
 
