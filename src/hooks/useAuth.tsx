@@ -84,18 +84,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Demo bypass: only honored when the demo flag is set in sessionStorage
-    // (per-tab). localStorage was previously used but caused admin sessions
-    // to bleed into other tabs during impersonation. sessionStorage isolates.
-    // Read both for backwards compat with any open tabs that wrote to
-    // localStorage; clear the localStorage version on read to migrate.
-    const localDemo = localStorage.getItem("demo_role") as AppRole | null;
-    if (localDemo) {
-      sessionStorage.setItem("demo_role", localDemo);
-      localStorage.removeItem("demo_role");
-      localStorage.removeItem("demo_status");
-    }
-    const demoRole = sessionStorage.getItem("demo_role") as AppRole | null;
+    // Demo bypass: per-tab via sessionStorage ONLY. localStorage is shared
+    // across tabs and reactivated demo sessions on unrelated tabs (the bug we
+    // removed) — never read it here. Dev-only: the setter in Login.tsx is gated
+    // on import.meta.env.DEV, and so is this consumer, so a production bundle
+    // can never mint a fake admin session from a stray sessionStorage key
+    // (defense-in-depth for the demo-bypass surface).
+    const demoRole = import.meta.env.DEV
+      ? (sessionStorage.getItem("demo_role") as AppRole | null)
+      : null;
     if (demoRole) {
       const fakeUser = { id: `demo-${demoRole}-123`, email: `demo@${demoRole}.com`, user_metadata: { role: demoRole } };
       setUser(fakeUser);
