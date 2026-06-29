@@ -12,9 +12,24 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 // Supabase JWT is rejected (401), the hook falls back to the manual manager-login /
 // pasted-token path below — that fallback is intentionally preserved.
 
-// Configurable backend base. Defaults to the local Functions host used in dev.
-export const CRUZE_API_URL: string =
-  (import.meta.env.VITE_CRUZE_API_URL as string) || "http://127.0.0.1:7071/api";
+// Configurable backend base. In dev we fall back to the local Functions host for
+// convenience, but that localhost default must NEVER ship to production — it
+// causes mixed-content failures (https page -> http://127.0.0.1) and points prod
+// at a backend that doesn't exist. So the fallback is gated behind import.meta.env.DEV.
+// In production an unset VITE_CRUZE_API_URL leaves the base empty, and the fetch
+// entry points below fail fast with a clear, actionable error instead.
+function resolveCruzeApiUrl(): string {
+  const configured = (import.meta.env.VITE_CRUZE_API_URL as string | undefined)?.trim();
+  if (configured) return configured;
+  if (import.meta.env.DEV) return "http://127.0.0.1:7071/api";
+  return "";
+}
+
+export const CRUZE_API_URL: string = resolveCruzeApiUrl();
+
+// Shared message when the backend base is missing in a production build.
+const BACKEND_NOT_CONFIGURED =
+  "Fleet backend is not configured. Set VITE_CRUZE_API_URL to the backend API origin.";
 
 // Persist the backend token per-tab. sessionStorage (not localStorage) mirrors the
 // site's demo-bypass convention: per-tab, never shared across tabs.
@@ -137,6 +152,12 @@ export function useFleetScores(
   }, []);
 
   const fetchScores = useCallback(async () => {
+    if (!CRUZE_API_URL) {
+      setData(null);
+      setStatus("error");
+      setError(BACKEND_NOT_CONFIGURED);
+      return;
+    }
     if (!token) {
       setStatus("needs_auth");
       return;
@@ -186,6 +207,9 @@ export function useFleetScores(
   // rejected, or the backend was unreachable).
   const exchangeSupabaseSession = useCallback(
     async (supabaseJwt: string): Promise<boolean> => {
+      // No backend configured (prod with VITE_CRUZE_API_URL unset): can't bridge,
+      // fall back to the manual path which will surface the clear error.
+      if (!CRUZE_API_URL) return false;
       try {
         const res = await fetch(`${CRUZE_API_URL}/auth/exchange`, {
           method: "POST",
@@ -245,6 +269,7 @@ export function useFleetScores(
       setError(null);
       setStatus("loading");
       try {
+        if (!CRUZE_API_URL) throw new Error(BACKEND_NOT_CONFIGURED);
         const res = await fetch(`${CRUZE_API_URL}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
