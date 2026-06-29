@@ -111,7 +111,16 @@ function DriveHero() {
   const ref = useRef<HTMLDivElement>(null);
   const [p, setP] = useState(0);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  useMotionValueEvent(scrollYProgress, "change", (v) => setP(v));
+  // Quantize scroll progress so the (heavy) SVG scene re-renders at most ~120
+  // times across the whole hero instead of on every scroll frame. The continuous
+  // wheel/parallax motion is driven separately (Web Animations API, via a ref) so
+  // it stays smooth; only the scroll-position visuals step in 120 increments,
+  // which is imperceptible but removes the per-frame React reconciliation that
+  // made scrolling janky on phones.
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const q = Math.round(v * 120) / 120;
+    setP((prev) => (prev === q ? prev : q));
+  });
 
   const beats = [
     { tag: "Open road", h: "We clear traffic jams before they form.", t: "Most jams have no crash and no bottleneck. They are waves that start the moment one driver hits the brakes. Cruze sees them coming and nudges a few drivers to ease off, so the wave never builds. Scroll to watch it happen." },
@@ -149,7 +158,7 @@ function DriveHero() {
   }, []);
 
   return (
-    <section id="drive" ref={ref} style={{ height: "360vh", position: "relative" }}>
+    <section id="drive" ref={ref} className="v3-drive" style={{ position: "relative" }}>
       <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
         <TruckScene p={p} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(7,9,12,0.82) 0%, rgba(7,9,12,0.12) 30%, transparent 50%)", pointerEvents: "none" }} />
