@@ -64,7 +64,7 @@ function Footer() {
           <FooterLink to="/login">Sign In</FooterLink>
         </FooterColumn>
       </div>
-      <div className="border-t border-white/5 py-6 text-center text-xs text-white/40">
+      <div className="border-t border-white/5 py-6 text-center text-xs text-white/70">
         © {new Date().getFullYear()} Cruzemaps. Driving the future of traffic management.
       </div>
     </footer>
@@ -74,7 +74,7 @@ function Footer() {
 function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h4 className="font-display font-semibold text-white mb-3 text-xs uppercase tracking-widest">{title}</h4>
+      <p className="font-display font-semibold text-white mb-3 text-xs uppercase tracking-widest">{title}</p>
       <div className="flex flex-col gap-2">{children}</div>
     </div>
   );

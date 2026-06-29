@@ -3,11 +3,11 @@
     "collect": {
       "staticDistDir": "./dist",
       "url": [
-        "http://localhost/index.html",
-        "http://localhost/for-fleets/index.html",
-        "http://localhost/for-cities/index.html",
-        "http://localhost/investors/index.html",
-        "http://localhost/faq/index.html"
+        "http://localhost/",
+        "http://localhost/for-fleets/",
+        "http://localhost/for-cities/",
+        "http://localhost/investors/",
+        "http://localhost/faq/"
       ],
       "numberOfRuns": 2
     },

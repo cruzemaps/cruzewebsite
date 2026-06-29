@@ -222,10 +222,12 @@ function CalcInput({
   setValue: (n: number) => void;
   step: number;
 }) {
+  const fieldId = `calc-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
   return (
     <div>
-      <Label className="text-white/70 text-sm mb-2 block">{label}</Label>
+      <Label htmlFor={fieldId} className="text-white/70 text-sm mb-2 block">{label}</Label>
       <Input
+        id={fieldId}
         type="number"
         step={step}
         value={value}
