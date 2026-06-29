@@ -14,6 +14,71 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "does-adaptive-cruise-control-prevent-traffic-jams",
+    title: "Does adaptive cruise control prevent or cause traffic jams?",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-06-29",
+    excerpt:
+      "Adaptive cruise control feels like it should smooth traffic, but the research shows most systems sold today actually amplify stop-and-go waves. Here is why, what the studies found, and what it takes to make automation calm a jam instead of feeding it.",
+    body: `Adaptive cruise control feels like it should be the cure for stop-and-go traffic. The car holds your speed, watches the vehicle ahead, and brakes and accelerates for you. So a road full of these systems should glide, smoothly absorbing each little slowdown instead of amplifying it into a jam. That is the intuition. The research says the opposite is closer to the truth.
+
+The honest answer is that it depends entirely on how the system is tuned, and most adaptive cruise control sold in cars today is tuned in a way that makes phantom traffic jams slightly worse, not better. The same automation, designed differently, can dissolve those jams. The deciding factor is a property called string stability, and almost nobody buying a car has ever heard of it. This article explains what adaptive cruise control actually does, why the version in showrooms tends to feed traffic waves, what it would take to flip that, and why the most practical fix may not require everyone to own a self-driving car at all.
+
+## The short answer: it depends on string stability
+
+Adaptive cruise control, or ACC, is not one thing. It is a control law, a set of rules deciding how hard to brake or accelerate in response to the gap and closing speed to the car ahead. You can write that control law to be gentle and forward-looking, so a small brake tap ahead of you fades as it passes back through the line of cars. Or you can write it to react sharply and protectively, so that same brake tap grows louder with each car behind. Engineers call the first behavior string stable and the second string unstable.
+
+Whether ACC prevents or causes traffic jams comes down to which of those two behaviors the manufacturer shipped. And measurements of real cars on real test tracks have found that the systems people actually drive land mostly on the wrong side of that line.
+
+## What adaptive cruise control actually does
+
+Standard cruise control holds a fixed speed. Adaptive cruise control adds a radar or camera that watches the vehicle in front, and it trades speed for distance: it will slow below your set speed to keep a chosen following gap, then speed back up when the road clears. To a driver it feels like a relief, because the car handles the tedious modulation of the pedal in moderate traffic.
+
+The catch is in how aggressively the system closes and opens that gap. Human drivers, for all our flaws, anticipate. We watch several cars ahead and ease off early. A radar-based ACC, by contrast, mostly reacts to the single car directly in front, and many production systems are tuned to restore the set gap quickly once it is disturbed. That quick, reactive correction is exactly the ingredient that turns a small disturbance into a growing wave.
+
+## String stability: the property that decides everything
+
+Here is the mechanism. Picture a line of cars. The lead car taps its brakes for a moment, then resumes. In a string stable line, each following car reacts a little more softly than the car ahead of it, so the disturbance shrinks as it travels backward and dies out after a few vehicles. In a string unstable line, each car reacts a little harder, so the disturbance grows as it travels backward until, several cars back, someone is slamming on the brakes and a full stop-and-go wave is born.
+
+This is the same physics behind [phantom traffic jams](/insights/phantom-traffic-jams), the jams that appear with no crash, no merge, and no bottleneck at all. A 2008 experiment by physicist Yuki Sugiyama and colleagues put human drivers on a single-lane ring and asked them only to hold a steady speed; a backward-traveling jam formed spontaneously, purely from drivers amplifying one another's tiny speed corrections (Sugiyama et al., New Journal of Physics, 2008). We walk through that mechanism in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident). The promise of automation was that a machine, free of human reaction lag and inattention, could break that cycle. Whether it does depends on string stability.
+
+> The question is not whether a car drives itself. It is whether the car absorbs the brake tap ahead of it or passes it on, amplified, to everyone behind.
+
+## What the research found about real ACC systems
+
+This is measurable, and it has been measured. In a study published in the IEEE Transactions on Intelligent Transportation Systems in 2021, researchers Gunter, Gloudemans, Stern and colleagues took commercially available vehicles with factory adaptive cruise control, ran them in controlled platoons, and tested whether a speed disturbance from the lead car grew or shrank down the line. The finding was that the systems were string unstable: the disturbances were amplified as they propagated backward through the following vehicles, not damped.
+
+A parallel effort in Europe reached the same conclusion at larger scale. The Joint Research Centre of the European Commission assembled the OpenACC database by track-testing a fleet of different production ACC cars, and analyses of that data (Makridis and colleagues, 2021) found that the great majority of commercial ACC systems on the market were string unstable. In other words, this is not one bad model. It is the prevailing tuning of the technology as sold.
+
+The reason is not incompetence. Manufacturers tune ACC for how it feels to the person in the car and for safe, comfortable gap-keeping, not for the collective stability of a hundred-car platoon nobody in any single car can perceive. A system that reacts firmly to restore your following distance feels confident and safe to you, and quietly makes the wave behind you worse. The incentives point at the individual experience, and string stability is a property of the crowd.
+
+## So how can automation calm a jam?
+
+The same studies that exposed the problem also point at the fix, because string instability is a choice, not a law of automation. A control law that hangs back, accepts a slightly larger and more variable gap, and responds gently rather than snapping the gap closed can be made provably string stable. The question is whether enough vehicles run that kind of controller in the same stream.
+
+The landmark demonstration came earlier, from the same research lineage. In 2018, a University of Arizona team led by Raphael Stern put a single automated vehicle into a ring of about twenty human-driven cars that were busily generating the usual stop-and-go waves, and had that one car hold a steady, wave-aware speed. The waves dissolved, and fuel use dropped for every car in the ring (Stern et al., Transportation Research Part C, 2018). One car in twenty, tuned for stability instead of reactivity, was enough to calm the whole loop.
+
+Researchers have since pushed this onto real highways. In late 2022 the CIRCLES Consortium ran roughly one hundred vehicles equipped with specially designed wave-smoothing controllers in live rush-hour traffic on Interstate 24 near Nashville, instrumented by a dense camera testbed, to see whether a small fraction of stabilizing vehicles could calm congestion at freeway scale. The work shows the direction the field is heading: not more automation for its own sake, but automation tuned specifically to absorb waves rather than amplify them.
+
+## Why you may not need everyone to own ACC
+
+There is a more practical reading of all this, and it is the one that matters for the next several years. The wave-damping benefit does not require a road full of self-driving cars. It requires a small share of vehicles moving at the right speed at the right moment. Stern's result was roughly one vehicle in twenty. The controller in that car was not doing anything a human could not do; it was simply holding a steadier, better-timed speed than the humans around it.
+
+That reframes the goal. Instead of waiting one or two decades for the entire car fleet to turn over to string stable ACC, you can deliver the same smoothing today by getting a few existing drivers to ease off at the right second, before the wave forms. The frontier of this research has moved toward exactly that idea: advisory systems that suggest speeds to ordinary human drivers and account for the messy reality that people follow suggestions inconsistently. The hard, mostly unsolved problem is wave damping under variable human compliance, and it is where the practical leverage now sits.
+
+## What this costs while the fleet turns over
+
+The waiting is not free. In 2024, U.S. drivers lost more than 4 billion hours and about $74 billion to congestion (INRIX 2024 Global Traffic Scorecard), and a large share of that is stop-and-go waves rather than raw volume. Freight pays an outsized share: congestion added $108.8 billion in operating cost and wasted 6.4 billion gallons of diesel for the trucking industry in 2022 (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). Every year we wait for string stable automation to filter into the fleet is another year of that bill. The case for a fix that works with the cars already on the road, rather than the cars we hope to sell, is mostly a case about time.
+
+## Where Cruze comes in
+
+This is the gap [Cruze](/) is built to fill. We do not wait for everyone to buy a string stable car. We read the flow from the [traffic cameras already on the poles](/cameras), with no new hardware on the highway, predict where a stop-and-go wave is about to form, and give a small share of drivers a gentle, well-timed speed cue so the wave never builds. It is the one-in-twenty finding turned into a product, delivered to human drivers through an advisory rather than to robots through a control law.
+
+For a [fleet](/for-fleets), that means smoother speeds, less hard braking, and fuel saved on every congested corridor, today, on the phones drivers already carry. For a [city or DOT](/for-cities), it means recovering throughput from the lanes you already own, measured against the cameras you already have. Adaptive cruise control asked the right question, whether a machine can break the human cycle of amplified braking. The answer turned out to depend not on automation but on tuning, and on getting just enough of the stream to move a little more smoothly. You can watch a phantom jam form and then dissolve on our [homepage](/).`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
