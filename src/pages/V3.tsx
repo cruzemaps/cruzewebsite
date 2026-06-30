@@ -107,6 +107,18 @@ function Nav() {
 
 /* ----------------------------------------- Cinematic scroll hero */
 
+// Soft-start the scroll-jack: ease the first ~20% of scroll so the hero engages
+// gently (low sensitivity at the very top) instead of snapping the instant you
+// touch the scroll, then tracks 1:1 for the rest. C1-smooth at the join — slope 0
+// at the top ramps to slope 1 right where it meets the linear region, so no kink.
+// Lower HERO_SOFT_START = a shorter, subtler ramp.
+const HERO_SOFT_START = 0.2;
+function easeHeroStart(s: number) {
+  if (s >= HERO_SOFT_START) return s;
+  const u = s / HERO_SOFT_START;
+  return HERO_SOFT_START * u * u * (2 - u);
+}
+
 function DriveHero() {
   const ref = useRef<HTMLDivElement>(null);
   const [p, setP] = useState(0);
@@ -118,7 +130,7 @@ function DriveHero() {
   // which is imperceptible but removes the per-frame React reconciliation that
   // made scrolling janky on phones.
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const q = Math.round(v * 120) / 120;
+    const q = Math.round(easeHeroStart(v) * 120) / 120;
     setP((prev) => (prev === q ? prev : q));
   });
 
