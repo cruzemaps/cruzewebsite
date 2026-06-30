@@ -107,6 +107,11 @@ function ROISection() {
   const [mpg, setMpg] = useState(6.5);
   const [fuelPrice, setFuelPrice] = useState(3.85);
   const [driverHourly, setDriverHourly] = useState(28);
+  // CSA / safety inputs. Crash rate is the fleet's DOT-recordable crashes per
+  // million miles (the FMCSA Crash Indicator BASIC denominator); cost per crash
+  // is the fleet's blended claims + downtime + premium exposure per crash.
+  const [crashRatePerMM, setCrashRatePerMM] = useState(0.30);
+  const [costPerCrash, setCostPerCrash] = useState(90000);
   const [hasInteracted, setHasInteracted] = useState(false);
 
   const handleInteraction = () => {
@@ -126,14 +131,25 @@ function ROISection() {
     const hoursReclaimedYear = trucks * 1.5 * 50;
     const laborValueUSD = hoursReclaimedYear * driverHourly;
     const co2Tons = (fuelSaved * 10.21) / 1000; // ~10.21 kg CO2 per gallon diesel burned
+    // CSA / safety savings. Cruze's mechanism (smoothing speeds to dissolve
+    // phantom jams) targets the congestion-related rear-end / sudden-stop subset
+    // of crashes, not all crashes. We model a conservative 15% reduction in that
+    // baseline — well inside the NHTSA forward-collision-warning literature range
+    // of 27-46% effectiveness, applied only to the congestion subset.
+    const CSA_CRASH_REDUCTION = 0.15;
+    const baselineCrashes = (annualMiles / 1_000_000) * crashRatePerMM;
+    const crashesAvoided = baselineCrashes * CSA_CRASH_REDUCTION;
+    const csaSavingsUSD = crashesAvoided * costPerCrash;
     return {
       fuelSavingsUSD: Math.round(fuelSavingsUSD),
       laborValueUSD: Math.round(laborValueUSD),
-      totalUSD: Math.round(fuelSavingsUSD + laborValueUSD),
+      csaSavingsUSD: Math.round(csaSavingsUSD),
+      crashesAvoided: Math.round(crashesAvoided * 10) / 10,
+      totalUSD: Math.round(fuelSavingsUSD + laborValueUSD + csaSavingsUSD),
       co2Tons: Math.round(co2Tons),
       hoursReclaimedYear: Math.round(hoursReclaimedYear),
     };
-  }, [trucks, milesPerTruckYear, mpg, fuelPrice, driverHourly]);
+  }, [trucks, milesPerTruckYear, mpg, fuelPrice, driverHourly, crashRatePerMM, costPerCrash]);
 
   return (
     <section id="roi" className="py-24 bg-[#0F131C] border-y border-white/5">
@@ -141,7 +157,7 @@ function ROISection() {
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">See your savings.</h2>
           <p className="text-white/60 max-w-2xl mx-auto">
-            Drop in your fleet specs. We use conservative pilot averages: 11% fuel reduction, and 1.5 reclaimed driver-hours per week.
+            Drop in your fleet specs. We use conservative pilot averages: 11% fuel reduction, 1.5 reclaimed driver-hours per week, and a 15% cut in congestion-related crashes.
           </p>
         </div>
 
@@ -153,6 +169,8 @@ function ROISection() {
               <CalcSlider label="Fleet average MPG" value={mpg} setValue={setMpg} min={4} max={12} step={0.1} format={(v) => `${v.toFixed(1)} mpg`} />
               <CalcInput label="Fuel price ($/gal)" value={fuelPrice} setValue={setFuelPrice} step={0.05} />
               <CalcInput label="Driver $/hr (loaded)" value={driverHourly} setValue={setDriverHourly} step={1} />
+              <CalcSlider label="Crashes per million miles (DOT-recordable)" value={crashRatePerMM} setValue={setCrashRatePerMM} min={0.05} max={1.5} step={0.05} format={(v) => `${v.toFixed(2)} / MM mi`} />
+              <CalcInput label="Cost per crash ($, claims + downtime)" value={costPerCrash} setValue={setCostPerCrash} step={5000} />
             </CardContent>
           </Card>
 
@@ -165,12 +183,14 @@ function ROISection() {
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <ResultRow icon={<Fuel size={18} />} label="Fuel saved" value={`$${result.fuelSavingsUSD.toLocaleString()}`} />
+                <ResultRow icon={<ShieldCheck size={18} />} label="CSA / safety savings" value={`$${result.csaSavingsUSD.toLocaleString()}`} />
                 <ResultRow icon={<Clock size={18} />} label="Driver-hours value" value={`$${result.laborValueUSD.toLocaleString()}`} />
+                <ResultRow icon={<Wallet size={18} />} label="Crashes avoided" value={`${result.crashesAvoided.toLocaleString()}/yr`} />
                 <ResultRow icon={<Leaf size={18} />} label="CO₂ avoided" value={`${result.co2Tons.toLocaleString()} t`} />
-                <ResultRow icon={<Wallet size={18} />} label="Hours reclaimed" value={`${result.hoursReclaimedYear.toLocaleString()} hr/yr`} />
+                <ResultRow icon={<Clock size={18} />} label="Hours reclaimed" value={`${result.hoursReclaimedYear.toLocaleString()} hr/yr`} />
               </div>
               <p className="text-xs text-white/40 leading-relaxed">
-                Estimates only; actual savings depend on fleet density on Cruze-coordinated corridors and integration depth with your FMS. We share calibrated projections after a 30-day pilot.
+                Estimates only; actual savings depend on fleet density on Cruze-coordinated corridors and integration depth with your FMS. CSA / safety savings model a conservative 15% reduction in congestion-related crashes against your own crash rate and cost per crash, not all crashes; the figure sits below the 27-46% NHTSA forward-collision-warning literature range it is benchmarked against, and Cruze has not yet measured its own crash-reduction rate. We share calibrated projections after a 30-day pilot.
               </p>
               <Link to="/login?role=fleet_owner" className="inline-flex items-center gap-2 text-brand-orange font-semibold">
                 Run a real 30-day pilot <ArrowRight size={16} />
