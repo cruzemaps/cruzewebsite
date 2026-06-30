@@ -11,12 +11,13 @@ import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
+import { verifyDataroomPassword } from "@/lib/dataroom";
 import { SITE } from "@/lib/seo";
 
 // Tier-gated investor flow:
 //   Tier 1 (public): summary visible to all (SEO-indexable, content above the fold)
 //   Tier 2 (email-gated): full pitch + interactive lab unlocked after email
-//   Tier 3 (password-gated dataroom): financials, contracts via VITE_DATAROOM_PASSWORD
+//   Tier 3 (password-gated dataroom): financials, contracts via VITE_DATAROOM_PASSWORD_HASH
 //
 // Email gate uses sessionStorage (visit-scoped) so investors don't have to
 // re-enter on each page nav, but it doesn't persist across sessions — keeps
@@ -268,17 +269,31 @@ function DataroomGate({ onSuccess }: { onSuccess: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const expected = (import.meta.env.VITE_DATAROOM_PASSWORD as string) || "";
-    // Basic equality check at the client. NOT a security boundary — anything in
-    // the dataroom is gated server-side too (e.g. Notion link with link-level
-    // sharing, or a signed Supabase storage URL). This is a friction gate.
-    await new Promise((r) => setTimeout(r, 300));
+    // NOT a security boundary — the dataroom contents are gated server-side too
+    // (Notion link-level sharing, signed Supabase storage URLs). This is a
+    // friction gate. We compare against a SHA-256 hash so the plaintext password
+    // never ships in the client bundle; plaintext is honored only as a legacy
+    // fallback. See src/lib/dataroom.ts.
+    let result: Awaited<ReturnType<typeof verifyDataroomPassword>>;
+    try {
+      result = await verifyDataroomPassword(pw, {
+        hash: import.meta.env.VITE_DATAROOM_PASSWORD_HASH as string,
+        plaintext: import.meta.env.VITE_DATAROOM_PASSWORD as string,
+      });
+      await new Promise((r) => setTimeout(r, 300));
+    } catch {
+      // Web Crypto unavailable (e.g. served over an insecure context) or digest
+      // failed — never leave the button stuck in the submitting state.
+      setSubmitting(false);
+      toast.error("Couldn't verify the password in this browser. Email investors@cruzemaps.com.");
+      return;
+    }
     setSubmitting(false);
-    if (!expected) {
+    if (result === "unconfigured") {
       toast.error("Dataroom not yet configured. Email investors@cruzemaps.com.");
       return;
     }
-    if (pw !== expected) {
+    if (result === "incorrect") {
       toast.error("Incorrect password.");
       return;
     }
