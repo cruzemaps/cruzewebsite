@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useMotionValueEvent, useReducedMotion } from "framer-motion";
 import SEO from "@/components/SEO";
-import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight, Award } from "lucide-react";
+import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight, Award, Twitter, Linkedin, Instagram, Mail } from "lucide-react";
 import LiveCameras from "@/components/v3/LiveFeed";
 import TruckScene from "@/components/v3/TruckScene";
 import ContactForm from "@/components/v3/ContactForm";
@@ -542,6 +542,31 @@ function Footer() {
         <div>
           <div className="font-bold text-xl mb-2" style={{ fontFamily: display, color: text }}>Cruze</div>
           <p className="text-sm max-w-xs" style={{ color: muted }}>Pre-seed traffic intelligence. Building in Texas.</p>
+          {/* Socials. X + email are the confirmed handles from the repo; the
+              LinkedIn + Instagram URLs follow the @cruzemaps convention — confirm
+              or correct them before this ships. */}
+          <div className="flex items-center gap-2 mt-5">
+            {[
+              { Icon: Twitter, href: "https://x.com/CruzeMaps", label: "Cruze on X" },
+              { Icon: Linkedin, href: "https://www.linkedin.com/company/cruzemaps", label: "Cruze on LinkedIn" },
+              { Icon: Instagram, href: "https://www.instagram.com/cruzemaps", label: "Cruze on Instagram" },
+              { Icon: Mail, href: "mailto:hello@cruzemaps.com", label: "Email Cruze" },
+            ].map(({ Icon, href, label }) => {
+              const external = !href.startsWith("mailto:");
+              return (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  className="p-2 rounded-lg transition-colors hover:text-white"
+                  style={{ color: muted, border: `1px solid ${line}` }}
+                >
+                  <Icon size={16} />
+                </a>
+              );
+            })}
+          </div>
         </div>
         {cols.map((col) => (
           <div key={col.h}>
