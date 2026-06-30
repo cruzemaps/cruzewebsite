@@ -14,6 +14,69 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "why-traffic-jams-move-backward",
+    title: "Why do traffic jams move backward? Shockwaves, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-06-30",
+    excerpt:
+      "Every car in a jam is moving forward, yet the jam itself slides toward you. Here is why traffic jams travel backward, the 1950s shockwave theory that explains it, and why you can't drive around one.",
+    body: `You are crawling along in stop-and-go traffic when you notice something strange. The jam is moving toward you. The cars around you inch forward, but the wall of brake lights keeps sliding back down the highway, against the direction of travel, like a wave rolling upstream against a river. Why does a traffic jam move backward when every car in it is moving forward?
+
+The short answer: the thing moving backward is not the cars. It is a wave. A traffic jam is a pattern, a boundary between packed cars and open road, and that boundary travels in the opposite direction from the traffic itself. Understanding why is one of the most useful things you can know about congestion, because it explains why jams feel like they come out of nowhere and why you can't simply drive around them.
+
+## The cars go forward, the jam goes back
+
+Picture the back edge of a jam, the point where free-flowing traffic first has to slam on the brakes. Every few seconds, another car arrives at that edge from behind and joins the back of the queue. So the back of the jam keeps reaching further and further upstream, even as the cars inside it creep forward.
+
+Now picture the front edge, where cars finally accelerate out of the jam and back up to speed. Cars leave from the front one at a time. As long as cars are joining the back faster than they are leaving the front, the whole jam slides backward down the road. The cars move forward; the jam moves back. They are two different motions, and confusing them is why backward-moving traffic feels so baffling.
+
+Traffic scientists call this moving boundary a shockwave, and the whole pattern a [phantom traffic jam](/insights/phantom-traffic-jams) or stop-and-go wave.
+
+## The theory that named it: shockwaves on the highway
+
+This is not a loose metaphor. It is a piece of math worked out in the 1950s. In 1955, Michael Lighthill and Gerald Whitham modeled traffic as a flowing medium and showed that changes in traffic density travel along a road as kinematic waves, much like waves in water or sound. The next year, Paul Richards independently published a paper with a title that says it all: "Shock Waves on the Highway." (Sources: Lighthill and Whitham, "On Kinematic Waves II: A Theory of Traffic Flow on Long Crowded Roads," Proceedings of the Royal Society A, 1955; Richards, "Shock Waves on the Highway," Operations Research, 1956.) Together their work is known as the LWR model, and it is still the foundation of how engineers think about congestion.
+
+The core idea is simple. Where traffic is dense and slow, cars are packed tightly. Where it is light and fast, they are spread out. The line separating those two states is a shock, much like the boundary in front of a snowplow piling up snow. And the math shows that under normal highway conditions, that boundary moves backward, upstream, against the flow.
+
+> The cars are moving forward the whole time. What is traveling toward you is the boundary between jammed and free road, and that boundary moves the opposite way.
+
+## Why it moves backward at a steady speed
+
+Here is the part that surprises people: the backward speed of a jam is remarkably consistent. Whether the jam is on a city ring road or an interstate, the upstream edge tends to slide back at a steady pace, often measured in the range of roughly 12 to 20 km/h, about 8 to 12 mph. It does not depend much on how fast the cars themselves are going.
+
+That steadiness falls straight out of the shockwave picture. The speed of the boundary is set by the rate cars join the back versus leave the front, and those rates are governed by how closely humans pack together and how quickly they react, which do not change much from one jam to the next. So the wave keeps a near-constant backward pace, which is why a jam can roll a mile down the highway and still be going when it finally reaches you.
+
+## Watching it happen with no cause at all
+
+The cleanest proof that these backward waves are real, and not just a reaction to crashes or merges, came from a deceptively simple experiment. In 2008, a team led by Yuki Sugiyama put 22 cars on a single-lane circular track and asked every driver to do one thing: hold a steady speed and keep a safe gap. No obstacles, no merges, no intersections.
+
+Within minutes a stop-and-go jam formed on its own and began traveling backward around the loop, exactly as shockwave theory predicts, even though nothing was blocking the road. (Source: Sugiyama et al., "Traffic jams without bottlenecks," New Journal of Physics, 2008.) The jam was a pure wave, created by nothing but the way humans follow one another, and it marched backward against the cars the whole time. We tell the fuller story of that experiment in [why there's traffic when there's no accident](/insights/why-traffic-with-no-accident).
+
+## Why you can't drive around a backward wave
+
+This is the practical punchline. A backward-traveling wave is not a place. It is not a stalled truck you can route around or a closed lane you can avoid. By the time you hit the brakes, the disturbance that started the jam happened far ahead of you and minutes ago. You are reacting to a wave that has been rolling toward you the whole time.
+
+That is also why [adding lanes rarely fixes the problem](/insights/why-adding-lanes-doesnt-fix-traffic) and why navigation apps can only do so much. They are excellent at steering you around a fixed obstacle, but a shockwave is a moving pattern in the traffic itself. Reroute enough drivers and you often just seed the same wave on the next road over. The jam relocates; it does not dissolve.
+
+## What these waves cost
+
+Backward-rolling stop-and-go is not a minor nuisance. U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard). For trucking alone, congestion added $108.8 billion in cost and wasted 6.4 billion gallons of diesel in 2022 (ATRI Cost of Congestion, 2024 update). A large share of that is exactly this kind of stop-and-go, the waves that no crash ever caused, which is why they cost [fleets](/for-fleets) so much fuel and [cities](/for-cities) so much throughput.
+
+## The fix: damp the wave, don't chase it
+
+If a jam is a wave created by how drivers behave, then you stop it by changing how a few of them behave at the right moment. You do not need self-driving cars and you do not need everyone.
+
+A University of Arizona study (Stern et al., Transportation Research Part C, 2018) tested this on a real track: guiding roughly one in twenty vehicles, about 5%, to hold a steadier speed was enough to damp the stop-and-go waves and cut fuel use for every car behind them. Smooth out the way a handful of drivers approach the back edge, and the wave loses its fuel and fades instead of rolling on.
+
+## Where Cruze comes in
+
+This is the problem [Cruze](/) is built to solve. Instead of routing one driver around a wave they can't escape, Cruze reads the road from existing traffic [cameras](/cameras), predicts where a backward wave is about to form, and gives a small share of drivers a gentle speed cue so the gap ahead absorbs the disturbance before it becomes a wall of brake lights. The wave never gets going. Same road, same cars, no new hardware.
+
+You can watch a phantom jam form and then dissolve on our [homepage](/). If you run a fleet or a road network, a wave that never builds is fuel saved, hard stops avoided, and time given back. That is the whole idea: stop the wave at its source instead of chasing it down the highway.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
