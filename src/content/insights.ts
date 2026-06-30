@@ -14,6 +14,59 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "how-much-does-traffic-cost",
+    title: "How much does traffic actually cost? Drivers, fleets, and cities, by the numbers",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-06-30",
+    excerpt:
+      "The typical U.S. driver lost 43 hours and $771 to congestion in 2024, and the average truck lost $7,588. Here is the real bill for drivers, fleets, and cities, and why most of it is avoidable.",
+    body: `Traffic is expensive in a way most people never add up. In 2024 the typical U.S. driver lost 43 hours stuck in congestion, about a full work week, at a cost of $771 in wasted time (INRIX 2024 Global Traffic Scorecard). For the average truck the bill was far larger: $7,588 per truck in 2022, driven by both lost hours and burned fuel (ATRI Cost of Congestion, 2024 update). Across the whole country congestion cost drivers more than $74 billion and trucking alone $108.8 billion. This article puts real numbers on what traffic costs you, your fleet, and your city, and explains why a large share of that bill comes from jams that did not have to happen.
+
+The reason this matters is not just the size of the number. It is that most of this cost is not caused by crashes or by roads that are simply too small. A great deal of it is stop-and-go waves that form on their own and tax every vehicle behind them. That distinction is the whole difference between a cost you have to accept and one you can actually attack.
+
+## What traffic costs you, the individual driver
+
+Start with the figure most people feel but never measure. In 2024 the average American driver lost 43 hours to traffic, roughly one full work week, worth about $771 in time alone (INRIX 2024 Global Traffic Scorecard). That is before you count the extra fuel your car burns crawling and braking, the wear on the vehicle, or the trips you simply did not take because the drive was not worth it.
+
+Where you live changes the bill sharply. Drivers in the most congested U.S. cities, including New York and Chicago at about 102 hours each, lost more than $1,800 in wasted time in a single year. A daily commuter in one of those corridors is giving up more than two and a half work weeks a year to sitting still.
+
+The $771 average is a floor, not a ceiling. It is the time cost alone, valued conservatively, and it does not include the fuel you waste in the stop-and-go that makes up so much of a bad commute.
+
+## What traffic costs a trucking fleet
+
+For commercial fleets the math is brutal because every hour of delay is a paid hour, and every gallon of diesel burned crawling is a hard cost. In 2022, congestion on U.S. highways added $108.8 billion in cost to the trucking industry and wasted more than 6.4 billion gallons of diesel, which alone accounted for $32.1 billion in extra fuel spend (ATRI Cost of Congestion, 2024 update).
+
+Brought down to a single truck, congestion cost $7,588 per truck in 2022, equal to about 2.8% of the average per-truck revenue in the truckload sector. For a fleet of a hundred trucks that is roughly three quarters of a million dollars a year evaporating into idling engines and missed delivery windows. Unlike a driver's lost personal time, this comes straight off the operating margin, which is why congestion is one of the costs [fleet operators](/for-fleets) watch most closely. We break the fuel side of this down further in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go).
+
+## What traffic costs a city or region
+
+Zoom out and the costs stack into the tens of billions. Nationally, U.S. drivers lost more than four billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard), and that is just the passenger side. Add the $108.8 billion hitting trucking and the freight that moves on those same roads, and congestion becomes one of the largest avoidable drags on a regional economy.
+
+For a [city or DOT](/for-cities), this is not only a mobility problem, it is a budget and growth problem. Slower freight raises the delivered cost of goods. Unreliable travel times push businesses to pad schedules and hold more inventory. And the traditional fix, widening the road, tends to disappoint, because new capacity gets reclaimed by new trips. We cover that trap in [why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic).
+
+## Why most of this bill is avoidable
+
+Here is the part that turns a depressing set of numbers into an opportunity. A large share of everyday congestion is not caused by a crash or by raw volume that overwhelms the road. It is stop-and-go waves that form on their own out of nothing but the way humans follow each other in dense traffic.
+
+In 2008 a team of physicists put 22 cars on a circular track and asked everyone to hold a steady speed. Within minutes a stop-and-go jam formed and traveled backward around the loop with nothing at all blocking the road (Sugiyama et al., New Journal of Physics, 2008). We explain that result in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident). These [phantom traffic jams](/insights/phantom-traffic-jams) are pure waste: every car behind the wave pays in time and fuel, and no crash ever caused it.
+
+Because the wave is created by behavior rather than by a physical bottleneck, you do not need to remove a physical obstacle to fix it. A University of Arizona study found that guiding just one vehicle in twenty, about 5%, to hold a steadier speed was enough to dissolve these waves and cut fuel use for every car behind them (Stern et al., Transportation Research Part C, 2018). We unpack that in [can a few drivers fix traffic for everyone](/insights/can-a-few-drivers-fix-traffic).
+
+> A large part of what traffic costs you is not the road being too small. It is stop-and-go waves that form on their own, and those are exactly the part you can take back.
+
+That is the line that separates the recoverable cost from the rest. Some congestion really is raw demand on an undersized road, and no software erases that. But the stop-and-go portion, the part that makes a moderately busy road feel like a parking lot, is a behavior problem, and behavior problems have cheaper fixes than concrete.
+
+## Where Cruze comes in
+
+This is the cost [Cruze](/) is built to claw back. Instead of adding lanes or waiting for self-driving cars, we read the flow from the [traffic cameras already on the poles](/cameras), predict where a stop-and-go wave is about to form, and give a small share of drivers a gentle, well-timed speed cue so the wave never builds. It is the 5% finding turned into a product, with no new hardware in any vehicle.
+
+For a [fleet](/for-fleets), that is fuel saved and hard stops avoided on the corridors where $7,588 per truck is leaking out today. For a [city or DOT](/for-cities), it is throughput and reliability recovered from lanes you already own, measured against cameras you already have, at a fraction of the cost of a widening. You can watch a phantom jam form and then dissolve on our [homepage](/).
+
+The full cost of traffic will never be zero in a growing region. But a real and measurable slice of it, the stop-and-go that no crash ever caused, is money sitting on the table. The point of putting hard numbers on the problem is to see how much of it is actually recoverable, and then to go recover it.`,
+    tags: ["economics", "fundamentals"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
