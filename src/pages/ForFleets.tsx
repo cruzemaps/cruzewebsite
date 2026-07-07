@@ -132,19 +132,25 @@ function ROISection() {
     const laborValueUSD = hoursReclaimedYear * driverHourly;
     const co2Tons = (fuelSaved * 10.21) / 1000; // ~10.21 kg CO2 per gallon diesel burned
     // CSA / safety savings. Cruze's mechanism (smoothing speeds to dissolve
-    // phantom jams) targets the congestion-related rear-end / sudden-stop subset
-    // of crashes, not all crashes. We model a conservative 15% reduction in that
-    // baseline — well inside the NHTSA forward-collision-warning literature range
-    // of 27-46% effectiveness, applied only to the congestion subset.
-    const CSA_CRASH_REDUCTION = 0.15;
+    // phantom jams) only targets the congestion-related rear-end / sudden-stop
+    // crashes, not every crash. So we scope the model in two conservative steps:
+    //   1. Isolate that subset. Rear-end crashes are ~24-32% of all crashes
+    //      (NHTSA); the congestion-related portion is smaller, so we take a
+    //      conservative 25% share of the fleet's recordable crashes.
+    //   2. Apply a 15% reduction WITHIN that subset — well below the 27-46%
+    //      NHTSA forward-collision-warning effectiveness range it benchmarks
+    //      against. Net effect on total recordable crashes is ~3.75%.
+    const CONGESTION_CRASH_SHARE = 0.25; // rear-end / sudden-stop subset (NHTSA rear-end ≈ 24-32%)
+    const CSA_CRASH_REDUCTION = 0.15;    // modeled reduction within that subset
     const baselineCrashes = (annualMiles / 1_000_000) * crashRatePerMM;
-    const crashesAvoided = baselineCrashes * CSA_CRASH_REDUCTION;
+    const congestionCrashes = baselineCrashes * CONGESTION_CRASH_SHARE;
+    const crashesAvoided = congestionCrashes * CSA_CRASH_REDUCTION;
     const csaSavingsUSD = crashesAvoided * costPerCrash;
     return {
       fuelSavingsUSD: Math.round(fuelSavingsUSD),
       laborValueUSD: Math.round(laborValueUSD),
       csaSavingsUSD: Math.round(csaSavingsUSD),
-      crashesAvoided: Math.round(crashesAvoided * 10) / 10,
+      crashesAvoided: Math.round(crashesAvoided * 100) / 100,
       totalUSD: Math.round(fuelSavingsUSD + laborValueUSD + csaSavingsUSD),
       co2Tons: Math.round(co2Tons),
       hoursReclaimedYear: Math.round(hoursReclaimedYear),
@@ -190,7 +196,7 @@ function ROISection() {
                 <ResultRow icon={<Clock size={18} />} label="Hours reclaimed" value={`${result.hoursReclaimedYear.toLocaleString()} hr/yr`} />
               </div>
               <p className="text-xs text-white/40 leading-relaxed">
-                Estimates only; actual savings depend on fleet density on Cruze-coordinated corridors and integration depth with your FMS. CSA / safety savings model a conservative 15% reduction in congestion-related crashes against your own crash rate and cost per crash, not all crashes; the figure sits below the 27-46% NHTSA forward-collision-warning literature range it is benchmarked against, and Cruze has not yet measured its own crash-reduction rate. We share calibrated projections after a 30-day pilot.
+                Estimates only; actual savings depend on fleet density on Cruze-coordinated corridors and integration depth with your FMS. CSA / safety savings apply a conservative 15% reduction to only the congestion-related rear-end / sudden-stop crashes speed-smoothing targets — modeled as ~25% of your recordable crashes (NHTSA: rear-end crashes are 24-32% of all crashes) — against your own crash rate and cost per crash, not all crashes. The 15% reduction sits below the 27-46% NHTSA forward-collision-warning effectiveness range it is benchmarked against, and Cruze has not yet measured its own crash-reduction rate. We share calibrated projections after a 30-day pilot.
               </p>
               <Link to="/login?role=fleet_owner" className="inline-flex items-center gap-2 text-brand-orange font-semibold">
                 Run a real 30-day pilot <ArrowRight size={16} />
