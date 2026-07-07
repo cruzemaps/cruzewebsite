@@ -135,8 +135,8 @@ function ROISection() {
     // phantom jams) only targets the congestion-related rear-end / sudden-stop
     // crashes, not every crash. So we scope the model in two conservative steps:
     //   1. Isolate that subset. Rear-end crashes are ~24-32% of all crashes
-    //      (NHTSA); the congestion-related portion is smaller, so we take a
-    //      conservative 25% share of the fleet's recordable crashes.
+    //      (NHTSA); we take 25% — the low end of that range — as the
+    //      congestion-related share of the fleet's recordable crashes.
     //   2. Apply a 15% reduction WITHIN that subset — well below the 27-46%
     //      NHTSA forward-collision-warning effectiveness range it benchmarks
     //      against. Net effect on total recordable crashes is ~3.75%.
