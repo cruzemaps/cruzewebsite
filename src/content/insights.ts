@@ -14,6 +14,61 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "can-5-percent-of-drivers-fix-traffic",
+    title: "Can 5% of drivers fix a traffic jam? The 2018 Arizona ring-road study",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-07-07",
+    excerpt:
+      "A single car, fewer than 5% of the traffic, dissolved stop-and-go waves across an entire ring of drivers and cut fuel use by up to 40%. Here is the 2018 experiment that proved it, and what it does and does not tell us.",
+    body: `Yes, and it has been shown on a real track. In a 2018 field experiment run by researchers at the University of Arizona, more than 20 human-driven cars were put on a circular road and left to drive normally. A stop-and-go wave formed on its own, with no crash and no bottleneck. Then a single car, fewer than 5% of the vehicles, was told to smooth out its own speed instead of chasing the bumper ahead. The waves faded across the whole ring. Fuel use dropped by up to 40% and throughput rose by up to 15%, all from changing the behavior of one car in twenty.
+
+That result (Stern et al., "Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments," Transportation Research Part C, 2018) is the scientific idea Cruze is built on. This article walks through what the experiment actually did, why one car can calm an entire highway, and, just as importantly, what the study does not claim.
+
+## The setup: one car in a ring of twenty
+
+The experiment built directly on a famous 2008 demonstration by physicist Yuki Sugiyama, who showed that drivers asked only to circle a track at a steady speed will spontaneously produce a backward-traveling jam with no obstacle present at all. That is the purest form of a [phantom traffic jam](/insights/phantom-traffic-jams): congestion created by nothing but the way drivers react to one another.
+
+A ring road is the ideal laboratory for this. There are no merges, no lane changes, no traffic lights, and no on-ramps to blame. If a jam appears, it came from driver behavior and nothing else. The 2018 team reproduced the Sugiyama wave with more than 20 cars, confirmed it formed reliably, and then did the new part: they replaced the behavior of one vehicle with a control algorithm designed to hold a steady, wave-absorbing speed rather than braking hard every time the gap ahead shrank.
+
+## What happened when one car stopped chasing the bumper ahead
+
+With every car reacting to the one in front, the ring jammed. The moment the single controlled car began smoothing its speed, the stop-and-go pattern died down around the entire loop, not just behind that one car. Measured against the wave-filled baseline, the researchers reported up to 40% lower fuel consumption across all the vehicles and up to a 15% increase in throughput.
+
+The headline is not the exact percentages, which come from one controlled track. It is the ratio. You do not need most cars to change. You need a small number to stop amplifying the wave.
+
+> Flow control will be possible via a few mobile actuators, fewer than 5% of vehicles, long before a majority of vehicles are autonomous.
+
+That sentence, paraphrased from the study's own conclusion, is why this line of research matters for the roads we drive today rather than some fully self-driving future.
+
+## Why one car can calm an entire highway
+
+A phantom jam is a feedback loop. When traffic is dense, each driver reacts to the brake lights ahead by braking a little harder than necessary, and the next driver does the same, so a small tap amplifies into a full stop several hundred feet upstream. We unpack that mechanism in [why is there traffic when there is no accident](/insights/why-traffic-with-no-accident).
+
+A single driver who keeps a steady, generous gap breaks the chain. Instead of passing the wave along and adding to it, that car absorbs it, leaving smoother traffic behind. Because the loop is a chain reaction, interrupting it in one place quiets the whole line. That is how fewer than 5% of vehicles can change the behavior of the other 95%.
+
+This is also why the instinctive fix, adding lanes, disappoints. More lanes raise how many cars a road can hold, but they do nothing to the feedback loop that makes traffic wave in the first place, and the new capacity tends to fill right back up. We cover that in [why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic). The ring-road result points the other way: you get more out of the road you already have by smoothing a few trajectories, not by pouring more concrete.
+
+## The honest part: an algorithm did it, not a guided human
+
+Two things about the 2018 study should be stated plainly, because they matter.
+
+First, the wave-smoothing car in the experiment was an automated controller, not a human following advice. The study proves the physics of the intervention. It does not prove that a person handed a speed cue will match a control algorithm.
+
+Second, the 40% fuel figure and the 15% throughput figure are from a closed circular track with roughly two dozen cars. They are the ceiling that a clean experiment produced, not a promise for any given public highway, which has ramps, exits, trucks, and weather the ring did not.
+
+What survives both caveats is the principle, and it is a strong one: the driver of congestion is a small-share feedback effect, so a small-share intervention can address it.
+
+## How Cruze applies the principle
+
+Cruze takes that principle onto real roads by guiding a small share of drivers with gentle speed cues, so a few vehicles play the wave-absorbing role the controlled car played on the ring. We do not require self-driving cars, new roadside hardware, or majority adoption, for the same reason the study did not: the physics rewards a few well-timed trajectories.
+
+We are careful not to borrow the study's numbers as our own. The 40% and 15% belong to the 2018 ring experiment. Any fuel or delay benefit we quote for a fleet or corridor is modeled from that specific road's measured stop-and-go intensity and sized before a pilot begins, not assumed. For how those savings scale on a real fleet, and why the first few points of smoothing recover the most fuel, see [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go).
+
+The stakes are worth the care. U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard), and a large share of that is phantom, wave-driven delay with no crash behind it. The 2018 ring road showed that you do not have to wait for everyone to change to take a bite out of that number. You need a few drivers, coordinated well.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
@@ -158,7 +213,7 @@ Here is the hopeful turn. If a phantom jam is created by how a small number of d
 
 A University of Arizona study (Stern et al., Transportation Research Part C, 2018) tested this on a real ring of human-driven cars, the same kind of setup as the Sugiyama experiment, but with one car under automated control programmed to hold a steadier speed. Guiding roughly one vehicle in twenty, about 5%, was enough to damp the stop-and-go waves that the human drivers kept generating, and to cut total fuel use for every car on the track, not just the controlled one. One smoothed driver, in other words, calms the chain behind it.
 
-That finding is the whole strategic basis for solving phantom jams at scale. You do not need to replace the fleet or rebuild the road. You need a small share of well-timed, gentle speed adjustments in the right place, and the wave never builds. The leverage is enormous: a few percent of drivers, acting a few seconds earlier, paying off for everyone behind them.
+That finding is the whole strategic basis for solving phantom jams at scale. You do not need to replace the fleet or rebuild the road. You need a small share of well-timed, gentle speed adjustments in the right place, and the wave never builds. The leverage is enormous: a few percent of drivers, acting a few seconds earlier, paying off for everyone behind them. We walk through the experiment, the exact numbers, and what it does and does not prove in [Can 5% of drivers fix a traffic jam?](/insights/can-5-percent-of-drivers-fix-traffic).
 
 ## Why tailgating makes traffic worse
 
