@@ -189,9 +189,9 @@ function ROISection() {
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <ResultRow icon={<Fuel size={18} />} label="Fuel saved" value={`$${result.fuelSavingsUSD.toLocaleString()}`} />
-                <ResultRow icon={<ShieldCheck size={18} />} label="CSA / safety savings" value={`$${result.csaSavingsUSD.toLocaleString()}`} />
+                <ResultRow icon={<Wallet size={18} />} label="CSA / safety savings" value={`$${result.csaSavingsUSD.toLocaleString()}`} />
                 <ResultRow icon={<Clock size={18} />} label="Driver-hours value" value={`$${result.laborValueUSD.toLocaleString()}`} />
-                <ResultRow icon={<Wallet size={18} />} label="Crashes avoided" value={`${result.crashesAvoided.toLocaleString()}/yr`} />
+                <ResultRow icon={<ShieldCheck size={18} />} label="Crashes avoided" value={`${result.crashesAvoided.toLocaleString()}/yr`} />
                 <ResultRow icon={<Leaf size={18} />} label="CO₂ avoided" value={`${result.co2Tons.toLocaleString()} t`} />
                 <ResultRow icon={<Clock size={18} />} label="Hours reclaimed" value={`${result.hoursReclaimedYear.toLocaleString()} hr/yr`} />
               </div>
