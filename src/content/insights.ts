@@ -270,6 +270,57 @@ The implication: pilot in the right places. Cruze prioritizes corridors where me
 For the physics behind why that stop-and-go forms in the first place, see our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams).`,
     tags: ["fleet-ops", "economics"],
   },
+  {
+    slug: "does-changing-lanes-get-you-there-faster",
+    title: "Does changing lanes actually get you there faster?",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-07-08",
+    excerpt:
+      "The lane next to you looks faster, so you switch. Research says the speed gain is mostly an illusion, and every lane change you make helps seed the stop-and-go waves that slow everyone down, including you.",
+    body: `In heavy traffic almost no. The lane next to you usually is not moving faster on average, it only feels that way, and each time you switch lanes to chase it you add a small disturbance to the traffic stream that helps trigger the very stop-and-go waves that are slowing you down. Staying in a steady lane at a steady speed gets you there at close to the same time and it keeps the whole road smoother. Here is why the feeling is so convincing and why acting on it backfires.
+
+## The other lane really does look faster, and that is a trick of perception
+
+The sense that you picked the wrong lane is one of the most reliable feelings in driving, and it has been studied directly. In 1999 two researchers, Donald Redelmeier and Robert Tibshirani, published a short paper in Nature titled "Why cars in the next lane seem to go faster." Their answer: in congested traffic a driver spends more time being overtaken than overtaking, so the cars in the next lane are in view for longer while they pass you than while you pass them. Averaged over a trip, the neighboring lane looks like it is winning even when both lanes are moving at the same average speed. (Source: Redelmeier and Tibshirani, "Why cars in the next lane seem to go faster," Nature, volume 401, page 35, 1999.)
+
+They tested the illusion, not just the theory. When they showed drivers a video clip in which the camera car was actually moving slightly faster than the next lane, about 70 percent of viewers guessed, incorrectly, that the other lane was moving faster. The perception is strong enough to override what is happening right in front of you.
+
+There is a second reason the feeling misleads you. Traffic in a dense stream is not smooth, it pulses. Any given lane speeds up and slows down in waves, so at the exact moment you glance over, one lane is often in the fast part of its cycle while yours is in the slow part. A few seconds later the two swap, but by then you have already formed the judgment and started drifting toward the gap.
+
+> The lane you envy is usually the lane you were just in a minute ago. You are not choosing a faster lane, you are chasing the phase of a wave.
+
+## Switching lanes does not just fail to help, it makes traffic worse
+
+If lane changing were merely useless it would not matter much. The problem is that it is not neutral. A lane change is a disturbance injected into two lanes at once: you open a gap in the lane you leave and you force the driver you cut in front of to lift off or brake to rebuild a safe gap. In light traffic that is absorbed instantly. In dense traffic it is exactly the kind of small perturbation that grows.
+
+Traffic scientists have measured this on real freeways. Using detailed vehicle trajectory data, Ahn and Cassidy (2007) found that lane changes can trigger stop-and-go oscillations and make them grow as they travel. Zheng and colleagues (2011) went further and showed that in the absence of other causes, lane changing is a primary trigger that turns small, localized wobbles into substantial stop-and-go disturbances. In other words, the maneuver you make to escape the jam is one of the things that builds the jam. (Sources: Ahn and Cassidy, "Freeway traffic oscillations and vehicle lane-change maneuvers," 2007; Zheng et al., microscopic wavelet analysis of freeway oscillations, Transportation Research Part B, 2011.)
+
+This connects directly to why phantom jams form at all. As we cover in the pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams), a stop-and-go wave grows when one driver's slowdown makes the next driver brake a little harder, and the next harder still, until someone stops. A lane change is a ready-made source of that first slowdown. Every time a driver darts into a gap, the follower behind has to decelerate, and that deceleration can be the seed the road amplifies into a wall of brake lights that then travels backward for miles. We walk through that amplification from a driver's seat in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident).
+
+## Why the average driver comes out even, or behind
+
+Put the two findings together. The lane you jump to is not actually faster on average, so the best case is that all your weaving nets you almost nothing. But the weaving itself costs something: each merge you make adds a braking event for the drivers around you, and enough of those events tip a stretch of road from smooth flow into oscillation. The aggressive lane-changer is trading a real contribution to congestion for an imaginary time saving.
+
+This is why calm, predictable driving is not just polite, it is efficient. A driver who holds a lane and a steady gap absorbs the wobbles coming from ahead instead of passing them on amplified. A road full of drivers doing that stays under the instability threshold longer. The counterintuitive lesson from the research is that the way to get everyone through faster is for individuals to stop optimizing for their own lane, which is also the thing the individual is worst at judging.
+
+It is the same lesson we reach from the supply side in [why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic): the bottleneck is rarely raw capacity, it is how the flow behaves. More lanes give restless drivers more lanes to hunt through. What actually helps is smoothing behavior within the lanes you already have.
+
+## The catch: knowing this does not make anyone stop
+
+The illusion is powerful, and telling drivers that their lane is fine does not beat a feeling that fires every few seconds in stop-and-go. This is the gap between knowing the physics, which we lay out in [phantom traffic jams, explained](/insights/phantom-traffic-jams-explained), and changing what happens on the road. People cannot see the wave they are feeding, and they cannot feel that the neighboring lane will slow down in ten seconds. They only see a gap and an open road ahead of it.
+
+That is the problem Cruze is built to close. Instead of asking drivers to fight an illusion with willpower, the idea is to give a small, well-timed speed cue that keeps a driver smooth through the pulse, so there is no reason to lunge for the next lane in the first place. The striking result from the traffic-wave literature is that this does not require everyone. In the 2018 Arizona ring-road experiment led by Raphael Stern, a single smoothly controlled vehicle among roughly twenty was enough to damp the stop-and-go wave for the whole loop. Fewer than one driver in twenty, driving steadily, changed the behavior of the entire group. (Source: Stern et al., 2018, single controlled-vehicle ring experiment.)
+
+Cruze aims to be the software version of that steady driver, delivered as an in-cab speed advisory rather than a self-driving system or new roadside hardware. For a fleet, the payoff is fuel: brake-then-accelerate cycles burn several times the fuel of steady cruising, which is why stop-and-go is such an expensive tax on trucking, and we break that math down in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go). Congestion overall costs U.S. drivers an estimated 74 billion dollars and roughly 4 billion lost hours a year (INRIX 2024), and the trucking industry alone about 108.8 billion dollars and 6.4 billion gallons of wasted diesel (ATRI 2024). A meaningful slice of that is stop-and-go that never needed to happen.
+
+See how the advisory works for [fleets](/for-fleets) and for [cities](/for-cities), and how the [camera pipeline](/cameras) reads the road that feeds it. Cruze is pre-pilot, so these are the mechanisms and the published science behind them, not a measured Cruze result.
+
+## The honest takeaway
+
+Next time the lane beside you looks faster, remember that roughly 70 percent of drivers in a controlled test believed the same thing while their own lane was actually quicker. Hold your lane, keep an even gap, and let the small disturbances die in front of you instead of passing them back amplified. You will arrive at nearly the same time, with less stress, and you will have quietly done the one thing that helps the road: nothing dramatic.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
 ];
 
 export function findInsight(slug: string) {
