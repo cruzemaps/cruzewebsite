@@ -81,7 +81,7 @@ const HowItWorksV2 = () => {
                   <div className="hidden md:flex flex-none w-16 justify-center relative z-10">
                     <motion.div 
                       className="w-8 h-8 rounded-full bg-[#0B0E14] border-4 border-white/20 relative"
-                      whileInView={{ borderColor: ['rgba(255,255,255,0.2)', '#00F2FF', '#FF8C00'] }}
+                      whileInView={{ borderColor: ['rgba(255,255,255,0.2)', '#00F2FF', '#E8590C'] }}
                       transition={{ duration: 1.5 }}
                     >
                       <div className="absolute inset-1 rounded-full bg-white/80" />
@@ -102,7 +102,7 @@ const HowItWorksV2 = () => {
                       {idx === 0 && (
                         <div className="relative w-full h-full border border-white/5 rounded-full flex items-center justify-center border-dashed animate-[spin_20s_linear_infinite]">
                           <div className="w-2/3 h-2/3 border border-brand-orange/30 rounded-full flex items-center justify-center border-dashed">
-                             <div className="w-1/3 h-1/3 bg-brand-orange/50 rounded-full shadow-[0_0_30px_#FF8C00]" />
+                             <div className="w-1/3 h-1/3 bg-brand-orange/50 rounded-full shadow-[0_0_30px_#E8590C]" />
                           </div>
                         </div>
                       )}
