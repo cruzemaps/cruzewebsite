@@ -57,7 +57,7 @@ That is why arriving at a green too early is almost as wasteful as arriving too 
 
 > The costly part of a red light is not the wait. It is braking a rolling vehicle to a stop and then dragging it back up to speed. Time your approach to keep moving and you skip both.
 
-This is exactly the logic behind a green-light optimal speed advisory, or GLOSA: use knowledge of the signal timing ahead to tell a driver the speed that will reach the next light on green, so they neither stop short nor arrive too fast. In a 2022 field test of a GLOSA system on the Virginia Smart Road, published in the journal Energies, advising drivers on the right approach speed cut fuel consumption by about 22 percent and travel time by about 6 percent compared with uninformed driving. The mechanism is the same one described above: fewer full stops, less braking, less launching from zero.
+This is exactly the logic behind a green-light optimal speed advisory, or GLOSA: use knowledge of the signal timing ahead to tell a driver the speed that will reach the next light on green, so they neither stop short nor arrive too fast. In a 2022 field test of a GLOSA system for buses on the Virginia Smart Road, published in the journal Energies, advising drivers on the right approach speed cut fuel consumption by about 22 percent and travel time by about 6 percent compared with uninformed driving. The mechanism is the same one described above: fewer full stops, less braking, less launching from zero.
 
 ## Green waves and phantom jams are the same problem
 
