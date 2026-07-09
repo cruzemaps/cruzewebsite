@@ -3,7 +3,10 @@ import { SITE, ROUTES, resolveOgImage, findRouteMeta } from "./seo";
 
 describe("resolveOgImage", () => {
   it("falls back to the site default OG image when given undefined", () => {
-    expect(resolveOgImage(undefined)).toBe(SITE.ogImage);
+    // OG images must be absolute URLs for social scrapers, so the relative
+    // SITE.ogImage default is prefixed with the site origin like any other
+    // relative path.
+    expect(resolveOgImage(undefined)).toBe(`${SITE.url}${SITE.ogImage}`);
   });
 
   it("passes absolute http(s) URLs through unchanged", () => {
