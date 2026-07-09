@@ -272,6 +272,13 @@ function DataroomGate({ onSuccess }: { onSuccess: () => void }) {
     // Basic equality check at the client. NOT a security boundary — anything in
     // the dataroom is gated server-side too (e.g. Notion link with link-level
     // sharing, or a signed Supabase storage URL). This is a friction gate.
+    //
+    // SECURITY NOTE (known issue, needs owner decision): VITE_DATAROOM_PASSWORD
+    // is inlined into the public JS bundle at build time, so the "password" is
+    // readable by anyone who opens dev tools. This gate needs a real
+    // server-side check (e.g. a Supabase edge function that verifies the
+    // password and returns the dataroom links/signed URLs) before anything
+    // sensitive is ever linked from DataroomSection.
     await new Promise((r) => setTimeout(r, 300));
     setSubmitting(false);
     if (!expected) {

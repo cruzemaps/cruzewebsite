@@ -104,7 +104,7 @@ const ImpactMapV2 = () => {
 
                {/* Orbital Nodes */}
                <motion.div 
-                 className="absolute top-0 left-1/2 w-4 h-4 bg-brand-orange rounded-full shadow-[0_0_15px_#FF8C00] -translate-x-1/2 -translate-y-1/2"
+                 className="absolute top-0 left-1/2 w-4 h-4 bg-brand-orange rounded-full shadow-[0_0_15px_#E8590C] -translate-x-1/2 -translate-y-1/2"
                  animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
                />
                <motion.div 

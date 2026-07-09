@@ -136,7 +136,7 @@ const Speedometer = ({ value = 65 }: { value?: number }) => (
         <div className="relative w-full aspect-square flex items-center justify-center max-w-[160px]">
             <svg className="w-full h-full -rotate-[220deg]" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" strokeDasharray="260 360" strokeLinecap="round" />
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#FF8C00" strokeWidth="8" strokeDasharray={`${(value / 120) * 260} 360`} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#E8590C" strokeWidth="8" strokeDasharray={`${(value / 120) * 260} 360`} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
                 <span className="text-4xl font-display font-bold tabular-nums text-white">{value}</span>
@@ -220,7 +220,7 @@ const CityMap = () => (
                 initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} 
                 transition={{ duration: 4, repeat: Infinity, repeatType: "reverse" }}
                 d="M 100 800 L 400 600 L 700 300" 
-                stroke="#FF8C00" strokeWidth="4" fill="none" className="opacity-30" 
+                stroke="#E8590C" strokeWidth="4" fill="none" className="opacity-30" 
             />
             
             {/* Hazards Visualized */}
