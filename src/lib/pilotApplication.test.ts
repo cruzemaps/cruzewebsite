@@ -32,6 +32,13 @@ describe("pilotInsertFromWizard", () => {
     expect(row.contact_name).toBe("Sam Patel");
     expect(row.contact_email).toBe("ops@coastal.example");
     expect(row.application_notes).toBe("Petroleum tankers");
+    // Optional fields with real (non-empty) values — otherwise a field-swap bug
+    // (e.g. website: data.primaryLanes) is invisible: the null-coercion test
+    // below only feeds these "", so both sides read null and the swap hides.
+    expect(row.website).toBe("https://coastal.example");
+    expect(row.primary_lanes).toBe("I-35 SA-Laredo");
+    expect(row.contact_phone).toBe("210-555-0100");
+    expect(row.contact_title).toBe("Ops Director");
   });
 
   it("always inserts as 'pending'", () => {
@@ -87,6 +94,10 @@ describe("pilot lifecycle metadata", () => {
   it("treats only denied/archived as terminal, and both are real statuses", () => {
     expect(TERMINAL_PILOT_STATUSES).toContain("denied");
     expect(TERMINAL_PILOT_STATUSES).toContain("archived");
+    // Enforce "only" — a re-application is allowed once the pilot is terminal,
+    // so silently adding e.g. "active" here would let a live-pilot user submit
+    // a duplicate. toContain alone can't catch that; pin the exact membership.
+    expect([...TERMINAL_PILOT_STATUSES].sort()).toEqual(["archived", "denied"]);
     for (const s of TERMINAL_PILOT_STATUSES) {
       expect(PILOT_LIFECYCLE).toContain(s);
     }

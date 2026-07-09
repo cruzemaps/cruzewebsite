@@ -28,7 +28,11 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Type-check
-        run: npx tsc --noEmit
+        # Root tsconfig.json is a solution file (files: [] + project references),
+        # so a bare `tsc --noEmit` compiles ZERO files and always passes. Point at
+        # the app project (include: ["src"]) so the check actually covers the app
+        # source AND this suite's *.test.ts files.
+        run: npx tsc -p tsconfig.app.json --noEmit
 
       - name: Unit tests
         run: npm test
