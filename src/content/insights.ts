@@ -59,6 +59,12 @@ Second, the 40% fuel figure and the 15% throughput figure are from a closed circ
 
 What survives both caveats is the principle, and it is a strong one: the driver of congestion is a small-share feedback effect, so a small-share intervention can address it.
 
+## From a ring road to a real highway
+
+A closed loop is a clean experiment, so the fair question is whether the effect survives on a messy public freeway with ramps, exits, trucks, and lane changes. That test has since been run. In November 2022 the CIRCLES Consortium, a research collaboration including teams from Vanderbilt and the University of California, Berkeley, ran roughly 100 automated vehicles through live rush-hour traffic on Interstate 24 near Nashville. It was the largest coordinated test of this idea attempted on an open public freeway, over a stretch instrumented with cameras to measure how the surrounding traffic responded.
+
+We are deliberately not lifting a headline number from it. The controlled vehicles were a low-single-digit share of the flow, roughly one car in fifty on that stretch, and exactly how much fuel and delay were saved is still an active area of measurement rather than a settled figure. What the experiment does establish is direction: the small-share result did not evaporate the moment it left the test track. And the way it was measured, by reading the whole traffic stream from roadside cameras rather than from inside every car, is the same vantage point Cruze works from.
+
 ## How Cruze applies the principle
 
 Cruze takes that principle onto real roads by guiding a small share of drivers with gentle speed cues, so a few vehicles play the wave-absorbing role the controlled car played on the ring. We do not require self-driving cars, new roadside hardware, or majority adoption, for the same reason the study did not: the physics rewards a few well-timed trajectories.
