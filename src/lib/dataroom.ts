@@ -15,7 +15,8 @@
 // password is still brute-forceable from the digest, so pick a strong passphrase,
 // but this removes the trivial view-source leak.
 //
-// Generate the hash with:  printf '%s' 'your-password' | shasum -a 256
+// Generate the hash with:  printf '%s' 'your-password' | shasum -a 256 | awk '{print $1}'
+// (the `awk` drops shasum's trailing "  -"; the code also tolerates the raw output.)
 //
 // `VITE_DATAROOM_PASSWORD` (plaintext) is still honored as a legacy fallback so
 // existing deploys keep working; it logs a one-time warning nudging migration.
@@ -45,7 +46,12 @@ export async function verifyDataroomPassword(
   input: string,
   cfg: { hash?: string; plaintext?: string },
 ): Promise<DataroomVerifyResult> {
-  const hash = (cfg.hash || "").trim().toLowerCase();
+  // Extract the 64-hex digest rather than trusting the raw env value. `printf
+  // ... | shasum -a 256` (and Linux `sha256sum`) emit `<64hex>  -`, so a copy of
+  // the whole command output would otherwise carry a trailing `  -` that `.trim()`
+  // can't strip (the `-` isn't whitespace) — the length check would then reject
+  // the CORRECT password and surface as "Incorrect password", near-undiagnosable.
+  const hash = ((cfg.hash || "").toLowerCase().match(/[0-9a-f]{64}/) || [""])[0];
   if (hash) {
     const got = await sha256Hex(input);
     return hexEqual(got, hash) ? "ok" : "incorrect";
@@ -58,7 +64,7 @@ export async function verifyDataroomPassword(
       console.warn(
         "[dataroom] Using VITE_DATAROOM_PASSWORD (plaintext) — it ships in the " +
           "client bundle. Set VITE_DATAROOM_PASSWORD_HASH instead: " +
-          "printf '%s' '<password>' | shasum -a 256",
+          "printf '%s' '<password>' | shasum -a 256 | awk '{print $1}'",
       );
     }
     return input === plaintext ? "ok" : "incorrect";
