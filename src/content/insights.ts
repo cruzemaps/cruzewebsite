@@ -70,8 +70,8 @@ Next time the lane beside you looks faster, remember that roughly 70 percent of 
     author: "Cruze Research",
     publishedAt: "2026-07-03",
     excerpt:
-      "Those stop-and-go lights on the freeway on-ramp look like they slow you down. The evidence, including a rare eight-week experiment where an entire city switched all of them off, says they do the opposite.",
-    body: `Yes, ramp meters work, and there is unusually strong evidence for it. Most traffic fixes are hard to prove because you can never rerun the same commute with and without them. Ramp metering is the rare case where a whole metro area ran that exact experiment, turned every meter off for eight weeks, and measured what happened. Traffic got worse across the board. This article explains what a ramp meter does, the mechanism that makes it help, the natural experiment that proved it, where it falls short, and how the same idea shows up inside the car instead of on the ramp.
+      "Those stop-and-go lights on the freeway on-ramp look like they slow you down. The evidence, including a rare six-week experiment where an entire city switched all of them off, says they do the opposite.",
+    body: `Yes, ramp meters work, and there is unusually strong evidence for it. Most traffic fixes are hard to prove because you can never rerun the same commute with and without them. Ramp metering is the rare case where a whole metro area ran that exact experiment, turned every meter off for six weeks, and measured what happened. Traffic got worse across the board. This article explains what a ramp meter does, the mechanism that makes it help, the natural experiment that proved it, where it falls short, and how the same idea shows up inside the car instead of on the ramp.
 
 ## What is a ramp meter?
 
@@ -91,7 +91,7 @@ The meter's job is to never let the freeway cross that line. By metering the inf
 
 ## The experiment that proved it: the Twin Cities meter shutdown
 
-In fall 2000, the Minnesota Department of Transportation did something almost no agency ever gets to do. Under a legislative mandate to prove the meters were worth it, they switched off all 433 ramp meters in the Minneapolis and Saint Paul metro area for eight weeks and measured freeway performance with the meters dark against the same corridors with the meters running. It cost about 650,000 dollars and remains one of the cleanest before-and-after tests in traffic operations.
+In fall 2000, the Minnesota Department of Transportation did something almost no agency ever gets to do. Under a legislative mandate to prove the meters were worth it, they switched off all 430 ramp meters in the Minneapolis and Saint Paul metro area for six weeks and measured freeway performance with the meters dark against the same corridors with the meters running. It cost about 650,000 dollars and remains one of the cleanest before-and-after tests in traffic operations.
 
 The results, from the independent Cambridge Systematics evaluation, were consistent and in one direction. With the meters off:
 
