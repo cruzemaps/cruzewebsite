@@ -21,7 +21,7 @@ export const INSIGHTS: Insight[] = [
     publishedAt: "2026-07-07",
     excerpt:
       "A single car, fewer than 5% of the traffic, dissolved stop-and-go waves across an entire ring of drivers and cut fuel use by up to 40%. Here is the 2018 experiment that proved it, and what it does and does not tell us.",
-    body: `Yes, and it has been shown on a real track. In a 2018 field experiment run by researchers at the University of Arizona, more than 20 human-driven cars were put on a circular road and left to drive normally. A stop-and-go wave formed on its own, with no crash and no bottleneck. Then a single car, fewer than 5% of the vehicles, was told to smooth out its own speed instead of chasing the bumper ahead. The waves faded across the whole ring. Fuel use dropped by up to 40% and throughput rose by up to 15%, all from changing the behavior of one car in twenty.
+    body: `Yes, and it has been shown on a real track. In a 2018 field experiment run by researchers at the University of Arizona, more than 20 human-driven cars were put on a circular road and left to drive normally. A stop-and-go wave formed on its own, with no crash and no bottleneck. Then a single car, fewer than 5% of the vehicles, was told to smooth out its own speed instead of chasing the bumper ahead. The waves faded across the whole ring. Fuel use dropped by up to 40% and throughput rose by up to about 14%, all from changing the behavior of one car in twenty.
 
 That result (Stern et al., "Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments," Transportation Research Part C, 2018) is the scientific idea Cruze is built on. This article walks through what the experiment actually did, why one car can calm an entire highway, and, just as importantly, what the study does not claim.
 
@@ -33,7 +33,7 @@ A ring road is the ideal laboratory for this. There are no merges, no lane chang
 
 ## What happened when one car stopped chasing the bumper ahead
 
-With every car reacting to the one in front, the ring jammed. The moment the single controlled car began smoothing its speed, the stop-and-go pattern died down around the entire loop, not just behind that one car. Measured against the wave-filled baseline, the researchers reported up to 40% lower fuel consumption across all the vehicles and up to a 15% increase in throughput.
+With every car reacting to the one in front, the ring jammed. The moment the single controlled car began smoothing its speed, the stop-and-go pattern died down around the entire loop, not just behind that one car. Measured against the wave-filled baseline, the researchers reported up to 40% lower fuel consumption across all the vehicles and up to about a 14% increase in throughput.
 
 The headline is not the exact percentages, which come from one controlled track. It is the ratio. You do not need most cars to change. You need a small number to stop amplifying the wave.
 
@@ -55,7 +55,7 @@ Two things about the 2018 study should be stated plainly, because they matter.
 
 First, the wave-smoothing car in the experiment was an automated controller, not a human following advice. The study proves the physics of the intervention. It does not prove that a person handed a speed cue will match a control algorithm.
 
-Second, the 40% fuel figure and the 15% throughput figure are from a closed circular track with roughly two dozen cars. They are the ceiling that a clean experiment produced, not a promise for any given public highway, which has ramps, exits, trucks, and weather the ring did not.
+Second, the 40% fuel figure and the roughly 14% throughput figure are from a closed circular track with roughly two dozen cars. They are the ceiling that a clean experiment produced, not a promise for any given public highway, which has ramps, exits, trucks, and weather the ring did not.
 
 What survives both caveats is the principle, and it is a strong one: the driver of congestion is a small-share feedback effect, so a small-share intervention can address it.
 
@@ -69,7 +69,7 @@ We are deliberately not lifting a headline number from it. The controlled vehicl
 
 Cruze takes that principle onto real roads by guiding a small share of drivers with gentle speed cues, so a few vehicles play the wave-absorbing role the controlled car played on the ring. We do not require self-driving cars, new roadside hardware, or majority adoption, for the same reason the study did not: the physics rewards a few well-timed trajectories.
 
-We are careful not to borrow the study's numbers as our own. The 40% and 15% belong to the 2018 ring experiment. Any fuel or delay benefit we quote for a fleet or corridor is modeled from that specific road's measured stop-and-go intensity and sized before a pilot begins, not assumed. For how those savings scale on a real fleet, and why the first few points of smoothing recover the most fuel, see [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go).
+We are careful not to borrow the study's numbers as our own. The 40% and roughly 14% belong to the 2018 ring experiment. Any fuel or delay benefit we quote for a fleet or corridor is modeled from that specific road's measured stop-and-go intensity and sized before a pilot begins, not assumed. For how those savings scale on a real fleet, and why the first few points of smoothing recover the most fuel, see [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go).
 
 The stakes are worth the care. U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard), and a large share of that is phantom, wave-driven delay with no crash behind it. The 2018 ring road showed that you do not have to wait for everyone to change to take a bite out of that number. You need a few drivers, coordinated well.`,
     tags: ["fundamentals", "traffic-physics"],
