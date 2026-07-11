@@ -297,8 +297,8 @@ const CruzeLab = () => {
                   <AreaChart data={metrics}>
                     <defs>
                       <linearGradient id="speedColor" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#FF8C00" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#FF8C00" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#E8590C" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#E8590C" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
@@ -306,9 +306,9 @@ const CruzeLab = () => {
                     <YAxis domain={[0, 80]} hide />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#0B0E14', borderColor: '#ffffff20', borderRadius: '8px' }}
-                      itemStyle={{ color: '#FF8C00', fontWeight: 'bold' }}
+                      itemStyle={{ color: '#E8590C', fontWeight: 'bold' }}
                     />
-                    <Area type="monotone" dataKey="speed" stroke="#FF8C00" strokeWidth={2} fillOpacity={1} fill="url(#speedColor)" />
+                    <Area type="monotone" dataKey="speed" stroke="#E8590C" strokeWidth={2} fillOpacity={1} fill="url(#speedColor)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

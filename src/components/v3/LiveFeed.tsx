@@ -102,7 +102,11 @@ export default function LiveCameras() {
 
     if (typeof window !== "undefined" && !(window as any).Hls) {
       const s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/npm/hls.js@latest";
+      // Pinned version + SRI: never load `@latest` — a compromised or breaking
+      // CDN publish would execute arbitrary JS on the live site.
+      s.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
+      s.integrity = "sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w0u/7mRvr";
+      s.crossOrigin = "anonymous";
       s.async = true;
       s.onload = load;
       document.body.appendChild(s);

@@ -137,6 +137,9 @@ const FleetDashboard = () => {
           <span className="font-medium tracking-wide">Back to Home</span>
         </Link>
         <div className="flex items-center gap-4">
+          <Link to="/fleet-scores" className="text-white/70 hover:text-brand-orange transition-colors text-sm font-medium hidden sm:block">
+            Driver scores
+          </Link>
           <span className="text-white/50 text-sm hidden sm:block">{user?.email}</span>
           <Button variant="ghost" onClick={() => signOut()} className="text-white hover:text-brand-orange hover:bg-transparent">
             Sign Out

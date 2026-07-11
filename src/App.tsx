@@ -36,12 +36,16 @@ const DemoHandoff = lazy(() => import("./pages/DemoHandoff"));
 const Diag = lazy(() => import("./pages/Diag"));
 const LOIView = lazy(() => import("./pages/LOIView"));
 const UIInterns = lazy(() => import("./pages/UIInterns"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Support = lazy(() => import("./pages/Support"));
+const Terms = lazy(() => import("./pages/Terms"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const RoutePlanner = lazy(() => import("./pages/RoutePlanner"));
 const MissionControl = lazy(() => import("./pages/MissionControl"));
 const FleetDashboard = lazy(() => import("./pages/FleetDashboard"));
+const FleetScores = lazy(() => import("./pages/FleetScores"));
 const AdminPortal = lazy(() => import("./pages/AdminPortal"));
 
 const queryClient = new QueryClient();
@@ -89,12 +93,19 @@ const App = () => (
               <Route path="/lab" element={<Lab />} />
               <Route path="/route-planner" element={<RoutePlanner />} />
 
+              {/* Legal & support (required for App Store + Google Play submission) */}
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/terms" element={<Terms />} />
+
               {/* Auth */}
               <Route path="/login" element={<Login />} />
               <Route path="/invite/:token" element={<InviteAccept />} />
               <Route path="/impersonate" element={<ImpersonateHandoff />} />
               <Route path="/demo" element={<DemoHandoff />} />
-              <Route path="/diag" element={<Diag />} />
+              {/* Diagnostics page is dev-only: it surfaces env/config/session
+                  internals and must not be publicly mounted in production. */}
+              {import.meta.env.DEV && <Route path="/diag" element={<Diag />} />}
               <Route path="/loi/:id" element={<LOIView />} />
 
               {/* Protected dashboards */}
@@ -111,6 +122,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={["fleet_owner"]}>
                     <FleetDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/fleet-scores"
+                element={
+                  <ProtectedRoute allowedRoles={["fleet_owner", "admin"]}>
+                    <FleetScores />
                   </ProtectedRoute>
                 }
               />
