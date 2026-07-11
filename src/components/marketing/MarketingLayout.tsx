@@ -58,8 +58,10 @@ function Footer() {
 
         <FooterColumn title="Company">
           <FooterLink to="/investors">Investors</FooterLink>
+          <FooterLink to="/support">Support</FooterLink>
+          <FooterLink to="/privacy">Privacy</FooterLink>
+          <FooterLink to="/terms">Terms</FooterLink>
           <FooterLink to="/login">Sign In</FooterLink>
-          <a href="mailto:hello@cruzemaps.com" className="text-white/60 hover:text-white">Contact</a>
         </FooterColumn>
       </div>
       <div className="border-t border-white/5 py-6 text-center text-xs text-white/40">

@@ -80,7 +80,11 @@ function HlsPlayer({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
 
     if (typeof window !== "undefined" && !(window as any).Hls) {
       const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/hls.js@latest";
+      // Pinned version + SRI: never load `@latest` — a compromised or breaking
+      // CDN publish would execute arbitrary JS on the live site.
+      script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
+      script.integrity = "sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w0u/7mRvr";
+      script.crossOrigin = "anonymous";
       script.async = true;
       script.onload = init;
       document.body.appendChild(script);
