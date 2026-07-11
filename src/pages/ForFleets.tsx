@@ -123,7 +123,8 @@ function ROISection() {
 
   const result = useMemo(() => {
     // Conservative assumptions: 11% fuel reduction, 1.5 hours/week reclaimed/driver,
-    // 0.45 kg CO2 per gallon of diesel.
+    // 10.21 kg CO2 per gallon of diesel (EPA), and a 15% cut in the
+    // congestion-related crash subset (see the CSA block below).
     const annualMiles = trucks * milesPerTruckYear;
     const annualGallons = annualMiles / Math.max(mpg, 1);
     const fuelSaved = annualGallons * 0.11;
