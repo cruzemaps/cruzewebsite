@@ -136,7 +136,7 @@ describe("SEO — og:image resolution", () => {
   it("falls back to SITE.ogImage when none is provided", async () => {
     renderSEO({ title: "Default OG" });
     await waitFor(() => expect(document.title).toBe("Default OG"));
-    expect(metaContent('meta[property="og:image"]')).toBe(SITE.ogImage);
+    expect(metaContent('meta[property="og:image"]')).toBe(`${SITE.url}${SITE.ogImage}`);
   });
 });
 
