@@ -176,7 +176,11 @@ const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
 
         if (typeof window !== 'undefined' && !(window as any).Hls) {
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+            // Pinned version + SRI: never load `@latest` — a compromised or
+            // breaking CDN publish would execute arbitrary JS on the live site.
+            script.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';
+            script.integrity = 'sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w0u/7mRvr';
+            script.crossOrigin = 'anonymous';
             script.async = true;
             script.onload = initPlayer;
             document.body.appendChild(script);
@@ -561,7 +565,7 @@ const InteractiveLabV2 = () => {
                                         />
                                     )}
                                     {!roiActive && roiPoints.map((p, i) => (
-                                        <circle key={i} cx={`${p.x}`} cy={`${p.y}`} r="1" fill={i === 0 ? "#FF8C00" : "#00F2FF"} />
+                                        <circle key={i} cx={`${p.x}`} cy={`${p.y}`} r="1" fill={i === 0 ? "#E8590C" : "#00F2FF"} />
                                     ))}
                                 </svg>
 

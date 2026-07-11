@@ -9,11 +9,11 @@ export const SITE = {
   shortDescription:
     "Cruze transforms every smartphone into an active traffic actuator. We coordinate driver speeds with swarm intelligence to dissolve phantom jams before they form.",
   twitter: "@CruzeMaps",
-  ogImage: "https://og.cruzemaps.com/",
+  ogImage: "/og-image.png",
   themeColor: "#0B0E14",
   brand: {
     cyan: "#00F2FF",
-    orange: "#FF8C00",
+    orange: "#E8590C",
     charcoal: "#0B0E14",
   },
 } as const;
@@ -213,6 +213,38 @@ export const ROUTES: RouteMeta[] = [
       "Plan a route with Cruze. See how swarm coordination smooths your trip and saves fuel.",
     changefreq: "weekly",
     priority: 0.6,
+  },
+  {
+    path: "/privacy",
+    title: "Privacy Policy | Cruze",
+    description:
+      "How Cruze collects, uses, and protects driver data, including location, microphone, motion, and account information. Cruze does not sell your data or use it for advertising tracking.",
+    changefreq: "yearly",
+    priority: 0.4,
+  },
+  {
+    path: "/support",
+    title: "Support | Cruze",
+    description:
+      "Get help with the Cruze driver app: account deletion, permissions, location and connection troubleshooting, and how to reach our team.",
+    changefreq: "monthly",
+    priority: 0.5,
+  },
+  {
+    path: "/terms",
+    title: "Terms of Service | Cruze",
+    description:
+      "The terms that govern your use of the Cruze driver app. Cruze provides driver advisories; the driver is solely responsible for operating the vehicle and obeying all traffic laws at all times.",
+    changefreq: "yearly",
+    priority: 0.4,
+  },
+  {
+    // Protected fleet manager dashboard (driver safety/efficiency scores).
+    // noindex: behind auth, never crawlable.
+    path: "/fleet-scores",
+    title: "Fleet Driver Scores | Cruze",
+    description: "Live driver safety and efficiency scores for your Cruze fleet.",
+    noindex: true,
   },
   {
     path: "/login",

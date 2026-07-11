@@ -6,7 +6,7 @@ import { Download, Image as ImageIcon, FileText, User } from "lucide-react";
 const FACTS = [
   { label: "Founded", value: "2024" },
   { label: "HQ", value: "Austin, TX" },
-  { label: "Stage", value: "Pilot deployments live" },
+  { label: "Stage", value: "Pre-seed, pilots lined up" },
   { label: "Approach", value: "Swarm intelligence + physics-informed AI" },
 ];
 

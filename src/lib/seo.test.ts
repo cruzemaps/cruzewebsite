@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import { SITE, ROUTES, resolveOgImage, findRouteMeta } from "./seo";
 
 describe("resolveOgImage", () => {
-  it("falls back to the site default OG image when given undefined", () => {
-    expect(resolveOgImage(undefined)).toBe(SITE.ogImage);
+  it("falls back to the site default OG image, absolutized, when given undefined", () => {
+    // resolveOgImage always returns an absolute URL (Open Graph requires one);
+    // the default SITE.ogImage is a relative path, so it gets the origin prefix.
+    expect(resolveOgImage(undefined)).toBe(`${SITE.url}${SITE.ogImage}`);
   });
 
   it("passes absolute http(s) URLs through unchanged", () => {
