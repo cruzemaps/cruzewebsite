@@ -3,7 +3,11 @@ import { SITE, ROUTES, resolveOgImage, findRouteMeta } from "./seo";
 
 describe("resolveOgImage", () => {
   it("falls back to the site default OG image when given undefined", () => {
-    expect(resolveOgImage(undefined)).toBe(SITE.ogImage);
+    // undefined must behave exactly as if the site default were passed in.
+    // resolveOgImage absolutizes a relative default, so assert against the
+    // resolved default rather than the raw SITE.ogImage literal (which may be
+    // relative, e.g. "/og-image.png").
+    expect(resolveOgImage(undefined)).toBe(resolveOgImage(SITE.ogImage));
   });
 
   it("passes absolute http(s) URLs through unchanged", () => {

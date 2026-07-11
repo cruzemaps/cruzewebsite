@@ -16,7 +16,7 @@ import { cleanup, render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import SEO from "./SEO";
-import { SITE } from "@/lib/seo";
+import { SITE, resolveOgImage } from "@/lib/seo";
 
 afterEach(() => cleanup());
 
@@ -136,7 +136,9 @@ describe("SEO — og:image resolution", () => {
   it("falls back to SITE.ogImage when none is provided", async () => {
     renderSEO({ title: "Default OG" });
     await waitFor(() => expect(document.title).toBe("Default OG"));
-    expect(metaContent('meta[property="og:image"]')).toBe(SITE.ogImage);
+    // The component runs the default through resolveOgImage, which absolutizes
+    // a relative default (e.g. "/og-image.png") against SITE.url.
+    expect(metaContent('meta[property="og:image"]')).toBe(resolveOgImage(SITE.ogImage));
   });
 });
 
