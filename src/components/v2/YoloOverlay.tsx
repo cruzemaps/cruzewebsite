@@ -29,7 +29,7 @@ const VEHICLE_CLASSES = new Set(["car", "truck", "bus", "motorcycle", "bicycle"]
 // match the brand accent; warmer tones for the rarer classes.
 const CLASS_COLOR: Record<Box["cls"], string> = {
     car: "#00F2FF",
-    truck: "#FF8C00",
+    truck: "#E8590C",
     bus: "#FFB75E",
     motorcycle: "#A78BFA",
     bicycle: "#34D399",
