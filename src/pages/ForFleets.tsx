@@ -206,7 +206,7 @@ function CalcSlider({
         <Label className="text-white/70 text-sm">{label}</Label>
         <span className="text-brand-cyan text-sm font-semibold">{format(value)}</span>
       </div>
-      <Slider value={[value]} onValueChange={([v]) => setValue(v)} min={min} max={max} step={step} />
+      <Slider value={[value]} onValueChange={([v]) => setValue(v)} min={min} max={max} step={step} thumbLabel={label} />
     </div>
   );
 }

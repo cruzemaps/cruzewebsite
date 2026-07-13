@@ -167,7 +167,7 @@ function DriveHero() {
                 <h1 className="v3-hero-h1 font-bold tracking-[-0.025em] leading-[1.02]" style={{ fontFamily: display, color: text, fontSize: "clamp(2.2rem, 5.4vw, 4.4rem)" }}>{beats[beat].h}</h1>
                 <p className="v3-hero-body mt-4 text-base sm:text-lg leading-relaxed max-w-xl" style={{ color: "rgba(255,255,255,0.82)", fontFamily: body }}>{beats[beat].t}</p>
                 <div className="v3-hero-cta mt-6 flex flex-wrap items-center gap-3" style={{ fontFamily: body }}>
-                  <a href="#live" className="text-[14px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff" }}>See it live</a>
+                  <a href="#live" className="text-[14px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14" }}>See it live</a>
                   <a href="#contact" className="text-[14px] font-medium px-5 py-2.5 rounded-full border transition-colors hover:border-white" style={{ borderColor: "rgba(255,255,255,0.28)", color: "#fff" }}>Talk to us</a>
                 </div>
               </motion.div>

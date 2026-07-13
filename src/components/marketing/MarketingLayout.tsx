@@ -20,7 +20,9 @@ function Footer() {
       <div className="container mx-auto px-6 py-12 grid md:grid-cols-6 gap-10 text-sm">
         <div className="md:col-span-2">
           <Link to="/" className="flex items-center gap-3 mb-4">
-            <img src="/logo.png" alt="Cruze" className="h-8 w-auto" />
+            {/* Decorative: the adjacent "CRUZE" wordmark already names the link
+                (avoids the image-redundant-alt a11y audit). */}
+            <img src="/logo.png" alt="" className="h-8 w-auto" />
             <span className="font-display font-bold text-xl">CRUZE</span>
           </Link>
           <p className="text-white/60 max-w-sm">
