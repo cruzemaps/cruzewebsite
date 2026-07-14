@@ -103,7 +103,9 @@ const App = () => (
               <Route path="/invite/:token" element={<InviteAccept />} />
               <Route path="/impersonate" element={<ImpersonateHandoff />} />
               <Route path="/demo" element={<DemoHandoff />} />
-              <Route path="/diag" element={<Diag />} />
+              {/* Diagnostics page is dev-only: it surfaces env/config/session
+                  internals and must not be publicly mounted in production. */}
+              {import.meta.env.DEV && <Route path="/diag" element={<Diag />} />}
               <Route path="/loi/:id" element={<LOIView />} />
 
               {/* Protected dashboards */}
