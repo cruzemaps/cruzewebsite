@@ -51,7 +51,7 @@ Here is the part that turns a depressing set of numbers into an opportunity. A l
 
 In 2008 a team of physicists put 22 cars on a circular track and asked everyone to hold a steady speed. Within minutes a stop-and-go jam formed and traveled backward around the loop with nothing at all blocking the road (Sugiyama et al., New Journal of Physics, 2008). We explain that result in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident). These [phantom traffic jams](/insights/phantom-traffic-jams) are pure waste: every car behind the wave pays in time and fuel, and no crash ever caused it.
 
-Because the wave is created by behavior rather than by a physical bottleneck, you do not need to remove a physical obstacle to fix it. A University of Arizona study found that guiding just one vehicle in twenty, about 5%, to hold a steadier speed was enough to dissolve these waves and cut fuel use for every car behind them (Stern et al., Transportation Research Part C, 2018). We unpack that in [can a few drivers fix traffic for everyone](/insights/can-a-few-drivers-fix-traffic).
+Because the wave is created by behavior rather than by a physical bottleneck, you do not need to remove a physical obstacle to fix it. A University of Arizona study found that guiding just one vehicle in twenty, about 5%, to hold a steadier speed was enough to dissolve these waves and cut fuel use for every car behind them (Stern et al., Transportation Research Part C, 2018).
 
 > A large part of what traffic costs you is not the road being too small. It is stop-and-go waves that form on their own, and those are exactly the part you can take back.
 
