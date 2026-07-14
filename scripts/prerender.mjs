@@ -45,6 +45,27 @@ async function loadProgrammaticRoutes(SITE) {
     priority: 0.6,
   }));
 
+  // Mirror the runtime articleJsonLd() in src/pages/InsightDetail.tsx so the
+  // Article + Person (E-E-A-T) schema documented for /insights/:slug is baked
+  // into the static HTML, not just injected client-side after hydration.
+  // Keep this in lockstep with that function — same shape, same fields.
+  const insightArticleJsonLd = (p) => {
+    const author = p.authorTitle
+      ? { "@type": "Person", name: p.author, jobTitle: p.authorTitle, worksFor: { "@type": "Organization", name: "Cruze" } }
+      : { "@type": "Organization", name: p.author };
+    return {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: p.title,
+      description: p.excerpt,
+      author,
+      publisher: { "@type": "Organization", name: "Cruze", logo: { "@type": "ImageObject", url: `${SITE.url}/logo.png` } },
+      datePublished: p.publishedAt,
+      keywords: p.tags ? p.tags.join(", ") : undefined,
+      mainEntityOfPage: `${SITE.url}/insights/${p.slug}`,
+    };
+  };
+
   const insightRoutes = insights.map((p) => ({
     path: `/insights/${p.slug}`,
     title: `${p.title} | Cruze Insights`,
@@ -52,6 +73,7 @@ async function loadProgrammaticRoutes(SITE) {
     keywords: p.tags ? p.tags.join(", ") : undefined,
     changefreq: "yearly",
     priority: 0.6,
+    jsonLd: insightArticleJsonLd(p),
   }));
 
   return [...cityRoutes, ...laneRoutes, ...insightRoutes];
