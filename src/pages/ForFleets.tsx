@@ -151,7 +151,7 @@ function ROISection() {
       fuelSavingsUSD: Math.round(fuelSavingsUSD),
       laborValueUSD: Math.round(laborValueUSD),
       csaSavingsUSD: Math.round(csaSavingsUSD),
-      crashesAvoided: Math.round(crashesAvoided * 100) / 100,
+      crashesAvoided, // raw expected value; formatted at display so it never reads 0 while $ savings are positive
       totalUSD: Math.round(fuelSavingsUSD + laborValueUSD + csaSavingsUSD),
       co2Tons: Math.round(co2Tons),
       hoursReclaimedYear: Math.round(hoursReclaimedYear),
@@ -192,7 +192,7 @@ function ROISection() {
                 <ResultRow icon={<Fuel size={18} />} label="Fuel saved" value={`$${result.fuelSavingsUSD.toLocaleString()}`} />
                 <ResultRow icon={<Wallet size={18} />} label="CSA / safety savings" value={`$${result.csaSavingsUSD.toLocaleString()}`} />
                 <ResultRow icon={<Clock size={18} />} label="Driver-hours value" value={`$${result.laborValueUSD.toLocaleString()}`} />
-                <ResultRow icon={<ShieldCheck size={18} />} label="Crashes avoided" value={`${result.crashesAvoided.toLocaleString()}/yr`} />
+                <ResultRow icon={<ShieldCheck size={18} />} label="Crashes avoided" value={`${result.crashesAvoided >= 0.01 ? result.crashesAvoided.toFixed(2) : result.crashesAvoided > 0 ? "<0.01" : "0"}/yr`} />
                 <ResultRow icon={<Leaf size={18} />} label="CO₂ avoided" value={`${result.co2Tons.toLocaleString()} t`} />
                 <ResultRow icon={<Clock size={18} />} label="Hours reclaimed" value={`${result.hoursReclaimedYear.toLocaleString()} hr/yr`} />
               </div>
