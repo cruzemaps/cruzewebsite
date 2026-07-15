@@ -30,7 +30,7 @@ function Footer() {
             <a href="https://x.com/CruzeMaps" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
               <Twitter size={16} />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
+            <a href="https://www.linkedin.com/company/cruzemaps" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
               <Linkedin size={16} />
             </a>
             <a href="mailto:hello@cruzemaps.com" aria-label="Email" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
