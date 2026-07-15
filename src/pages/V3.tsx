@@ -542,9 +542,11 @@ function Footer() {
         <div>
           <div className="font-bold text-xl mb-2" style={{ fontFamily: display, color: text }}>Cruze</div>
           <p className="text-sm max-w-xs" style={{ color: muted }}>Pre-seed traffic intelligence. Building in Texas.</p>
-          {/* Socials. X + email are the confirmed handles from the repo; the
-              LinkedIn + Instagram URLs follow the @cruzemaps convention — confirm
-              or correct them before this ships. */}
+          {/* Socials — all four verified live: X @CruzeMaps and hello@cruzemaps.com
+              match the repo (seo.ts, MarketingLayout); the LinkedIn company page
+              resolves to the real Cruze profile (cruzemaps.com). Instagram @cruzemaps
+              resolves to the account but couldn't be fully loaded for a bot — safe to
+              ship, worth a founder eyeball. */}
           <div className="flex items-center gap-2 mt-5">
             {[
               { Icon: Twitter, href: "https://x.com/CruzeMaps", label: "Cruze on X" },
