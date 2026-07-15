@@ -86,17 +86,29 @@ describe("verifyDataroomPassword — legacy plaintext fallback", () => {
     ).toBe("incorrect");
   });
 
-  it("warns exactly once (module-scoped) when the plaintext path is used", async () => {
+  it("warns on the FIRST plaintext use, then stays silent (module-scoped latch)", async () => {
+    // The `warnedPlaintext` latch is module-scoped, and earlier specs in this
+    // file already tripped it — so re-importing the statically-bound module
+    // here would observe 0 warnings and assert nothing. Reset the module
+    // registry and import a FRESH copy with an untripped latch (the same
+    // technique #33's analytics.test.ts uses), so we actually exercise
+    // first-call-warns / second-call-silent.
+    vi.resetModules();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
-      await verifyDataroomPassword("legacy-pw", { plaintext: "legacy-pw" });
-      await verifyDataroomPassword("legacy-pw", { plaintext: "legacy-pw" });
-      // The warning is guarded by a module-level `warnedPlaintext` latch, so
-      // across the whole test module it fires at most once regardless of how
-      // many prior specs already exercised this path.
-      expect(warn.mock.calls.length).toBeLessThanOrEqual(1);
+      const fresh = await import("./dataroom");
+      expect(
+        await fresh.verifyDataroomPassword("legacy-pw", { plaintext: "legacy-pw" }),
+      ).toBe("ok");
+      expect(warn).toHaveBeenCalledTimes(1);
+      // Second use of the plaintext path must NOT warn again.
+      expect(
+        await fresh.verifyDataroomPassword("legacy-pw", { plaintext: "legacy-pw" }),
+      ).toBe("ok");
+      expect(warn).toHaveBeenCalledTimes(1);
     } finally {
       warn.mockRestore();
+      vi.resetModules();
     }
   });
 });
