@@ -14,6 +14,68 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "do-variable-speed-limits-work",
+    title: "Do variable speed limits actually work? Speed harmonization, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-07-02",
+    excerpt:
+      "Those overhead signs telling you to slow to 40 in a 70 zone are not arbitrary. Here is the physics of speed harmonization, the field evidence that it works, and where the gantry approach hits its limits.",
+    body: `You are on the highway, traffic is moving fine, and an overhead sign suddenly drops the speed limit from 70 to 40. There is no crash in sight, no construction, no obvious reason at all. It feels like the road is messing with you. It isn't. That sign is one of the few tools traffic engineers have that attacks congestion at its actual source, and the evidence says it works, within limits worth understanding.
+
+## What variable speed limits are
+
+A variable speed limit system, sometimes called speed harmonization or a managed or smart motorway, is a stretch of highway instrumented with traffic sensors and overhead electronic signs. When the sensors detect congestion building downstream, the system lowers the posted limit for the traffic still approaching it, often in steps: 60, then 50, then 40, spread across the gantries leading up to the trouble spot.
+
+The goal is not to slow your trip. It is to do two things at once: shrink the speed difference between the fast traffic arriving and the slow traffic ahead, and meter how quickly new cars pour into the back of the queue. Both matter, and both come straight from the physics of how jams grow.
+
+## The physics: slow down early so you don't stop at all
+
+A [phantom traffic jam](/insights/phantom-traffic-jams) is a wave. Cars pile into its back edge faster than they escape its front, so the jam grows and rolls backward down the highway toward you. Once you see the brake lights, it is too late to do anything but join it.
+
+But the wave has a weakness: it has to be fed. A jam only persists if traffic keeps arriving at its tail faster than the front can discharge. Slow the arriving traffic down early, a mile or two upstream, and cars trickle into the queue at a rate closer to the rate cars are leaving it. Starve the wave and it shrinks. Starve it enough and it dissolves entirely, before most drivers ever touch their brakes.
+
+> A lower limit ahead of a jam is not there to slow your trip. It is there to dissolve the stop-and-go wave before you reach it, trading a brief 40 for never sitting at 0.
+
+That is the counterintuitive bargain: briefly driving slower can get everyone through sooner and far more smoothly than driving fast into a wall of stopped cars. The stop is what costs you, in time, in fuel, and in rear-end crash risk. This is the same insight behind [why jams form with no accident at all](/insights/why-traffic-with-no-accident): the enemy is the speed variance, not the speed.
+
+## The evidence: it actually works
+
+This is not just theory. It has been measured on real highways for decades.
+
+The most famous deployment is London's M25 orbital motorway, where mandatory variable limits with camera enforcement went live in 1995. The UK's Transport Research Laboratory evaluated it for years and found injury accidents fell by roughly 10%, drivers kept steadier speeds and more uniform gaps with noticeably less braking, and fuel consumption and emissions dropped by a few percent (TRL, "Speed-control and incident-detection on the M25 Controlled Motorway," summary of results 1995 to 2002).
+
+The sharpest test came from the Netherlands. Researchers Andreas Hegyi and Serge Hoogendoorn built an algorithm called SPECIALIST that used variable speed limits for one purpose only: detect a stop-and-go shockwave rolling backward down the A12 freeway and kill it by slowing the traffic upstream of it. In the field test, run from late 2009 into 2010 across 14 kilometers of highway, the system resolved the targeted shockwaves in roughly 80% of the cases where it activated on one (Hegyi and Hoogendoorn, "Dynamic speed limit control to resolve shock waves on freeways: Field test results of the SPECIALIST algorithm," IEEE ITSC, 2010). A backward-rolling jam, the kind [our pillar piece](/insights/phantom-traffic-jams) explains in depth, was detected and deliberately dissolved by slowing drivers who had not even reached it yet. Studies of German autobahn systems point the same direction, with crash reductions concentrated exactly where the theory predicts: rear-end collisions at the back of queues.
+
+Honesty requires the caveat: the A12 test did not measurably cut total travel time, and about half its activations fired on other kinds of congestion where it helped less. The consistent, replicated wins are safety, smoothness, and fuel, not a faster commute. Anyone selling speed harmonization as a travel-time miracle is overselling it.
+
+## The honest limits of the gantry approach
+
+If variable speed limits work, why doesn't every highway have them? Because the tool is expensive, blunt, and stuck where it is built.
+
+- **It is infrastructure.** Gantries, sensors, signs, and enforcement cameras every few hundred meters, plus a control room. That is why deployments cover a handful of urban corridors, not the road network. The freeway where your fleet actually loses its time and fuel probably is not one of them.
+- **It is a blanket.** The sign slows every vehicle in every lane, including hundreds of drivers who did not need to change anything, because a gantry cannot talk to the one platoon whose behavior actually feeds the wave.
+- **It depends on compliance.** The M25's results came with mandatory limits and automated cameras. Advisory-only versions, where the sign merely suggests, show much weaker effects, because a sign that most drivers ignore harmonizes nothing.
+- **It cannot move.** The wave rolls; the gantry doesn't. And [adding more pavement doesn't escape the problem either](/insights/why-adding-lanes-doesnt-fix-traffic), because new lanes fill and then breed the same waves.
+
+Meanwhile the cost of leaving the waves alone keeps compounding: U.S. drivers lost about 4 billion hours and $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard), and congestion cost trucking $108.8 billion and 6.4 billion gallons of diesel in 2022 (ATRI Cost of Congestion, 2024 update). Stop-and-go is a large share of that bill, and it lands hardest on [fleets](/insights/fleet-economics-of-stop-and-go).
+
+## From the gantry to the cab
+
+Here is the encouraging part. The physics that makes a gantry work does not require a gantry. It requires that some of the approaching traffic smooths out at the right moment.
+
+In 2008, Yuki Sugiyama's team showed that 22 ordinary drivers on a ring road spontaneously create a stop-and-go wave with no bottleneck at all (Sugiyama et al., "Traffic jams without bottlenecks," New Journal of Physics, 2008). A decade later, a University of Arizona-led experiment showed the inverse: guiding roughly 5% of vehicles to hold a steadier speed damped the wave for everyone and cut the whole traffic stream's fuel burn (Stern et al., Transportation Research Part C, 2018). You do not need to slow every car from a sign. You need the right few vehicles to do the smoothing, and they can be told individually, in the cab, on any road, whether or not the highway department ever budgeted for gantries there.
+
+That turns speed harmonization from a civil-engineering project into a software problem: know where the wave is forming, and deliver the right speed cue to a small share of drivers approaching it.
+
+## Where Cruze comes in
+
+That software problem is what [Cruze](/) is built on. Instead of waiting for a corridor to get instrumented, Cruze reads the road through existing traffic [cameras](/cameras), spots the conditions of a forming stop-and-go wave, and delivers gentle advisory speed guidance to participating drivers upstream, the in-cab version of what the M25's gantries do for one orbital road, available anywhere a camera already watches the road. For a [fleet](/for-fleets), the payoff channel is the same one TRL measured: fewer hard stops, steadier speeds, less wasted fuel. For a [city](/for-cities), it is corridor smoothing without the per-mile capital cost of gantries.
+
+We are honest about where we are: the physics and the field evidence above belong to the researchers and road agencies who published them, and Cruze's own pilot numbers will be reported when we have them. But the mechanism is not speculative. Road agencies have been dissolving phantom jams by harmonizing speed for thirty years. The question we are answering is simpler: what happens when that tool stops being bolted to one expensive stretch of highway and starts riding along in the cab?`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
