@@ -14,6 +14,65 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "can-a-few-drivers-fix-traffic",
+    title: "Can a few drivers fix traffic for everyone? The 5% rule, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-06-28",
+    excerpt:
+      "You don't need self-driving cars or every driver to cooperate. Research shows that guiding roughly one in twenty vehicles to hold a steady speed can dissolve stop-and-go waves for the whole road.",
+    body: `Yes, and the number is smaller than almost anyone guesses. You do not need self-driving cars, you do not need a new road, and you do not need every driver to cooperate. Research on real vehicles found that guiding roughly one in twenty cars, about 5%, to hold a steadier speed was enough to dissolve stop-and-go traffic waves for every car behind them.
+
+That is a strange and hopeful idea, so it is worth understanding why it is true. The traffic you sit in for no visible reason is usually a [phantom traffic jam](/insights/phantom-traffic-jams): a wave that forms on its own out of nothing but the way humans follow each other in dense traffic. Because the wave is created by driver behavior, changing how a small fraction of drivers behave can take it apart. This article walks through the experiment that proved the 5% number, the mechanism that makes it work, the larger test that moved it from a lab track to a live highway, and why this is the exact problem Cruze is built to solve.
+
+## A jam with no cause, and why that is good news
+
+Most everyday congestion is not caused by a crash, a merge, or a bottleneck. It is a self-sustaining wave. In 2008, a team of physicists led by Yuki Sugiyama put 22 cars on a single-lane circular track and asked every driver to do one thing: hold a steady speed and keep a safe gap. Within minutes a stop-and-go jam formed on its own and began traveling backward around the loop, with nothing at all blocking the road. (Source: Sugiyama et al., "Traffic jams without bottlenecks," New Journal of Physics, 2008.) We cover that result in depth in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident).
+
+Here is the part that matters for fixing it. If a jam can appear out of pure driver behavior, with no physical cause, then there is no physical thing you have to remove to make it go away. You only have to change the behavior. And it turns out you only have to change a little of it.
+
+## The mechanism: how a small slowdown becomes a full stop
+
+In dense traffic no human holds a perfectly constant speed. Someone drifts a little close, lifts off the gas, or taps the brake. The driver behind reacts a beat late, so they brake slightly harder to rebuild their gap. The next driver brakes harder still. The disturbance does not fade as it passes back through the line. It grows.
+
+Engineers call this string instability. Past a certain density, the chain of human reactions amplifies a tiny tap of the brake into a complete stop somewhere upstream. By the time the wave reaches you, the original trigger is long gone, which is why you never see a cause.
+
+The flip side of that mechanism is the whole opportunity. If you can insert even a few vehicles into the chain that refuse to amplify the disturbance, that absorb it instead of passing it on amplified, the wave loses the feedback it needs to grow. A handful of steady drivers act like shock absorbers spaced through the traffic.
+
+## The experiment that proved 5% is enough
+
+In 2017, researchers ran the modern version of Sugiyama's experiment with one crucial change. They again put about 20 vehicles on a circular track and let a phantom jam form on its own. Then they handed control of a single one of those vehicles, roughly 5% of the cars on the road, to a simple automated controller programmed to hold a steady speed and a generous following gap.
+
+The single controlled car damped the stop-and-go wave for the entire ring. The waves that had been forming on their own flattened out. (Source: Stern et al., "Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments," Transportation Research Part C, 2018.) The benefits landed on every car, not just the controlled one. In their experiments the team reported that the single steady vehicle reduced total fuel consumption across all the cars by up to roughly 40%, and cut the number of hard braking events dramatically, because the cars behind it were no longer slamming on and off the brakes in a wave.
+
+> You do not need every car on the road to be smart. You need about one in twenty to stop amplifying the wave, and the whole line of traffic behind them smooths out.
+
+The reason one car can do so much is that it is not trying to control the other nineteen. It is only removing itself as a link in the amplification chain and, by holding a steady gap, giving the disturbance somewhere to dissipate. The wave needs an unbroken chain of overreacting followers to keep growing. Break the chain in a few places and it cannot sustain itself.
+
+## From a test track to a real highway
+
+A ring road is a clean experiment, but a skeptic should ask whether the same thing holds in messy, real, multi-lane rush-hour traffic. That test has now been run. In November 2022, the CIRCLES Consortium, a research collaboration including teams from Vanderbilt and UC Berkeley, deployed around 100 automated vehicles into live morning traffic on Interstate 24 near Nashville. It was the largest coordinated test of this idea ever attempted on an open public freeway, run over a stretch instrumented with cameras to measure how the traffic responded.
+
+The point of the experiment was exactly the question this article asks: does the small-fraction result survive contact with a real highway, where vehicles change lanes, enter and exit, and behave far less tidily than 20 cars on a loop. Moving wave-damping from a controlled track to live interstate traffic is the bridge between a neat physics result and something that can actually save fuel and time at scale, and it is an active, ongoing area of measurement rather than a finished story. The direction of the evidence is consistent: you do not need to automate the whole fleet to take the sharpest edges off these waves.
+
+## Why this matters in dollars and diesel
+
+This is not an academic curiosity. U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard). For trucking alone, congestion added $108.8 billion in cost and wasted 6.4 billion gallons of diesel in 2022 (ATRI Cost of Congestion, 2024 update). A large share of that is stop-and-go that no crash ever caused. The same physics that says a few steady drivers can damp a wave also says the prize for doing it is enormous, because the wave is taxing every vehicle behind it the entire time it exists. For a [fleet](/for-fleets), smoother flow is fuel saved and hard stops avoided. For a [city or DOT](/for-cities), it is throughput recovered on roads that are already built.
+
+## The catch: who gets to be the steady 5%?
+
+The research result is settled enough to build on. The hard part is the deployment question it leaves open. In the experiments, someone chose which vehicle to control and handed it to an automated driver. On a real road, you cannot install self-driving hardware in one in twenty trucks and cars and call it done. That would be expensive, slow, and dependent on technology that is not evenly available.
+
+So the practical problem becomes: how do you get roughly 5% of the vehicles on a given stretch of road to hold a steadier speed at the right moment, without new hardware in the car and without asking everyone to buy a new vehicle? That is the gap between a beautiful research finding and a fix that actually reaches the road.
+
+## Where Cruze comes in
+
+This is the problem [Cruze](/) is built to close. Instead of putting an automated controller inside the car, Cruze reads the road from traffic cameras that already exist, predicts where a wave is about to form, and delivers a gentle speed cue to a small share of drivers through the phone they already have. The human stays in control. They just get a quiet nudge to ease off a beat early, so the gap ahead absorbs the disturbance instead of passing it back amplified. That is the steady 5%, achieved in software, with no new hardware in any vehicle.
+
+In other words, the science already told us the lever exists and how small it is. One in twenty. The missing piece was a way to pull that lever on a real road, for real drivers, at the moment it matters. You can watch a phantom jam form and then dissolve on our [homepage](/). That is the whole idea: not a smarter route around the jam, but a way to keep the jam from forming in the first place, by changing what just a few drivers do.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
