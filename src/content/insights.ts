@@ -14,6 +14,63 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "why-merging-causes-traffic-jams",
+    title: "Why does merging cause traffic jams? The zipper merge, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-06-30",
+    excerpt:
+      "On-ramps and lane drops are where most freeway jams actually start. Here is the physics of why merging breaks down traffic, what the capacity drop is, and why the zipper merge beats merging early.",
+    body: `Merging causes traffic jams because a merge point is where two streams of cars compete for the same space, and the moment that competition forces drivers to brake, flow can collapse into stop-and-go that takes far longer to clear than the merge itself. Most freeway congestion that is not a crash starts at a bottleneck, and the most common bottleneck on the network is a place where lanes combine: an on-ramp feeding the mainline, or a lane drop where three lanes become two. The road right there is doing more work than anywhere else, so it is the first place to break.
+
+This article explains why merging is so reliably the trigger, what transportation engineers mean by the capacity drop, the long-running debate between merging early and merging late, why the zipper merge wins in congested conditions, and how a single rough merge seeds the [phantom traffic jams](/insights/phantom-traffic-jams) you sit in miles downstream. If you have ever wondered why a simple on-ramp can back up an entire highway, this is the mechanism.
+
+## Why a merge is a bottleneck
+
+A bottleneck is any point where the road's ability to pass cars dips below the number of cars trying to get through. At a merge, that dip is built in. Two lanes of traffic have to interleave into the space of fewer lanes, and the only way to do that safely is for cars to leave gaps and adjust speed for each other. Every one of those adjustments is a small brake or a small hesitation, and in dense traffic those small disturbances do not stay small.
+
+When traffic is light, merging is invisible because there is plenty of room to interleave without anyone slowing. The trouble starts as density climbs. Gaps shrink, drivers entering from the ramp cannot find a slot, mainline drivers brake to let them in or to avoid them, and the cars behind brake harder in response. At a critical density, that chain of braking stops dissipating and starts feeding on itself. The merge has broken down, and once it breaks down it does not simply recover when the ramp empties.
+
+## The capacity drop: the cruel twist of a broken merge
+
+Here is the part that surprises most people. Once a merge bottleneck breaks down into stop-and-go, the rate at which it discharges cars actually falls below the rate it was handling just before it broke. Engineers call this the capacity drop, and it has been measured at freeway bottlenecks for decades (Cassidy and Bertini, Transportation Research Part B, 1999, documented discharge flows falling once a queue forms upstream). The drop is typically in the range of 5 to 15 percent.
+
+> A jammed merge does not just carry the same traffic more slowly. It carries less traffic. The road's throughput literally falls the moment it breaks down, so the queue grows faster than the merge can drain it.
+
+That is why a merge backup is so stubborn. The instant flow collapses, the bottleneck loses a chunk of its own capacity, so the queue behind it grows faster than the merge can clear it. A road that could pass, say, 2,000 cars an hour per lane while flowing might pass only 1,700 to 1,900 while jammed. The few hundred cars an hour of lost throughput pile up minute after minute, which is how a thirty-second hesitation at an on-ramp becomes a twenty-minute crawl two miles back.
+
+## Merging early versus the zipper merge
+
+This is where driver behavior matters, and where most of us do the wrong thing out of politeness. When drivers see a "lane ends ahead" sign, the instinct is to merge over as soon as possible and then sit in the surviving lane, leaving the ending lane empty for the last half mile. It feels orderly and courteous. It also throws away road.
+
+The alternative is the zipper merge, also called the late merge: drivers use both lanes all the way to the merge point, then take turns combining one car at a time, like the teeth of a zipper. It feels rude to the drivers who merged early, but it is what the geometry wants. Using both lanes to the merge point keeps the queue shorter, balances traffic between the lanes so neither sits empty, and concentrates the interleaving into one predictable spot instead of a long, ragged stretch of jockeying.
+
+## Why the zipper merge works (the evidence)
+
+The case for the zipper is not just intuition. State transportation departments that have studied and promoted it report real gains. Minnesota's Department of Transportation, which runs a long-standing public campaign for the zipper merge, states that using both lanes to the merge point can reduce the length of traffic backups by up to 40 percent in congested conditions. Other states, including Kansas, have piloted dynamic late-merge systems that use signs to tell drivers to stay in their lane and zipper at the point of closure, precisely because early merging wastes the capacity of the ending lane.
+
+The logic is consistent with the bottleneck physics above. Early merging creates a long single-file queue and a half-empty lane beside it, which is a worse use of pavement and a longer stretch over which braking can amplify. The zipper keeps both lanes loaded and pushes all the interleaving into one location, which is easier to keep flowing and less likely to trigger the capacity drop. The catch is that the zipper only works if everyone does it; a few early mergers and a few aggressive late ones reintroduce exactly the uneven, brake-heavy behavior that breaks a merge down. That fragility is the whole problem with relying on human coordination at a merge.
+
+## How a rough merge seeds a phantom jam
+
+A merge does not only jam itself. It launches waves. Every time a driver brakes hard to let someone in, the car behind brakes a little harder, and the one behind that harder still, until a knot of stopped cars forms and begins traveling backward up the road against the flow of traffic. That backward-moving wave is a [phantom traffic jam](/insights/why-traffic-with-no-accident), and a busy on-ramp is one of the most reliable places to start one.
+
+This is the same self-amplifying instability that physicist Yuki Sugiyama and colleagues produced with no merge at all, just cars asked to cruise on a ring road, which spontaneously generated a backward-traveling jam from nothing (Sugiyama et al., New Journal of Physics, 2008). A merge simply gives that instability a constant supply of triggers. So the cost of a poorly flowing merge is paid twice: once in the queue at the merge, and again in the stop-and-go waves it sends miles upstream to drivers who never see the ramp that started their delay.
+
+## What it costs
+
+The bill for all this braking is enormous. In 2024, U.S. drivers lost more than 4 billion hours and about $74 billion to congestion (INRIX 2024 Global Traffic Scorecard). Freight pays an outsized share: congestion added $108.8 billion in operating cost and wasted 6.4 billion gallons of diesel for the trucking industry in 2022 (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). A large slice of that is the stop-and-go born at merges and bottlenecks, not at crashes, which is exactly the kind of congestion that better-timed driving can prevent rather than just endure.
+
+## Where Cruze comes in
+
+Merges break down because human coordination at the merge is fragile, and because once flow collapses the capacity drop makes the queue grow faster than it can clear. [Cruze](/) attacks both. We read the flow from the [traffic cameras already on the poles](/cameras), with no new hardware, and watch the density climbing toward the point where a merge or a downstream section is about to break. Then we give a small share of drivers a gentle, well-timed speed cue so they arrive at the merge already spaced to interleave, instead of arriving fast and braking hard.
+
+That matters because the research says you do not need every car to cooperate. A University of Arizona study found that guiding just one vehicle in twenty, about 5 percent, to hold a steadier speed was enough to dissolve the stop-and-go waves human drivers kept generating (Stern et al., Transportation Research Part C, 2018). Smoothing the approach to a merge is the same idea applied to the spot where jams are most likely to start: change how a few drivers arrive, a few seconds early, and the merge keeps flowing instead of breaking down.
+
+For a [city or DOT](/for-cities), that means more reliable throughput out of the on-ramps and lane drops you already operate, measured against the cameras you already have. For a [fleet](/for-fleets), it is fuel and hard stops saved on every merge-heavy corridor. The next time an on-ramp backs up a whole highway behind it, remember that the road did not run out of space. The merge ran out of coordination, and that is a far cheaper thing to fix than concrete. You can watch a wave form and then dissolve on our [homepage](/).`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
