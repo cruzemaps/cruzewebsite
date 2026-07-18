@@ -14,6 +14,73 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "why-you-hit-every-red-light",
+    title: "Why do you hit every red light? The green wave, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-07-02",
+    excerpt:
+      "Hitting one red after another rarely means bad luck. It usually means the lights are not timed to your speed. Here is what a green wave is, why so many corridors do not have one, and how the right speed at the right moment lets you ride the greens.",
+    body: `If you hit every red light on the same street, day after day, it is almost never bad luck. It is a design outcome. The lights on that corridor are either not coordinated with each other, or they are coordinated for a speed you are not driving. When both of those things are handled well, a driver can catch a long string of greens in a row without ever touching the brake. Traffic engineers have a name for that string: a green wave.
+
+This article explains what a green wave actually is, why so many roads fail to give you one, why arriving too early at a light is just as bad as arriving too late, and how a small nudge to your speed a few seconds ahead of time can turn a corridor of reds into a smooth ride. If you have ever felt like the lights were personally out to get you, the real story is more mechanical and more fixable than that.
+
+## What is a green wave?
+
+A green wave is what happens when a series of traffic signals along a road are timed so that a vehicle traveling at a target speed arrives at each intersection just as the light turns, or is already, green. The greens open in sequence, like a wave rolling down the street ahead of you, and if you match the speed the corridor was tuned for, you ride the crest of that wave through every intersection.
+
+Engineers build this on purpose. It is called signal coordination or progression, and the core design number is the offset: the time gap between when one light turns green and when the next one downstream turns green. Set the offsets to match how long it takes a car to travel between intersections at the intended speed, and you have progression. Get the offsets wrong, or leave each light running on its own independent timer, and the greens open at random relative to each other. Then your odds at each light are basically a coin flip, and over a dozen intersections a coin flip means you will stop again and again.
+
+The width of the wave matters too. Engineers talk about the bandwidth of a progression: the size of the window of green you can travel within before the front of the platoon catches a red. A wide band forgives small differences in speed and lets a whole clump of cars through together. A narrow band means only the first few cars make it and everyone behind gets chopped off at the next red.
+
+## Why you keep hitting reds
+
+There are a handful of very ordinary reasons a corridor does not give you a green wave, and none of them are about you personally.
+
+- **The lights are not coordinated at all.** Many signals run on independent timers or purely on their own sensors, with no relationship to the light a block away. Each one is doing a locally reasonable thing and the sequence is uncoordinated, so a smooth run through all of them is pure chance.
+
+- **They are coordinated, but for a different speed.** Progression is tuned for one design speed. If the corridor is timed for 30 mph and you are doing 40 to catch the light you can see, you will arrive too early and wait for it. Drive the exact posted speed and the greens often line up. This is the counterintuitive part: on a coordinated street, speeding up usually makes you hit more reds, not fewer.
+
+- **The timing plan is stale.** Traffic patterns drift as neighborhoods and commutes change, but retiming a corridor costs staff time and money, so plans often go years without an update. The 2007 National Traffic Signal Report Card from the National Transportation Operations Coalition graded the nation's traffic signal operations a D, largely because so many signals run on out-of-date timing.
+
+- **Two directions fight each other.** A single set of offsets cannot perfectly serve both directions of travel unless the intersections are evenly spaced. Engineers usually favor the heavier peak direction, which means the lighter direction gets the worse deal and more reds.
+
+- **A cross street or a pedestrian call interrupts the plan.** A gap-out, a long walk phase, or a burst of side-street traffic can knock a signal off its coordinated slot, and it takes a cycle or two to recover. During that recovery the wave is broken.
+
+Notice what almost none of these are: your driving. The pattern of reds is set upstream of you, by how the corridor is timed and how well that timing still matches reality.
+
+## Arriving too early is as wasteful as arriving too late
+
+Here is the insight that makes green waves matter beyond convenience. The costly part of a red light is not only the wait. It is the deceleration and the re-acceleration around it. Braking a heavy vehicle to a full stop throws away kinetic energy as heat in the brakes, and then getting back up to speed from zero is the single thirstiest thing an engine does. A vehicle that has to stop and launch at every light burns far more fuel and brake than one that glides through at a steady speed, even if their average speeds end up similar.
+
+That is why arriving at a green too early is almost as wasteful as arriving too late. If you race ahead and reach the intersection before it turns green, you brake, you wait, and you launch again. You paid the full stop-and-go penalty to gain nothing. The efficient move is to shed a little speed early and coast in so the light goes green just before you get there, keeping the vehicle rolling. Same trip, but no stop.
+
+> The costly part of a red light is not the wait. It is braking a rolling vehicle to a stop and then dragging it back up to speed. Time your approach to keep moving and you skip both.
+
+This is exactly the logic behind a green-light optimal speed advisory, or GLOSA: use knowledge of the signal timing ahead to tell a driver the speed that will reach the next light on green, so they neither stop short nor arrive too fast. In a 2022 field test of a GLOSA system for buses on the Virginia Smart Road, published in the journal Energies, advising drivers on the right approach speed cut fuel consumption by about 22 percent and travel time by about 6 percent compared with uninformed driving. The mechanism is the same one described above: fewer full stops, less braking, less launching from zero.
+
+## Green waves and phantom jams are the same problem
+
+Repeatedly stopping at lights is not just annoying, it is a wave-maker. Every time a platoon of cars stomps on the brakes at a red and then surges away from the green, it seeds the same stop-and-go pattern that produces [phantom traffic jams](/insights/phantom-traffic-jams) on the highway: congestion with no crash and no bottleneck, formed purely by drivers amplifying each other's braking. Smooth signal progression keeps the platoon rolling as a coherent group and starves that pattern of the sharp brake-and-launch events it feeds on.
+
+It is the same lesson we keep running into across traffic science. A single well-timed speed can dissolve a jam that raw capacity cannot. A University of Arizona study (Stern et al., Transportation Research Part C, 2018) found that guiding just one vehicle in twenty to hold a steadier speed was enough to break up the stop-and-go waves human drivers kept generating. Green waves apply that same principle to city streets: get the speed right relative to the lights and the whole stream flows. And it is why [adding lanes rarely fixes traffic](/insights/why-adding-lanes-doesnt-fix-traffic) while smarter timing and smoother speeds often do. The bottleneck is coordination, not concrete. We unpack the highway version of this in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident).
+
+## What this costs, and what better timing recovers
+
+The waste is enormous and well measured. In 2024, U.S. drivers lost more than 4 billion hours and about $74 billion to congestion (INRIX 2024 Global Traffic Scorecard), and much of that is the stop-and-go of poorly timed arterials, not just highway gridlock. Freight pays the sharpest edge: congestion added $108.8 billion in operating cost and wasted 6.4 billion gallons of diesel for the trucking industry in 2022 (ATRI, Cost of Congestion to the Trucking Industry, 2024 update), and every unnecessary stop-and-launch on a signalized corridor is diesel poured into the brakes.
+
+The upside of fixing timing is just as concrete. The Federal Highway Administration reports that traffic signal retiming programs across the country have delivered travel-time and delay reductions of 5 to 20 percent and fuel savings of 10 to 15 percent (FHWA, Managing Traffic Flow Through Signal Timing). These are among the highest benefit-cost ratios in all of transportation, because the fix is software and study time rather than construction. The catch is that retiming is periodic and expensive to keep current, which is why so many corridors drift back into the D-grade state the report card described.
+
+## Where Cruze comes in
+
+Signal retiming fixes the lights. [Cruze](/) works the other side of the same equation: the speed of the vehicle. Instead of asking a city to constantly re-tune every signal, we read the flow from the [traffic cameras already on the poles](/cameras), with no new roadside hardware, and give a driver a gentle, well-timed speed cue so they arrive into the green and keep rolling rather than stopping short or launching from zero. It is the GLOSA idea and the 5 percent finding turned into a product that works with the infrastructure a corridor already has.
+
+For a [city or DOT](/for-cities), that means smoother arterials and fewer wasteful stops measured against the cameras you already own, complementing signal retiming instead of waiting on the next expensive timing study. For a [fleet](/for-fleets), it is fuel saved and brake wear avoided on every signalized mile, since the stop you never make is the cheapest one. You can watch stop-and-go form and then smooth out on our [homepage](/).
+
+So the next time you catch every red on the same street, know that it is a timing problem, not a personal curse, and that the fix is not a bigger road. It is getting the right speed to meet the right green. That is the whole idea behind riding the wave instead of fighting it.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
