@@ -14,6 +14,59 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "what-is-a-jamiton",
+    title: "What is a jamiton? Self-sustaining traffic waves explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-06-29",
+    excerpt:
+      "A jamiton is the name physicists gave to a self-sustaining stop-and-go traffic wave. It forms with no crash and no bottleneck, and it behaves mathematically like a detonation wave. Here is how it works.",
+    body: `A jamiton is a self-sustaining traffic wave: a moving band of stop-and-go congestion that forms on its own, with no crash, no merge, and no bottleneck causing it, and then keeps itself alive as it travels backward through the stream of cars. The word is a blend of "jam" and "soliton," the physics term for a wave that holds its shape as it moves. If you have ever crawled to a near stop in heavy traffic, inched forward, and then sped back up only to find no reason for the slowdown at all, you have very likely driven straight through a jamiton.
+
+The term comes from a 2009 paper in Physical Review E by a group of applied mathematicians, M. R. Flynn, A. R. Kasimov, J.-C. Nave, R. R. Rosales, and B. Seibold, titled "Self-sustained nonlinear waves in traffic flow." What makes their result striking is not just that these waves exist, but what they turn out to resemble. Mathematically, a jamiton behaves almost exactly like a detonation wave, the kind of self-propagating blast wave studied in gas dynamics. The same equations that describe an explosion traveling through a reactive gas also describe a traffic jam traveling backward through a line of cars. This article explains what a jamiton is, why the detonation analogy holds, how the wave feeds itself, and what it means for anyone trying to fix congestion.
+
+## What is a jamiton, exactly?
+
+Start with what it is not. A jamiton is not the jam you hit behind a stalled truck or a lane closure. Those have an obvious cause sitting at the front of the queue. A jamiton has no cause at the front. It is a region of high density and low speed that exists purely because of how cars interact, and it drifts opposite to the direction of travel even as every individual car keeps moving forward.
+
+Picture a stretch of highway flowing smoothly but densely. One driver taps the brakes a little harder than necessary. The driver behind, reacting a beat late, brakes a little harder still to keep a safe gap. That driver's overreaction forces the next one to brake harder again. The disturbance does not fade as it passes back through the line; it grows. A few seconds later, cars a quarter mile behind the original tap are at a dead stop, while the first driver is long gone and cruising. The dense, slow band that results is the jamiton. It has a sharp front where cars hit the brakes and a long tail where they gradually accelerate back to speed.
+
+> A jamiton is a traffic jam with no cause at its head. It is congestion that organizes and sustains itself out of nothing more than dense traffic and ordinary human reaction time.
+
+The reason it persists rather than smoothing out is that it is a stable structure of the flow itself. Once dense traffic crosses a certain threshold, small disturbances no longer dampen; they amplify and lock into a traveling wave. The math calls this regime string instability, and the jamiton is the wave it produces.
+
+## The detonation analogy: why a traffic jam is like a blast wave
+
+The 2009 paper's central insight is that the equations governing a jamiton share their structure with the equations for a detonation. A detonation wave in gas dynamics has two parts: a sharp shock front, where pressure jumps almost instantly, followed by an attached reaction zone, where the gas releases energy and settles. A jamiton has the same two-part shape. Its shock front is the abrupt wall of brake lights where free-flowing cars slam into the back of the jam. Its reaction zone is the long recovery stretch ahead of that wall, where stopped cars slowly accelerate and thin back out into open road.
+
+This is not a loose metaphor. Flynn and colleagues showed that the second-order traffic models, the ones that account for how drivers anticipate and adjust rather than reacting instantly, produce traveling-wave solutions that satisfy the same kind of mathematical conditions as detonation waves. They even found that under the right road conditions, jamitons are attracting solutions: start the system in almost any dense state and it tends to converge toward a configuration dominated by these waves. In other words, dense traffic does not just permit jamitons. Left alone, it actively organizes itself into them.
+
+## How a jamiton sustains itself, and travels backward
+
+What makes a jamiton self-sustaining is that it feeds on the very flow it disrupts. At the shock front, fast cars arrive and are forced to brake hard, dumping their kinetic energy into the jam. At the back of the wave, cars accelerate away, draining the jam from the other side. As long as traffic keeps arriving at the front faster than it clears at the back, the wave maintains itself, the same way a detonation maintains itself by consuming fresh fuel at its leading edge.
+
+Because cars are constantly entering the front of the wave and leaving the back, the band of congestion itself moves backward against traffic, even though no single car ever goes backward. This backward drift is one of the most reliably measured features of real stop-and-go traffic, and it is exactly what a jamiton predicts: the wave is a pattern in the flow, not a fixed location on the road.
+
+## From theory to the real road
+
+The mathematics would be a curiosity if real traffic did not actually do this, but it does. The cleanest demonstration came a year before the jamiton paper. In 2008, physicist Yuki Sugiyama and colleagues put about twenty-two cars on a single-lane circular track and asked the drivers to do one thing: hold a steady speed (Sugiyama et al., New Journal of Physics, 2008). There was no merge, no obstacle, and no slow driver. For a while the cars circled smoothly. Then a stop-and-go wave appeared on its own and began traveling backward around the ring, exactly as the jamiton picture says it should. The experiment turned a theoretical wave into something you can watch on video.
+
+We walk through that experiment and the everyday version of it in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident), and we put the whole phenomenon in context in our pillar explainer on [phantom traffic jams](/insights/phantom-traffic-jams). The jamiton is the formal, physics-grade name for the wave those pieces describe.
+
+## Why you cannot widen your way out of a jamiton
+
+Here is the part that matters for policy and for money. Because a jamiton is a property of how drivers interact at high density, not of how many lanes exist, adding lanes does not address it. A wider road raises the number of cars it can hold, but every lane still obeys the same instability, so you simply get the same self-sustaining wave forming in each one. This is one reason highway widening so reliably disappoints, on top of the separate problem that new lanes fill with new trips, which we cover in [why adding lanes doesn't fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic).
+
+The cost of leaving these waves to run is enormous. In 2024, U.S. drivers lost more than 4 billion hours and roughly $74 billion to congestion (INRIX 2024 Global Traffic Scorecard). Trucking alone absorbed $108.8 billion in added operating cost and burned 6.4 billion extra gallons of diesel because of congestion in 2022 (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). A large share of that is not raw volume but exactly this kind of stop-and-go waste, vehicles repeatedly braking and re-accelerating through waves no one can see the cause of.
+
+## Where Cruze comes in
+
+If a jamiton sustains itself on overreaction at its shock front, then the way to kill it is to stop feeding it: have cars approach the wave at a steadier speed so the front never sharpens. You do not need to control most of the traffic to do this. A University of Arizona study found that guiding just one vehicle in twenty, about 5%, to hold a smoother speed was enough to dissolve the stop-and-go waves human drivers kept generating, and to cut fuel use for every car behind them (Stern et al., Transportation Research Part C, 2018). A small number of well-timed speeds, in the right place, drains the wave instead of feeding it.
+
+That is the problem [Cruze](/) works on. Using existing roadside and traffic-camera views, Cruze reads the flow forming downstream and gives a driver a gentle, early speed cue, the steady approach that keeps them from slamming into the back of a forming jam and amplifying it. No new hardware in the cab and no self-driving cars required, just a small share of better-timed speeds. For fleets, that translates directly into less fuel burned in stop-and-go and fewer hard-braking events, which is why we built the math out for operators on the [fleets](/for-fleets) page and for road authorities on the [cities](/for-cities) page. The jamiton is a wave that organizes itself out of nothing. The encouraging news from the science is that it can be taken apart by a surprisingly small nudge in the right direction.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
