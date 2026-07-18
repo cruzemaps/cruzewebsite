@@ -14,6 +14,61 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "why-does-traffic-get-worse-in-the-rain",
+    title: "Why does traffic get worse when it rains?",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-07-11",
+    excerpt:
+      "There is no crash and no closed lane, yet a little rain turns a moving highway into stop-and-go. The reason is not more cars. It is that a wet road quietly holds fewer of them.",
+    body: `Traffic gets worse in the rain even when nothing has crashed and no lane is closed. The same commute that flowed at 65 mph on a dry Tuesday crawls the moment the pavement turns wet, and most drivers assume everyone else simply forgot how to drive. The real reason is quieter and more physical than that: rain does not add cars to the road, it removes capacity from the road. And because a busy highway runs close to its limit already, taking away even a slice of that capacity is enough to tip flowing traffic into a jam.
+
+This article explains what actually happens to a highway when it rains, how much capacity a wet road really loses according to the numbers transportation agencies have measured, and why a modest capacity cut produces a jam far larger than you would expect. If you have ever sat in a rain jam with clear road ahead and no accident to blame, this is the mechanism.
+
+## Rain does not add cars, it shrinks the road
+
+Start with the thing that is not happening. A rainstorm does not conjure extra vehicles. Roughly the same number of people are trying to make roughly the same trips they made yesterday. What changes is how much room each of them takes up.
+
+When the pavement is wet, sensible drivers do three things at once, mostly without thinking about it. They ease off the throttle and drop their speed because stopping distances are longer on a slick surface. They leave a bigger gap to the car ahead for the same reason. And they react a beat more cautiously to everything, from brake lights to lane changes, because visibility is worse and grip is lower. Every one of those adjustments is correct and safe. But every one of them also means each car now occupies more time and more space on the road than it did in the dry.
+
+A highway's capacity is just how many vehicles can pass a point per hour, and that number is a product of how fast cars move and how tightly they pack together. Slow them down and spread them out, and you have lowered the capacity of the road without touching a single lane marking. The concrete is the same width it was an hour ago. The usable road just got smaller.
+
+## How much capacity does rain actually cost?
+
+This is measured, not guessed. The Federal Highway Administration's Road Weather Management Program compiles field studies of exactly this effect, and the figures are larger than most drivers would assume.
+
+By the FHWA's numbers, light rain reduces freeway capacity by roughly 4 to 11 percent, and heavy rain cuts it by about 10 to 30 percent (FHWA Road Weather Management Program, "How Do Weather Events Affect Roads?"). Free-flow speeds fall too: around 2 to 13 percent in light rain and 6 to 17 percent in heavy rain. On surface streets the delay compounds, with the FHWA reporting that travel-time delay on arterials can rise anywhere from 11 to 50 percent during precipitation.
+
+Sit with the heavy-rain capacity figure for a second. A highway that could move a certain number of cars per hour in the dry can suddenly move up to a third fewer of them, while the same crowd of drivers keeps arriving at the on-ramps expecting to get through. The demand did not shrink. The supply did.
+
+> Rain does not put more cars on the road. It quietly makes the road hold fewer of them, and a busy highway has no slack to give up.
+
+## Why a small capacity cut causes a big jam
+
+Here is the part that feels out of proportion: even the low end of that range, a 4 to 11 percent capacity loss in light rain, can turn a free-flowing highway into a parking lot. A 10 percent cut sounds survivable. Why does it produce a jam that is far more than 10 percent worse?
+
+Because a busy highway operates right at the edge of its capacity, and traffic flow does not degrade gracefully when you push past that edge. It collapses. As long as the number of cars trying to use the road stays below its capacity, traffic keeps moving and small disturbances fade out. The instant demand exceeds capacity, even briefly, flow breaks down: a queue forms, and once a queue forms it tends to stay and grow, because the stop-and-go crawl of a jammed road actually moves fewer cars per hour than free flow did. The road gets less efficient exactly when it is most overloaded.
+
+So on a dry day your rush-hour highway might be running at 95 percent of capacity, busy but stable. Shave 10 percent off that capacity with a light rain and demand is now above the line. The road tips over the edge, breakdown sets in, and the queue you are sitting in is the result. The rain did not need to be dramatic. It only had to erase the thin margin the highway was running on.
+
+## It is the same physics as a phantom jam
+
+If this sounds familiar, it should. A rain jam is a close cousin of the [phantom traffic jam](/insights/phantom-traffic-jams): congestion that appears with no crash, no merge, and no bottleneck to point at. In a classic phantom jam, dense traffic alone is enough to spawn a stop-and-go wave, because human drivers amplify one another's braking. A 2008 experiment by physicist Yuki Sugiyama and colleagues showed a single lane of cars asked only to hold a steady speed will spontaneously break into a backward-traveling jam with no obstacle present at all (Sugiyama et al., New Journal of Physics, 2008).
+
+Rain does not create that instability from nothing, but it makes it far easier to trigger. Longer gaps and lower speeds mean the road is closer to its breaking point to begin with, and the extra caution makes each driver a slightly louder amplifier of the car in front. The wet-weather jam and the [no-accident phantom jam](/insights/why-traffic-with-no-accident) are the same flow-breakdown story with the dial turned up. It is also why simply having more lanes does not save you, the way [adding lanes rarely fixes traffic for long](/insights/why-adding-lanes-doesnt-fix-traffic): rain lowers the capacity of every lane at once.
+
+## What this costs
+
+Weather-driven congestion is not a rounding error. Across all causes, U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard), and the FHWA has estimated that weather accounts for roughly a quarter of non-recurring traffic delay nationwide. Freight absorbs an outsized share of the pain: congestion added $108.8 billion in operating cost and burned 6.4 billion gallons of diesel for the trucking industry in 2022 (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). A fleet cannot control the weather, but a rainy afternoon that quietly shaves a third off highway capacity turns into missed delivery windows, idling engines, and blown schedules across every truck on the corridor.
+
+## Where Cruze comes in
+
+You cannot make the road dry, and you cannot repeal the physics of flow breakdown. What you can do is stop feeding the instability once the margin gets thin. Because rain works by pushing a busy road over its capacity edge, the leverage is in keeping demand and speeds smooth enough that the road stays just under breakdown instead of just over it. A University of Arizona study (Stern et al., Transportation Research Part C, 2018) found that guiding as few as one vehicle in twenty to hold a steadier speed was enough to dissolve the stop-and-go waves human drivers kept generating and to cut fuel use for every car behind them. In marginal conditions, a small amount of smoother, better-timed behavior is exactly what keeps a fragile flow from collapsing.
+
+That is the wedge [Cruze](/) is built around: reading the state of a corridor in real time and nudging flow before it breaks, rather than measuring the jam after it forms. For a [fleet](/for-fleets), that means fewer hours lost to weather-triggered stop-and-go. For a [city or DOT](/for-cities), it means squeezing reliable throughput out of the road that already exists, on the days the road can least afford to lose it. Rain will always cost some capacity. The goal is to stop it from costing the whole afternoon.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-adding-lanes-doesnt-fix-traffic",
     title: "Why doesn't adding lanes fix traffic? Induced demand, explained",
     author: "Anudeep Bonagiri",
