@@ -270,6 +270,65 @@ The implication: pilot in the right places. Cruze prioritizes corridors where me
 For the physics behind why that stop-and-go forms in the first place, see our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams).`,
     tags: ["fleet-ops", "economics"],
   },
+  {
+    slug: "do-ramp-meters-work",
+    title: "Do ramp meters actually work? The on-ramp traffic light, explained",
+    author: "Cruze Research",
+    publishedAt: "2026-07-03",
+    excerpt:
+      "Those stop-and-go lights on the freeway on-ramp look like they slow you down. The evidence, including a rare six-week experiment where an entire city switched all of them off, says they do the opposite.",
+    body: `Yes, ramp meters work, and there is unusually strong evidence for it. Most traffic fixes are hard to prove because you can never rerun the same commute with and without them. Ramp metering is the rare case where a whole metro area ran that exact experiment, turned every meter off for six weeks, and measured what happened. Traffic got worse across the board. This article explains what a ramp meter does, the mechanism that makes it help, the natural experiment that proved it, where it falls short, and how the same idea shows up inside the car instead of on the ramp.
+
+## What is a ramp meter?
+
+A ramp meter is the small traffic signal you see partway down a freeway on-ramp, usually cycling red to green every few seconds so that one or two cars enter per green. Its only job is to control the rate at which cars join the freeway. Instead of a whole platoon of merging cars arriving at the mainline together, the meter releases them one at a time, spaced a few seconds apart.
+
+That sounds like it should make your trip longer, because you now wait at a light you did not used to wait at. The counterintuitive part is that the short wait on the ramp buys a much larger saving on the freeway itself, for you and for everyone already on it.
+
+## The mechanism: protecting the freeway from breakdown
+
+To see why a few seconds of delay on the ramp pays off, you have to know one fact about highways: a freeway carries the most cars per hour just below the point where it jams, not at it. Push the density past that critical point and throughput does not level off, it drops. The same road that was moving 2,000 cars per lane per hour can fall to 1,700 or 1,800 once flow breaks down. Traffic engineers call this the capacity drop, and it is the reason a freeway can carry fewer cars when it is packed than when it is merely busy.
+
+A big, bunched group of cars forcing its way in at an on-ramp is one of the most common ways to tip the mainline over that edge. The merge compresses the gaps, drivers already on the freeway brake to make room, and that braking becomes the seed of a backward-traveling wave, the same stop-and-go mechanism we describe in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident). Once the mainline breaks down, it stays broken long after the merge that triggered it.
+
+The meter's job is to never let the freeway cross that line. By metering the inflow, it keeps mainline density just under the critical point, where throughput is highest. Smarter meters do this with feedback: a well-known control law called ALINEA (Papageorgiou, Hadj-Salem, and Blosseville, 1991) measures how occupied the freeway is just downstream and continuously adjusts the meter rate to hold that occupancy near its sweet spot, loosening when the road is clear and tightening the moment it starts to fill.
+
+> The few seconds you wait on the ramp are the price of keeping the freeway on the fast side of its own breakdown point, where it carries the most cars.
+
+## The experiment that proved it: the Twin Cities meter shutdown
+
+In fall 2000, the Minnesota Department of Transportation did something almost no agency ever gets to do. Under a legislative mandate to prove the meters were worth it, they switched off all 430 ramp meters in the Minneapolis and Saint Paul metro area for six weeks and measured freeway performance with the meters dark against the same corridors with the meters running. It cost about 650,000 dollars and remains one of the cleanest before-and-after tests in traffic operations.
+
+The results, from the independent Cambridge Systematics evaluation, were consistent and in one direction. With the meters off:
+
+- Freeway throughput fell about 9 percent, meaning the road actually moved fewer cars without metering.
+- Travel time rose about 22 percent.
+- Freeway speeds dropped about 7 percent.
+- Crashes increased about 26 percent, because unmetered merges create exactly the abrupt speed differences that cause rear-end and sideswipe collisions.
+
+(Source: Minnesota Department of Transportation, Twin Cities Ramp Meter Evaluation, Cambridge Systematics, 2001.) The state turned the meters back on. The finding that the road carried fewer cars without metering is the key one: the meters were not just redistributing delay from the freeway to the ramp, they were raising the total capacity of the system.
+
+## Where ramp meters fall short
+
+Ramp meters are not a cure for congestion, and it is worth being honest about the limits.
+
+- **They move the queue, and it can spill.** The cars held back have to wait somewhere. If a meter is too aggressive, the ramp queue backs up onto the surface street it feeds, trading a freeway problem for an arterial one. Good metering caps the ramp wait and lets cars through faster when the queue gets long.
+- **They cannot beat oversaturation.** When far more people want to travel than the freeway can carry, no metering rate makes the demand fit. Metering smooths the approach to capacity, it does not add lanes of it.
+- **They raise fairness questions.** A driver entering downstream, past the worst metering, can get a better deal than one entering upstream, and that has drawn real complaints in every city that meters heavily.
+
+And crucially, a ramp meter only guards the on-ramp. It does nothing about a phantom jam that forms a mile past the last meter, out in free-flowing traffic, from nothing but the way drivers follow each other. That failure mode is the whole subject of our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams), and it is one reason adding capacity alone keeps disappointing, as we cover in [why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic).
+
+## The same idea, moved into the car
+
+Strip a ramp meter down to its principle and it is simple: hold the flow just under the density where it breaks down, and everyone gets through faster. The meter does that at one fixed point, the on-ramp, with hardware bolted to the pavement.
+
+Cruze applies the same principle everywhere at once, from inside the car. Instead of a light on a ramp, it is a speed cue on the driver's screen. When the traffic ahead is drifting toward the breakdown point, a small, well-timed easing of speed across a handful of drivers keeps the stream on the stable side of the line, the same way the meter keeps the mainline below critical occupancy. The research says you do not need many participants for this: the landmark 2018 experiment led by Raphael Stern showed that a single smoothly driven car in a stream of about twenty was enough to damp a stop-and-go wave for everyone behind it.
+
+The advantage of doing it in software is reach. A ramp meter helps only the merges that have one installed, after an expensive infrastructure build. An in-cab cue works on any road, metered or not, on the open highway where phantom jams actually form, with nothing to install on the roadside. Cruze is pre-pilot, and we make no traffic-reduction claims yet. But the Minnesota shutdown is the strongest field proof we have that gently regulating flow, rather than routing around jams after they form, is what actually raises a road's real capacity.
+
+For fleets weighing what smoother flow is worth per truck, see [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go). To bring this thinking to a corridor you manage, that is what we build for [cities](/for-cities) and [fleets](/for-fleets).`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
 ];
 
 export function findInsight(slug: string) {
