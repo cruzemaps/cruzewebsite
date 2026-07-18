@@ -209,17 +209,17 @@ function EmailGate({ onSuccess }: { onSuccess: () => void }) {
           <form onSubmit={submit} className="space-y-3 max-w-md mx-auto text-left">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-white/70 text-xs mb-1 block">Name</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white/5 border-white/10 text-white" />
+                <Label htmlFor="inv-name" className="text-white/70 text-xs mb-1 block">Name</Label>
+                <Input id="inv-name" value={name} onChange={(e) => setName(e.target.value)} className="bg-white/5 border-white/10 text-white" />
               </div>
               <div>
-                <Label className="text-white/70 text-xs mb-1 block">Firm</Label>
-                <Input value={firm} onChange={(e) => setFirm(e.target.value)} placeholder="(optional)" className="bg-white/5 border-white/10 text-white" />
+                <Label htmlFor="inv-firm" className="text-white/70 text-xs mb-1 block">Firm</Label>
+                <Input id="inv-firm" value={firm} onChange={(e) => setFirm(e.target.value)} placeholder="(optional)" className="bg-white/5 border-white/10 text-white" />
               </div>
             </div>
             <div>
-              <Label className="text-white/70 text-xs mb-1 block">Email *</Label>
-              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white" />
+              <Label htmlFor="inv-email" className="text-white/70 text-xs mb-1 block">Email *</Label>
+              <Input id="inv-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white" />
             </div>
             <Button type="submit" disabled={submitting} className="w-full bg-brand-orange text-[#0B0E14] hover:bg-brand-orange/90 font-bold">
               Unlock the full briefing
