@@ -87,6 +87,13 @@ function HlsPlayer({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
       script.crossOrigin = "anonymous";
       script.async = true;
       script.onload = init;
+      // If the pinned/SRI'd CDN script fails to load (network blocked, offline,
+      // or an integrity mismatch), `init` never fires and the player would hang
+      // on a black <video>. Fall back to the recorded feed instead.
+      script.onerror = () => {
+        console.warn("[HLS] hls.js failed to load from CDN, falling back to recorded feed.");
+        loadFallback();
+      };
       document.body.appendChild(script);
     } else {
       init();
