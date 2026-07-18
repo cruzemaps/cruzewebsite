@@ -249,3 +249,13 @@
   writing-mode: vertical-rl;
   text-orientation: mixed;
 }
+/* Homepage cinematic hero (V3 DriveHero) scroll-jack length. Defined here (not in
+   the JS-injected <style>) so the height is present at first paint / in the
+   prerendered HTML — no collapse-then-expand flash. Phones get a much shorter
+   scroll-jack so the sticky hero feels snappy instead of fighting touch scroll. */
+.v3-drive { height: 360vh; }
+/* 767.98px, not 768px: Tailwind's `md` is min-width 768px, so this keeps the
+   phone-length hero and the md: desktop layout from overlapping at exactly 768. */
+@media (max-width: 767.98px) {
+  .v3-drive { height: 200vh; }
+}
