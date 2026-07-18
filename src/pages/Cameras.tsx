@@ -22,7 +22,7 @@ function HlsPlayer({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const state: { hls: any; cancelled: boolean } = { hls: null, cancelled: false };
+    const state: { hls: any; cancelled: boolean; scriptTimeout: ReturnType<typeof setTimeout> | null } = { hls: null, cancelled: false, scriptTimeout: null };
 
     const loadFallback = () => {
       const video = videoRef.current;
@@ -86,13 +86,28 @@ function HlsPlayer({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
       script.integrity = "sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w0u/7mRvr";
       script.crossOrigin = "anonymous";
       script.async = true;
-      script.onload = init;
-      // If the pinned/SRI'd CDN script fails to load (network blocked, offline,
-      // or an integrity mismatch), `init` never fires and the player would hang
-      // on a black <video>. Fall back to the recorded feed instead.
+      // A CDN load can end three ways: it loads (`onload`), it errors
+      // synchronously (`onerror` — offline, blocked, or SRI/integrity mismatch),
+      // or it *stalls* (connects but never resolves; the browser's TCP timeout
+      // can take 30–120s to fire `onerror`). In every case, `init` must run once
+      // or we fall back once — otherwise the player hangs on a black <video>.
+      let settled = false;
+      const settle = (run: () => void) => {
+        if (settled || state.cancelled) return;
+        settled = true;
+        if (state.scriptTimeout) { clearTimeout(state.scriptTimeout); state.scriptTimeout = null; }
+        run();
+      };
+      // Stall guard: match the manifest-load timeout so a hung CDN recovers to
+      // the recorded feed instead of leaving a black frame indefinitely.
+      state.scriptTimeout = setTimeout(() => {
+        console.warn("[HLS] hls.js CDN load timed out, falling back to recorded feed.");
+        settle(loadFallback);
+      }, 8000);
+      script.onload = () => settle(init);
       script.onerror = () => {
         console.warn("[HLS] hls.js failed to load from CDN, falling back to recorded feed.");
-        loadFallback();
+        settle(loadFallback);
       };
       document.body.appendChild(script);
     } else {
@@ -101,6 +116,10 @@ function HlsPlayer({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
 
     return () => {
       state.cancelled = true;
+      if (state.scriptTimeout) {
+        clearTimeout(state.scriptTimeout);
+        state.scriptTimeout = null;
+      }
       if (state.hls) {
         state.hls.destroy();
         state.hls = null;
