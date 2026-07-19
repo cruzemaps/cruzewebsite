@@ -20,7 +20,9 @@ function Footer() {
       <div className="container mx-auto px-6 py-12 grid md:grid-cols-6 gap-10 text-sm">
         <div className="md:col-span-2">
           <Link to="/" className="flex items-center gap-3 mb-4">
-            <img src="/logo.png" alt="Cruze" className="h-8 w-auto" />
+            {/* Decorative: the adjacent "CRUZE" wordmark already names the link
+                (avoids the image-redundant-alt a11y audit). */}
+            <img src="/logo.png" alt="" className="h-8 w-auto" />
             <span className="font-display font-bold text-xl">CRUZE</span>
           </Link>
           <p className="text-white/60 max-w-sm">
@@ -30,7 +32,7 @@ function Footer() {
             <a href="https://x.com/CruzeMaps" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
               <Twitter size={16} />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
+            <a href="https://www.linkedin.com/company/cruzemaps" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
               <Linkedin size={16} />
             </a>
             <a href="mailto:hello@cruzemaps.com" aria-label="Email" className="p-2 rounded-md hover:bg-white/5 text-white/60 hover:text-white">
@@ -64,7 +66,7 @@ function Footer() {
           <FooterLink to="/login">Sign In</FooterLink>
         </FooterColumn>
       </div>
-      <div className="border-t border-white/5 py-6 text-center text-xs text-white/40">
+      <div className="border-t border-white/5 py-6 text-center text-xs text-white/70">
         © {new Date().getFullYear()} Cruzemaps. Driving the future of traffic management.
       </div>
     </footer>
@@ -74,7 +76,7 @@ function Footer() {
 function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h4 className="font-display font-semibold text-white mb-3 text-xs uppercase tracking-widest">{title}</h4>
+      <p className="font-display font-semibold text-white mb-3 text-xs uppercase tracking-widest">{title}</p>
       <div className="flex flex-col gap-2">{children}</div>
     </div>
   );

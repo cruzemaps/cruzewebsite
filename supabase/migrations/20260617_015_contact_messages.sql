@@ -10,10 +10,10 @@
 
 create table if not exists public.contact_messages (
   id uuid primary key default gen_random_uuid(),
-  name text not null,
-  email text not null,
-  organization text,
-  message text not null,
+  name text not null check (char_length(name) <= 200),
+  email text not null check (char_length(email) <= 320),
+  organization text check (organization is null or char_length(organization) <= 200),
+  message text not null check (char_length(message) between 1 and 5000),
   created_at timestamptz default now()
 );
 
