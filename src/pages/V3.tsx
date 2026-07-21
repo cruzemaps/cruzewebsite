@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useMotionValueEvent, useReducedMotion } from "framer-motion";
 import SEO from "@/components/SEO";
-import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight, Award } from "lucide-react";
+import { Menu, X, ChevronDown, Navigation, Hourglass, Smartphone, ArrowUpRight, Award, Twitter, Linkedin, Instagram, Mail } from "lucide-react";
 import LiveCameras from "@/components/v3/LiveFeed";
 import TruckScene from "@/components/v3/TruckScene";
 import ContactForm from "@/components/v3/ContactForm";
@@ -86,7 +86,7 @@ function Nav() {
         </div>
 
         <div className="flex items-center gap-3">
-          <a href="#contact" className="hidden sm:inline-flex text-[15px] font-medium px-4 py-2 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff", fontFamily: body }}>Talk to us</a>
+          <a href="#contact" className="hidden sm:inline-flex text-[15px] font-medium px-4 py-2 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14", fontFamily: body }}>Talk to us</a>
           <button className="md:hidden p-1.5" style={{ color: text }} onClick={() => setOpen((o) => !o)} aria-label="Menu">{open ? <X size={22} /> : <Menu size={22} />}</button>
         </div>
       </div>
@@ -98,7 +98,7 @@ function Nav() {
           <a href="#how" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>How it works</a>
           <Link to="/insights" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>Insights</Link>
           <Link to="/investors" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>Investors</Link>
-          <a href="#contact" className="mt-2 inline-flex justify-center px-4 py-2.5 rounded-full font-medium" style={{ background: accent, color: "#fff" }} onClick={() => setOpen(false)}>Talk to us</a>
+          <a href="#contact" className="mt-2 inline-flex justify-center px-4 py-2.5 rounded-full font-medium" style={{ background: accent, color: "#0B0E14" }} onClick={() => setOpen(false)}>Talk to us</a>
         </div>
       )}
     </nav>
@@ -107,11 +107,32 @@ function Nav() {
 
 /* ----------------------------------------- Cinematic scroll hero */
 
+// Soft-start the scroll-jack: ease the first ~20% of scroll so the hero engages
+// gently (low sensitivity at the very top) instead of snapping the instant you
+// touch the scroll, then tracks 1:1 for the rest. C1-smooth at the join — slope 0
+// at the top ramps to slope 1 right where it meets the linear region, so no kink.
+// Lower HERO_SOFT_START = a shorter, subtler ramp.
+const HERO_SOFT_START = 0.2;
+function easeHeroStart(s: number) {
+  if (s >= HERO_SOFT_START) return s;
+  const u = s / HERO_SOFT_START;
+  return HERO_SOFT_START * u * u * (2 - u);
+}
+
 function DriveHero() {
   const ref = useRef<HTMLDivElement>(null);
   const [p, setP] = useState(0);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  useMotionValueEvent(scrollYProgress, "change", (v) => setP(v));
+  // Quantize scroll progress so the (heavy) SVG scene re-renders at most ~120
+  // times across the whole hero instead of on every scroll frame. The continuous
+  // wheel/parallax motion is driven separately (Web Animations API, via a ref) so
+  // it stays smooth; only the scroll-position visuals step in 120 increments,
+  // which is imperceptible but removes the per-frame React reconciliation that
+  // made scrolling janky on phones.
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const q = Math.round(easeHeroStart(v) * 120) / 120;
+    setP((prev) => (prev === q ? prev : q));
+  });
 
   const beats = [
     { tag: "Open road", h: "We clear traffic jams before they form.", t: "Most jams have no crash and no bottleneck. They are waves that start the moment one driver hits the brakes. Cruze sees them coming and nudges a few drivers to ease off, so the wave never builds. Scroll to watch it happen." },
@@ -149,7 +170,7 @@ function DriveHero() {
   }, []);
 
   return (
-    <section id="drive" ref={ref} style={{ height: "360vh", position: "relative" }}>
+    <section id="drive" ref={ref} className="v3-drive" style={{ position: "relative" }}>
       <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
         <TruckScene p={p} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(7,9,12,0.82) 0%, rgba(7,9,12,0.12) 30%, transparent 50%)", pointerEvents: "none" }} />
@@ -167,7 +188,7 @@ function DriveHero() {
                 <h1 className="v3-hero-h1 font-bold tracking-[-0.025em] leading-[1.02]" style={{ fontFamily: display, color: text, fontSize: "clamp(2.2rem, 5.4vw, 4.4rem)" }}>{beats[beat].h}</h1>
                 <p className="v3-hero-body mt-4 text-base sm:text-lg leading-relaxed max-w-xl" style={{ color: "rgba(255,255,255,0.82)", fontFamily: body }}>{beats[beat].t}</p>
                 <div className="v3-hero-cta mt-6 flex flex-wrap items-center gap-3" style={{ fontFamily: body }}>
-                  <a href="#live" className="text-[14px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff" }}>See it live</a>
+                  <a href="#live" className="text-[14px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14" }}>See it live</a>
                   <a href="#contact" className="text-[14px] font-medium px-5 py-2.5 rounded-full border transition-colors hover:border-white" style={{ borderColor: "rgba(255,255,255,0.28)", color: "#fff" }}>Talk to us</a>
                 </div>
               </motion.div>
@@ -206,7 +227,7 @@ function LiveProof() {
               signal the rest of the system runs on. Pick a city and look around.
             </p>
             <div className="mt-7 flex flex-wrap gap-3" style={{ fontFamily: body }}>
-              <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[15px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff" }}>
+              <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[15px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14" }}>
                 Open the camera map <ArrowUpRight size={15} />
               </a>
               <Link to="/lab" className="text-[15px] font-medium px-5 py-2.5 rounded-full border transition-colors hover:border-white" style={{ borderColor: line, color: text }}>Watch detection run</Link>
@@ -447,7 +468,7 @@ function Team() {
               to claim customers or savings we have not earned. If you run a fleet or a road network
               and want to be early, that is exactly who we want to hear from.
             </p>
-            <a href="#contact" className="mt-8 inline-flex px-6 py-3 rounded-full font-medium text-[15px] transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff", fontFamily: body }}>Talk to us</a>
+            <a href="#contact" className="mt-8 inline-flex px-6 py-3 rounded-full font-medium text-[15px] transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14", fontFamily: body }}>Talk to us</a>
           </div>
         </Reveal>
         <Reveal delay={0.1}>
@@ -503,7 +524,7 @@ function Pilot() {
 
         <Reveal>
           <div className="mt-12 flex flex-col sm:flex-row sm:items-center gap-4" style={{ fontFamily: body }}>
-            <a href="#contact" className="inline-flex justify-center px-6 py-3 rounded-full font-medium text-[15px] transition-opacity hover:opacity-90" style={{ background: accent, color: "#fff" }}>Start with one corridor</a>
+            <a href="#contact" className="inline-flex justify-center px-6 py-3 rounded-full font-medium text-[15px] transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14" }}>Start with one corridor</a>
             <span className="text-sm" style={{ color: muted }}>Most pilots begin with a single road in Texas.</span>
           </div>
         </Reveal>
@@ -542,6 +563,33 @@ function Footer() {
         <div>
           <div className="font-bold text-xl mb-2" style={{ fontFamily: display, color: text }}>Cruze</div>
           <p className="text-sm max-w-xs" style={{ color: muted }}>Pre-seed traffic intelligence. Building in Texas.</p>
+          {/* Socials — all four verified live: X @CruzeMaps and hello@cruzemaps.com
+              match the repo (seo.ts, MarketingLayout); the LinkedIn company page
+              resolves to the real Cruze profile (cruzemaps.com). Instagram @cruzemaps
+              resolves to the account but couldn't be fully loaded for a bot — safe to
+              ship, worth a founder eyeball. */}
+          <div className="flex items-center gap-2 mt-5">
+            {[
+              { Icon: Twitter, href: "https://x.com/CruzeMaps", label: "Cruze on X" },
+              { Icon: Linkedin, href: "https://www.linkedin.com/company/cruzemaps", label: "Cruze on LinkedIn" },
+              { Icon: Instagram, href: "https://www.instagram.com/cruzemaps", label: "Cruze on Instagram" },
+              { Icon: Mail, href: "mailto:hello@cruzemaps.com", label: "Email Cruze" },
+            ].map(({ Icon, href, label }) => {
+              const external = !href.startsWith("mailto:");
+              return (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  className="p-2 rounded-lg transition-colors hover:text-white"
+                  style={{ color: muted, border: `1px solid ${line}` }}
+                >
+                  <Icon size={16} />
+                </a>
+              );
+            })}
+          </div>
         </div>
         {cols.map((col) => (
           <div key={col.h}>
