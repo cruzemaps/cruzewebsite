@@ -14,6 +14,61 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "why-tailgating-causes-traffic",
+    title: "Why does tailgating cause traffic jams?",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-06-28",
+    excerpt:
+      "Following too closely feels harmless, but short gaps are how one driver's brake tap grows into a mile of stopped cars. Here is the physics of why tailgating makes traffic worse for everyone behind you.",
+    body: `Tailgating causes traffic jams because the smaller the gap you leave to the car ahead, the harder you have to brake when it slows, and the harder you brake, the harder the car behind you has to brake. A short following distance turns a tiny speed change at the front of a line into a bigger one a few cars back, and a bigger one after that, until somewhere down the line a car comes to a complete stop on an open road. That stop is a phantom traffic jam, and tight following distances are one of the main things that let it grow.
+
+Most drivers think of tailgating as a safety issue, and it is. But it is also a flow issue. The same short gap that gives you no room to react also strips the whole stream of cars behind you of its ability to absorb small disturbances. This article explains the mechanism, the experiments that prove it, and why leaving a bigger gap is one of the few things an ordinary driver can do that actually helps everyone, not just themselves.
+
+## How a small brake tap becomes a full stop
+
+Imagine a line of cars all moving at 65 mph. The lead driver lifts off the gas for a second, maybe to glance at an exit sign, and slows by 3 mph. Nothing dramatic. The driver right behind sees the gap closing and, because human reactions are not instant, overcorrects slightly, braking to lose 5 mph instead of 3. The next driver back reacts to that larger change with a larger one of their own, dropping 8 mph. Each driver is reacting a beat late and a little too hard, and each one hands a bigger disturbance to the person behind them.
+
+This is called string instability, and it is the core of why traffic jams form with no crash and no bottleneck. A disturbance that should fade out instead grows as it travels backward through the line. After enough cars, the amplification is large enough that someone has to stop completely. We break down the full mechanism in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident).
+
+The single biggest lever on whether a disturbance grows or shrinks is the gap each driver leaves. A generous following distance gives you time to react gently to the car ahead, so you pass on a smaller disturbance than you received and the wave dies out. A short gap forces you to react sharply, so you pass on a bigger one and the wave builds. Tailgating is, in effect, a choice to amplify every disturbance that reaches you.
+
+## The experiment that proves it
+
+You do not have to take this on faith. In 2008, physicist Yuki Sugiyama and colleagues put 22 cars on a single-lane circular track and asked drivers to do one thing: cruise at a steady speed while keeping a comfortable distance (Sugiyama et al., New Journal of Physics, 2008). There was no light, no merge, no obstacle, and no lead car to blame. Within minutes, tiny variations in human speed-keeping grew into a clear stop-and-go wave that traveled backward around the ring, exactly like a jam on a real highway.
+
+The experiment isolated the cause. With no bottleneck anywhere, the jam came purely from how closely the cars followed each other and how imperfectly humans hold a steady speed. Pack the same cars into a tighter ring, shortening every gap, and the wave forms faster and is harder to escape. The jam is not made of metal and asphalt. It is made of reaction times and following distances.
+
+> A traffic jam with no crash is built out of reaction times and following distances. Leave a bigger gap and you stop amplifying the wave. Tailgate and you feed it.
+
+## Why one tailgater hurts everyone behind them
+
+The frustrating part is that the cost of a short gap is not paid mostly by the tailgater. It is paid by everyone behind them. When you follow too closely and have to brake hard, you inject a disturbance into the stream that grows as it propagates back through dozens of cars you will never see. You may clear your own little gap and feel fine, while a quarter mile back, drivers are rolling to a dead stop because of a chain reaction your braking helped start.
+
+This is also why merely adding lanes does not solve the problem. More lanes raise how many cars a road can hold, but they do nothing to change following behavior, so each lane can still throw its own waves. We cover that in [why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic). The bottleneck is not always the road. Often it is the gap.
+
+And the safety and flow problems are the same problem. Rear-end collisions are among the most common crash types on U.S. roads, and they happen for the exact reason phantom jams do: not enough room to react when the car ahead slows. The gap that keeps you from rear-ending someone is the same gap that keeps the stream behind you flowing.
+
+## What this costs
+
+Stop-and-go traffic is not just annoying, it is expensive. In 2024, U.S. drivers lost more than 4 billion hours and about $74 billion to congestion (INRIX 2024 Global Traffic Scorecard). Freight pays an outsized share: congestion added $108.8 billion in operating cost and wasted 6.4 billion gallons of diesel for the trucking industry in 2022 (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). A large slice of that is not raw volume, it is the fuel and time burned accelerating out of waves that short following distances helped create. Every hard brake is energy thrown away as heat, and every car behind it pays the same toll.
+
+## The fix needs only a few drivers
+
+Here is the encouraging part. If short gaps and hard braking make waves grow, then steadier speeds and a little extra room make them shrink, and you do not need every driver to cooperate. A University of Arizona study (Stern et al., Transportation Research Part C, 2018) put a single specially controlled vehicle into a ring of human drivers and had it hold a smooth, steady speed instead of reacting sharply to every fluctuation. That one car, roughly 5% of the traffic, was enough to dissolve the stop-and-go waves the humans kept generating and to cut fuel use for every vehicle behind it.
+
+The lesson is direct: you do not need self-driving cars or wider highways to calm a wave. You need a small number of vehicles, in the right place, leaving enough room to react gently instead of slamming the brakes. The opposite of tailgating, applied by even a few drivers, is enough to break the chain.
+
+## Where Cruze comes in
+
+This is exactly what [Cruze](/) does, automatically and at the right moment. We read the flow from the [traffic cameras already on the poles](/cameras), with no new hardware on the road, predict where a stop-and-go wave is about to form, and give a small share of drivers a gentle, well-timed speed cue, the kind a careful driver leaving a healthy gap would make on their own. It is the 5% finding turned into a product: nudge a few drivers to ease off a few seconds early, and the whole stream behind them stops wave-jamming.
+
+For a [fleet](/for-fleets), that means less fuel burned and fewer hard stops on every congested corridor, plus the safety upside of bigger following distances. For a [city or DOT](/for-cities), it means more reliable throughput from the lanes you already own, measured against the cameras you already have. You can watch a phantom jam form and then dissolve on our [homepage](/).
+
+Tailgating feels like it only affects the space in front of your own bumper. In dense traffic, it does the opposite: it amplifies every disturbance that reaches you and hands a bigger one to everyone behind. The single most useful thing most drivers can do for traffic is also the simplest. Leave a gap. For a longer tour of why traffic forms out of nothing, start with our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams).`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "why-does-traffic-get-worse-in-the-rain",
     title: "Why does traffic get worse when it rains?",
     author: "Anudeep Bonagiri",
