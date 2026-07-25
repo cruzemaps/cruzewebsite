@@ -17,7 +17,13 @@ export default function SEO(props: Props) {
   const ogImage = resolveOgImage(props.ogImage ?? fromManifest.ogImage);
   const noindex = props.noindex ?? fromManifest.noindex ?? false;
   const jsonLd = props.jsonLd ?? fromManifest.jsonLd;
-  const canonical = props.canonicalOverride ?? `${SITE.url}${location.pathname === "/" ? "" : location.pathname}`;
+  // Normalize any trailing slash so the runtime canonical matches the one the
+  // prerenderer bakes in (scripts/prerender.mjs uses route.path, which has no
+  // trailing slash). When a page is served as `/foo/index.html`, location.pathname
+  // is `/foo/`, which would otherwise emit a second, conflicting canonical and
+  // fail Lighthouse's `rel=canonical` audit ("multiple conflicting URLs").
+  const canonicalPath = location.pathname.replace(/\/+$/, "");
+  const canonical = props.canonicalOverride ?? `${SITE.url}${canonicalPath}`;
 
   const jsonLdArray = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
 
