@@ -6,35 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import USAMap from "@/components/calculator/USAMap";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
-
-type RegionKey = "southeast" | "northeast" | "southwest" | "midwest";
-
-const REGION_METRICS = {
-  southeast: {
-    label: "Southeast",
-    savingsRange: [9800, 11500],
-    perMileRange: [0.098, 0.115],
-    centsMile: "9.8¢ – 11.5¢",
-  },
-  northeast: {
-    label: "Northeast",
-    savingsRange: [8900, 10200],
-    perMileRange: [0.089, 0.102],
-    centsMile: "8.9¢ – 10.2¢",
-  },
-  southwest: {
-    label: "Southwest",
-    savingsRange: [7800, 9100],
-    perMileRange: [0.078, 0.091],
-    centsMile: "7.8¢ – 9.1¢",
-  },
-  midwest: {
-    label: "Midwest / Mountain",
-    savingsRange: [6500, 8200],
-    perMileRange: [0.065, 0.082],
-    centsMile: "6.5¢ – 8.2¢",
-  },
-};
+import { REGION_METRICS, projectRouteSavings, tripChartData, type RegionKey } from "@/lib/routePlanner";
 
 const RoutePlanner = () => {
   const [region, setRegion] = useState<RegionKey>("southwest");
@@ -48,19 +20,7 @@ const RoutePlanner = () => {
   };
 
   // Generate chart data based on trips per year (10, 50, 100, 200, 500)
-  const chartData = useMemo(() => {
-    if (distance === 0) return [];
-    
-    const trips = [10, 50, 100, 200, 500];
-    return trips.map(t => {
-      const miles = distance * t;
-      const savingsAvg = miles * ((currentMetrics.perMileRange[0] + currentMetrics.perMileRange[1]) / 2);
-      return {
-        trips: t.toString() + " Trips",
-        Savings: Math.round(savingsAvg)
-      };
-    });
-  }, [distance, currentMetrics]);
+  const chartData = useMemo(() => tripChartData(distance, region), [distance, region]);
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white overflow-y-auto relative pb-20">
@@ -149,11 +109,11 @@ const RoutePlanner = () => {
                   <h4 className="text-white/50 text-sm font-medium mb-2">Projected Route Savings (100 Trips)</h4>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-4xl md:text-5xl font-display font-bold text-white tracking-tighter">
-                      ${Math.round(distance * 100 * currentMetrics.perMileRange[0]).toLocaleString()}
+                      ${projectRouteSavings(distance, region).low.toLocaleString()}
                     </span>
                     <span className="text-xl text-white/50 font-light">to</span>
                     <span className="text-4xl md:text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-brand-cyan tracking-tighter">
-                      ${Math.round(distance * 100 * currentMetrics.perMileRange[1]).toLocaleString()}
+                      ${projectRouteSavings(distance, region).high.toLocaleString()}
                     </span>
                   </div>
                   <div className="mt-4 flex items-center gap-2 text-sm text-brand-cyan">
