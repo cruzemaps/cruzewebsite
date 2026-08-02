@@ -11,12 +11,13 @@ import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
+import { verifyDataroomPassword } from "@/lib/dataroom";
 import { SITE } from "@/lib/seo";
 
 // Tier-gated investor flow:
 //   Tier 1 (public): summary visible to all (SEO-indexable, content above the fold)
 //   Tier 2 (email-gated): full pitch + interactive lab unlocked after email
-//   Tier 3 (password-gated dataroom): financials, contracts via VITE_DATAROOM_PASSWORD
+//   Tier 3 (password-gated dataroom): financials, contracts via VITE_DATAROOM_PASSWORD_HASH
 //
 // Email gate uses sessionStorage (visit-scoped) so investors don't have to
 // re-enter on each page nav, but it doesn't persist across sessions — keeps
@@ -209,17 +210,17 @@ function EmailGate({ onSuccess }: { onSuccess: () => void }) {
           <form onSubmit={submit} className="space-y-3 max-w-md mx-auto text-left">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-white/70 text-xs mb-1 block">Name</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white/5 border-white/10 text-white" />
+                <Label htmlFor="inv-name" className="text-white/70 text-xs mb-1 block">Name</Label>
+                <Input id="inv-name" value={name} onChange={(e) => setName(e.target.value)} className="bg-white/5 border-white/10 text-white" />
               </div>
               <div>
-                <Label className="text-white/70 text-xs mb-1 block">Firm</Label>
-                <Input value={firm} onChange={(e) => setFirm(e.target.value)} placeholder="(optional)" className="bg-white/5 border-white/10 text-white" />
+                <Label htmlFor="inv-firm" className="text-white/70 text-xs mb-1 block">Firm</Label>
+                <Input id="inv-firm" value={firm} onChange={(e) => setFirm(e.target.value)} placeholder="(optional)" className="bg-white/5 border-white/10 text-white" />
               </div>
             </div>
             <div>
-              <Label className="text-white/70 text-xs mb-1 block">Email *</Label>
-              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white" />
+              <Label htmlFor="inv-email" className="text-white/70 text-xs mb-1 block">Email *</Label>
+              <Input id="inv-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white" />
             </div>
             <Button type="submit" disabled={submitting} className="w-full bg-brand-orange text-[#0B0E14] hover:bg-brand-orange/90 font-bold">
               Unlock the full briefing
@@ -268,24 +269,31 @@ function DataroomGate({ onSuccess }: { onSuccess: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const expected = (import.meta.env.VITE_DATAROOM_PASSWORD as string) || "";
-    // Basic equality check at the client. NOT a security boundary — anything in
-    // the dataroom is gated server-side too (e.g. Notion link with link-level
-    // sharing, or a signed Supabase storage URL). This is a friction gate.
-    //
-    // SECURITY NOTE (known issue, needs owner decision): VITE_DATAROOM_PASSWORD
-    // is inlined into the public JS bundle at build time, so the "password" is
-    // readable by anyone who opens dev tools. This gate needs a real
-    // server-side check (e.g. a Supabase edge function that verifies the
-    // password and returns the dataroom links/signed URLs) before anything
-    // sensitive is ever linked from DataroomSection.
-    await new Promise((r) => setTimeout(r, 300));
+    // NOT a security boundary — the dataroom contents are gated server-side too
+    // (Notion link-level sharing, signed Supabase storage URLs). This is a
+    // friction gate. We compare against a SHA-256 hash so the plaintext password
+    // never ships in the client bundle; plaintext is honored only as a legacy
+    // fallback. See src/lib/dataroom.ts.
+    let result: Awaited<ReturnType<typeof verifyDataroomPassword>>;
+    try {
+      result = await verifyDataroomPassword(pw, {
+        hash: import.meta.env.VITE_DATAROOM_PASSWORD_HASH as string,
+        plaintext: import.meta.env.VITE_DATAROOM_PASSWORD as string,
+      });
+      await new Promise((r) => setTimeout(r, 300));
+    } catch {
+      // Web Crypto unavailable (e.g. served over an insecure context) or digest
+      // failed — never leave the button stuck in the submitting state.
+      setSubmitting(false);
+      toast.error("Couldn't verify the password in this browser. Email investors@cruzemaps.com.");
+      return;
+    }
     setSubmitting(false);
-    if (!expected) {
+    if (result === "unconfigured") {
       toast.error("Dataroom not yet configured. Email investors@cruzemaps.com.");
       return;
     }
-    if (pw !== expected) {
+    if (result === "incorrect") {
       toast.error("Incorrect password.");
       return;
     }

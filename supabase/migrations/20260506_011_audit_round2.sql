@@ -76,15 +76,15 @@ begin
 
   -- Snapshot child rows first (they would otherwise vanish via ON DELETE
   -- CASCADE on the auth.users delete below).
-  insert into public.permanent_deletions (entity_type, entity_id, snapshot, reason, deleted_by)
+  insert into public.permanent_deletions (entity_type, entity_id, entity_snapshot, reason, deleted_by)
   select 'loi_signature', id, to_jsonb(l), 'CASCADED FROM USER DELETE: ' || p_reason, acting_admin
   from public.loi_signatures l where l.user_id = p_user_id;
 
-  insert into public.permanent_deletions (entity_type, entity_id, snapshot, reason, deleted_by)
+  insert into public.permanent_deletions (entity_type, entity_id, entity_snapshot, reason, deleted_by)
   select 'pilot_application', id, to_jsonb(pa), 'CASCADED FROM USER DELETE: ' || p_reason, acting_admin
   from public.pilot_applications pa where pa.user_id = p_user_id;
 
-  insert into public.permanent_deletions (entity_type, entity_id, snapshot, reason, deleted_by)
+  insert into public.permanent_deletions (entity_type, entity_id, entity_snapshot, reason, deleted_by)
   select 'invitation', id, to_jsonb(inv), 'CASCADED FROM USER DELETE: ' || p_reason, acting_admin
   from public.invitations inv where inv.invited_by = p_user_id or lower(inv.email) = (
     select lower(email) from auth.users where id = p_user_id
@@ -92,7 +92,7 @@ begin
 
   -- Snapshot the profile itself so the audit trail names the deleted user.
   select to_jsonb(p) into prof_row from public.profiles p where p.id = p_user_id;
-  insert into public.permanent_deletions (entity_type, entity_id, snapshot, reason, deleted_by)
+  insert into public.permanent_deletions (entity_type, entity_id, entity_snapshot, reason, deleted_by)
   values ('user', p_user_id, prof_row, p_reason, acting_admin);
 
   -- Now actually remove the user. The cascade clears the child rows we

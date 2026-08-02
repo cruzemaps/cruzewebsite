@@ -141,7 +141,7 @@ Required on Cloudflare / GitHub Actions (see `.github/workflows/deploy.yml`):
 | `VITE_SUPABASE_URL` | Supabase client |
 | `VITE_SUPABASE_ANON_KEY` | Supabase client |
 | `VITE_POSTHOG_KEY` | Analytics (optional) |
-| `VITE_DATAROOM_PASSWORD` | Investors tier 3 |
+| `VITE_DATAROOM_PASSWORD_HASH` | Investors tier 3 (hex SHA-256; plaintext `VITE_DATAROOM_PASSWORD` is a legacy fallback — **remove it from the deploy env once the hash is set, or Vite still inlines the plaintext into the bundle**) |
 | `VITE_DATAROOM_URL` | Investors dataroom |
 | `VITE_CALCOM_USER` | Investors scheduling embed |
 

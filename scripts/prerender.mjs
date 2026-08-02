@@ -52,6 +52,7 @@ async function loadProgrammaticRoutes(SITE) {
     keywords: p.tags ? p.tags.join(", ") : undefined,
     changefreq: "yearly",
     priority: 0.6,
+    jsonLd: insightArticleJsonLd(SITE, p),
   }));
 
   return [...cityRoutes, ...laneRoutes, ...insightRoutes];
@@ -95,7 +96,29 @@ async function loadRoutes() {
   return new Function(program)();
 }
 
-function renderHead(SITE, route) {
+// Mirror the runtime articleJsonLd() in src/pages/InsightDetail.tsx so the
+// Article + Person (E-E-A-T) schema documented for /insights/:slug is baked
+// into the static HTML, not just injected client-side after hydration.
+// Keep this in lockstep with that function — same shape, same fields.
+// Exported for scripts/prerender.test.mjs (contract lock).
+export function insightArticleJsonLd(SITE, p) {
+  const author = p.authorTitle
+    ? { "@type": "Person", name: p.author, jobTitle: p.authorTitle, worksFor: { "@type": "Organization", name: "Cruze" } }
+    : { "@type": "Organization", name: p.author };
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: p.title,
+    description: p.excerpt,
+    author,
+    publisher: { "@type": "Organization", name: "Cruze", logo: { "@type": "ImageObject", url: `${SITE.url}/logo.png` } },
+    datePublished: p.publishedAt,
+    keywords: p.tags ? p.tags.join(", ") : undefined,
+    mainEntityOfPage: `${SITE.url}/insights/${p.slug}`,
+  };
+}
+
+export function renderHead(SITE, route) {
   const canonical = `${SITE.url}${route.path === "/" ? "" : route.path}`;
   const ogImageRaw = route.ogImage || SITE.ogImage;
   const ogImage = /^https?:\/\//i.test(ogImageRaw) ? ogImageRaw : `${SITE.url}${ogImageRaw}`;
@@ -222,7 +245,11 @@ async function main() {
   console.log("✓ prerender complete");
 }
 
-main().catch((err) => {
-  console.error("✗ prerender failed:", err);
-  process.exit(1);
-});
+// Only run the build when invoked directly (node scripts/prerender.mjs), not
+// when imported by a test that exercises the pure helpers above.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error("✗ prerender failed:", err);
+    process.exit(1);
+  });
+}

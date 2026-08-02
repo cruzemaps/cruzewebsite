@@ -9,6 +9,7 @@
     "build": "vite build && node scripts/prerender.mjs",
     "build:dev": "vite build --mode development && node scripts/prerender.mjs",
     "lint": "eslint .",
+    "test:prerender": "node --test scripts/prerender.test.mjs",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"

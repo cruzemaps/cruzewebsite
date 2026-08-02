@@ -82,13 +82,13 @@ export default function FAQ() {
       <section className="container mx-auto px-6 py-24 max-w-3xl">
         <h1 className="font-display text-4xl md:text-6xl font-bold mb-4">Frequently asked.</h1>
         <p className="text-white/60 mb-12 text-lg">
-          What people ask before they pilot Cruze. Don't see your question? Email <a href="mailto:info@cruzemaps.com" className="text-brand-cyan hover:text-white">info@cruzemaps.com</a>.
+          What people ask before they pilot Cruze. Don't see your question? Email <a href="mailto:info@cruzemaps.com" className="text-brand-cyan underline hover:text-white">info@cruzemaps.com</a>.
         </p>
 
         <Accordion type="single" collapsible className="w-full">
           {FAQS.map((item, i) => (
             <AccordionItem key={item.q} value={`item-${i}`} className="border-white/10">
-              <AccordionTrigger className="text-left font-display font-semibold text-lg hover:text-brand-cyan">
+              <AccordionTrigger headingLevel={2} className="text-left font-display font-semibold text-lg hover:text-brand-cyan">
                 {item.q}
               </AccordionTrigger>
               <AccordionContent className="text-white/70 leading-relaxed">{item.a}</AccordionContent>
