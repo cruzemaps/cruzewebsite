@@ -37,6 +37,10 @@ import path from "path";
 //                                             (SRI-pinned) by the camera players
 //               us-assets.i.posthog.com    -> PostHog lazily loads recorder /
 //                                             surveys / toolbar assets
+//               static.cloudflareinsights.com -> Cloudflare Web Analytics beacon
+//                                             auto-injected by the CF proxy; was
+//                                             CSP-blocked, so analytics silently
+//                                             collected nothing
 //   style-src   'unsafe-inline'            -> framer-motion / recharts inline
 //                                             style attrs + an injected <style>
 //                                             (V3.tsx) + index.html body style
@@ -51,6 +55,7 @@ import path from "path";
 //               cdn.jsdelivr.net           -> us-atlas topojson map data fetch
 //               storage.googleapis.com     -> coco-ssd model weights (tfjs-models)
 //               *.skyvdn.com               -> hls.js manifest/segment XHR
+//               cloudflareinsights.com     -> CF Web Analytics RUM beacon POST
 //   frame-src   cal.com / app.cal.com      -> investor "book a call" iframe
 //   worker-src  'self' blob:              -> hls.js transmux Web Worker (blob)
 //
@@ -71,6 +76,7 @@ function cspMetaPlugin(): Plugin {
         `'${scriptHash}'`,
         "https://cdn.jsdelivr.net",
         "https://us-assets.i.posthog.com",
+        "https://static.cloudflareinsights.com",
       ],
       "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
@@ -85,6 +91,7 @@ function cspMetaPlugin(): Plugin {
         "https://cdn.jsdelivr.net",
         "https://storage.googleapis.com",
         "https://*.skyvdn.com",
+        "https://cloudflareinsights.com",
       ],
       "frame-src": ["https://cal.com", "https://app.cal.com"],
       "worker-src": ["'self'", "blob:"],
