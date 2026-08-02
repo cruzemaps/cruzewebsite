@@ -17,7 +17,13 @@ export default function SEO(props: Props) {
   const ogImage = resolveOgImage(props.ogImage ?? fromManifest.ogImage);
   const noindex = props.noindex ?? fromManifest.noindex ?? false;
   const jsonLd = props.jsonLd ?? fromManifest.jsonLd;
-  const canonical = props.canonicalOverride ?? `${SITE.url}${location.pathname === "/" ? "" : location.pathname}`;
+  // Strip trailing slashes so the runtime canonical matches the one
+  // scripts/prerender.mjs bakes into the static HTML (`/for-fleets`, not
+  // `/for-fleets/`). Static hosts serve the route as `/for-fleets/`, and two
+  // *conflicting* canonicals fail Lighthouse's SEO gate; identical duplicates
+  // are fine. "/" collapses to "" -> bare SITE.url, same as before.
+  const canonicalPath = location.pathname.replace(/\/+$/, "");
+  const canonical = props.canonicalOverride ?? `${SITE.url}${canonicalPath}`;
 
   const jsonLdArray = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
 

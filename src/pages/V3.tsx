@@ -198,11 +198,15 @@ function DriveHero() {
           {/* Spacer: the truck and cars animate behind this region */}
           <div className="flex-1 min-h-0" />
 
-          {/* Bottom: just the thin progress dots, over the empty road */}
+          {/* Bottom: the thin progress dots. On phones the jam cars drive through
+              this band, so the row sits in a dark blur pill (same treatment as the
+              HOLD 55 card) instead of raw text over the sprites. */}
           <div className="flex-none pb-5 sm:pb-6">
-            <div className="mx-auto max-w-6xl px-5 sm:px-6 flex items-center gap-3" style={{ fontFamily: body }}>
-              {[0, 1, 2].map((i) => <span key={i} className="h-1 rounded-full transition-all duration-300" style={{ width: i === beat ? 42 : 16, background: i === beat ? accent : "rgba(255,255,255,0.28)" }} />)}
-              <span className="ml-3 text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{beat < 2 ? "keep scrolling" : "the jam is gone"}</span>
+            <div className="mx-auto max-w-6xl px-5 sm:px-6" style={{ fontFamily: body }}>
+              <div className="inline-flex items-center gap-3 rounded-full px-3.5 py-2" style={{ background: "rgba(8,10,14,0.72)", backdropFilter: "blur(6px)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                {[0, 1, 2].map((i) => <span key={i} className="h-1 rounded-full transition-all duration-300" style={{ width: i === beat ? 42 : 16, background: i === beat ? accent : "rgba(255,255,255,0.28)" }} />)}
+                <span className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>{beat < 2 ? "keep scrolling" : "the jam is gone"}</span>
+              </div>
             </div>
           </div>
         </div>
