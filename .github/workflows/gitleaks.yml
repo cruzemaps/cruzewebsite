@@ -1,0 +1,35 @@
+name: Secret Scan (gitleaks)
+
+# Scans pushes and PRs for committed secrets (API keys, tokens, credentials).
+# Complements the CSP hardening in this repo: keeps VITE_* secrets, Supabase
+# service keys, and the frame-analyze worker's Anthropic key from ever landing
+# in git history. .env is gitignored, but a workflow makes the guarantee
+# enforceable in CI instead of relying on convention.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so pushes are scanned across their whole commit range,
+          # not just the tip commit.
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE is only required for gitleaks-action on GitHub
+          # organizations. It is optional for public/individual repos; if the
+          # org later requires it, add it in repo Settings -> Secrets.
