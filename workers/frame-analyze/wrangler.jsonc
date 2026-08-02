@@ -6,7 +6,16 @@
   "observability": { "enabled": true },
   "routes": [
     { "pattern": "analyze.cruzemaps.com", "custom_domain": true }
-  ]
+  ],
+  // Native rate limiting guarding the paid Anthropic call. namespace_id is an
+  // arbitrary unique integer per limiter; period must be 10 or 60 (seconds).
+  // RL_PER_IP stops a single abuser; RL_GLOBAL caps total spend / stampedes.
+  "unsafe": {
+    "bindings": [
+      { "name": "RL_PER_IP", "type": "ratelimit", "namespace_id": "2001", "simple": { "limit": 8, "period": 60 } },
+      { "name": "RL_GLOBAL", "type": "ratelimit", "namespace_id": "2002", "simple": { "limit": 240, "period": 60 } }
+    ]
+  }
   // ANTHROPIC_API_KEY is delivered out-of-band:
   //   wrangler secret put ANTHROPIC_API_KEY --config workers/frame-analyze/wrangler.jsonc
   // It is never committed to source.

@@ -11,8 +11,17 @@
 // The ANTHROPIC_API_KEY is delivered via `wrangler secret put` — it must
 // never appear in source files, in git, or in the client bundle.
 
+// Cloudflare native Rate Limiting binding (configured in wrangler.jsonc).
+interface RateLimit {
+    limit(options: { key: string }): Promise<{ success: boolean }>;
+}
+
 interface Env {
     ANTHROPIC_API_KEY: string;
+    // Per-IP and global limiters guarding the (paid) Anthropic call. See
+    // `unsafe.bindings` in wrangler.jsonc.
+    RL_PER_IP: RateLimit;
+    RL_GLOBAL: RateLimit;
 }
 
 type Severity = "clear" | "stable" | "heavy" | "shock";
@@ -84,6 +93,31 @@ export default {
 
         if (request.method !== "POST") {
             return jsonResponse({ ok: false, error: "POST /analyze only" }, 405, cors);
+        }
+
+        // Origin gate. The only legitimate caller is the SPA (cruzemaps.com or
+        // a localhost dev server). Cheap defense-in-depth, NOT a security
+        // boundary on its own — the Origin header is spoofable by a non-browser
+        // client — so it is paired with the rate limits below.
+        if (!isAllowedOrigin(origin)) {
+            return jsonResponse({ ok: false, error: "forbidden origin" }, 403, cors);
+        }
+
+        // Rate limiting (Cloudflare native binding). Every call below spends
+        // Anthropic tokens, so shed abusive load BEFORE the upstream request.
+        // Limits are approximate / per-colo; a hard daily budget would need a
+        // KV / Durable-Object counter (tracked as a follow-up).
+        const clientIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+        const [globalOk, ipOk] = await Promise.all([
+            env.RL_GLOBAL.limit({ key: "global" }),
+            env.RL_PER_IP.limit({ key: clientIp }),
+        ]);
+        if (!globalOk.success || !ipOk.success) {
+            return jsonResponse(
+                { ok: false, error: "rate limited" },
+                429,
+                { ...cors, "Retry-After": "60" },
+            );
         }
 
         if (!env.ANTHROPIC_API_KEY) {
