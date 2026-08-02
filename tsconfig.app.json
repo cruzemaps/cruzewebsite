@@ -26,5 +26,9 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  // Test files are typechecked by the test runner's own config, not the app
+  // build. Excluding them keeps `tsc --noEmit -p tsconfig.app.json` (the CI
+  // Type-check step) green without vitest installed as an app dependency.
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }
