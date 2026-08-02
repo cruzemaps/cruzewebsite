@@ -13,7 +13,7 @@ Package manager: **npm is the source of truth.** `package-lock.json` is committe
 - `npm run lint` — flat-config ESLint (`eslint.config.js`); `@typescript-eslint/no-unused-vars` is disabled and `react-refresh/only-export-components` is a warning
 - `npm run deploy` — build + push `dist/` to `gh-pages` branch via `gh-pages` package (CI also auto-deploys via `.github/workflows/deploy.yml` on push to `main`)
 
-There is no test runner configured.
+- `npm test` — vitest (`vitest run`); currently covers `src/lib/dataroom.test.ts`. CI's Lint + type-check workflow type-checks test files too, so test-only imports must be real devDependencies.
 
 ## Architecture
 
