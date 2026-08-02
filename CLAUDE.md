@@ -21,15 +21,18 @@ This is a **Vite + React 18 + TypeScript SPA** for Cruze (a swarm-intelligence t
 
 ### Routing & role gating
 
-All routes are declared in [src/App.tsx](src/App.tsx). Three role-gated dashboards sit behind `ProtectedRoute`:
+All routes are declared in [src/App.tsx](src/App.tsx). Role-gated dashboards sit behind `ProtectedRoute`:
 
-| Role            | Route               | Page                                          |
-| --------------- | ------------------- | --------------------------------------------- |
-| `city_operator` | `/dashboard`        | [MissionControl](src/pages/MissionControl.tsx) |
-| `fleet_owner`   | `/fleet-dashboard`  | [FleetDashboard](src/pages/FleetDashboard.tsx) |
-| `admin`         | `/admin`            | [AdminPortal](src/pages/AdminPortal.tsx)       |
+| Role                    | Route               | Page                                          |
+| ----------------------- | ------------------- | --------------------------------------------- |
+| `city_operator`         | `/dashboard`        | [MissionControl](src/pages/MissionControl.tsx) |
+| `fleet_owner`           | `/fleet-dashboard`  | [FleetDashboard](src/pages/FleetDashboard.tsx) |
+| `fleet_owner` / `admin` | `/fleet-scores`     | [FleetScores](src/pages/FleetScores.tsx)       |
+| `admin`                 | `/admin`            | [AdminPortal](src/pages/AdminPortal.tsx)       |
 
-[ProtectedRoute](src/components/ProtectedRoute.tsx) resolves the role by querying Supabase `profiles.role` for `user.id`, falling back to `user.user_metadata.role` if the table read fails (so the demo path keeps working before SQL is applied). On role mismatch it redirects to that user's correct dashboard rather than the login screen.
+The homepage `/` is **V3** ([V3.tsx](src/pages/V3.tsx), composed from [src/components/v3/](src/components/v3/)); the previous homepage lives at `/v2` and `/old` ([V2.tsx](src/pages/V2.tsx)), and `/v3` redirects to `/`. Other public routes: `/for-fleets`, `/for-cities`, `/investors` (`/investor` redirects), `/faq`, `/press`, `/stats`, `/insights[/:slug]`, `/cities[/:slug]`, `/lanes[/:slug]`, `/apply`, `/cameras`, `/lab`, `/route-planner`, `/privacy`, `/support`, `/terms` (App Store legal pages), `/login`, `/invite/:token`, `/impersonate`, `/demo`, `/loi/:id`, `/uiinterns`. `/diag` is mounted **only in dev builds** (`import.meta.env.DEV`) — do not make it unconditional; that was a shipped security fix.
+
+[ProtectedRoute](src/components/ProtectedRoute.tsx) takes an `allowedRoles` prop and reads `user`/`role`/`status` from [useAuth](src/hooks/useAuth.tsx) (role rides on the JWT custom claims after migration 003 — see "Role-management workflow"). It is **default-deny**: a null role redirects to `/login?reason=role_unassigned` and deliberately does NOT trust `user_metadata.role` (user-controllable at signup). Suspended/archived users bounce to `/login?reason=account_suspended`. On role mismatch it redirects to that user's correct dashboard rather than the login screen. It also fires the `dashboard_first_view` PostHog activation event once per protected mount.
 
 ### Auth & demo bypass (important)
 
@@ -42,21 +45,35 @@ When changing auth, dashboard data fetching, or `ProtectedRoute`, preserve the d
 ### Supabase
 
 - Client in [src/lib/supabase.ts](src/lib/supabase.ts) reads `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` and falls back to placeholder values with a `console.error` warning — the build does not fail without them (this is intentional for the demo).
-- Schema lives in [supabase-schema.sql](supabase-schema.sql): `profiles` (id, role ∈ {admin, fleet_owner, city_operator}) auto-populated by an `on_auth_user_created` trigger from `raw_user_meta_data`, and `pilot_applications` for the fleet onboarding flow. RLS is enabled on both — admin reads/updates use a `role = 'admin'` subquery in the policy, so any new admin-touching query must work under those policies.
+- Base schema lives in [supabase-schema.sql](supabase-schema.sql): `profiles` (id, role ∈ {admin, fleet_owner, city_operator}) auto-populated by an `on_auth_user_created` trigger from `raw_user_meta_data`, and `pilot_applications` for the fleet onboarding flow. RLS is enabled on both — admin reads/updates use a `role = 'admin'` subquery in the policy, so any new admin-touching query must work under those policies.
+- **Incremental changes go in [supabase/migrations/](supabase/migrations/)** — 15 numbered SQL migrations (security fixes, role management, JWT claims, investor leads/visits, LOI signatures + amendments, pilot-application enhancements, `contact_messages`). Add a new migration file; don't retro-edit `supabase-schema.sql`.
+- **Edge functions** in [supabase/functions/](supabase/functions/): `capture-loi-metadata` (guards writes with a timing-safe `x-loi-secret` header check against `LOI_METADATA_SECRET` — path is closed when the secret is unconfigured; keep it that way), `notify-discord`, `send-invitation`, `send-pilot-email`. Preview invitation emails locally with `node scripts/preview-invitation-emails.mjs`.
+- **Fleet backend SSO bridge** — [useFleetScores](src/hooks/useFleetScores.ts) exchanges the Supabase session for a CruzePlatform backend session to power `/fleet-scores`. Backend base URL comes from `VITE_CRUZE_API_URL`; production builds **must not** fall back to localhost when it's unset (integration disables itself with a console warning + user-facing error — a shipped security fix, don't reintroduce the fallback).
 
 ### UI system
 
 - shadcn/ui — ~49 primitives in [src/components/ui/](src/components/ui/), config in [components.json](components.json), no class prefix. Add new shadcn components via the CLI; don't hand-edit primitives unless intentional.
-- Tailwind config in [tailwind.config.ts](tailwind.config.ts). Brand palette is the source of truth for product theming: `brand-orange` `#FF8C00`, `brand-charcoal` `#0B0E14`, `brand-cyan` `#00F2FF`. Display font `Unbounded`, body `Inter`.
+- Tailwind config in [tailwind.config.ts](tailwind.config.ts). Brand palette is the source of truth for product theming: `brand-orange` `#E8590C`, `brand-charcoal` `#0B0D11`, `brand-cyan` `#00F2FF`. Display font `Unbounded`, body `Inter`. The brand system was aligned to the V3 homepage across the whole site (2026-06-21) — new pages should match V3, not V2.
 - Animations via `framer-motion`. Toasts use both `@/components/ui/toaster` (Radix-style) and `sonner` — they are both mounted at the App root; `sonner` is the one most pages call.
 
 ### Feature areas
 
-- **Public marketing** (`/`) — [V2.tsx](src/pages/V2.tsx) composes section components from [src/components/v2/](src/components/v2/) (Hero, SegmentSolutions, CruzeLab, HowItWorks, Comparison, ImpactMap, FinalConversion, plus `NavbarV2`).
-- **Investor page** (`/investor`, `/investors`) — [Investors.tsx](src/pages/Investors.tsx) + [InvestorPitchSections](src/components/v2/InvestorPitchSections.tsx).
+- **Public marketing** (`/`) — [V3.tsx](src/pages/V3.tsx) composes section components from [src/components/v3/](src/components/v3/) (animated jam hero with a road motif threaded through the page, `LiveFeed` resilient live camera, product/driver-app showcase, "The stakes" market-size, "How a pilot works", "Why this is hard to copy" moat section). The old V2 sections remain in [src/components/v2/](src/components/v2/) for `/v2`.
+- **Investor page** (`/investors`) — [Investors.tsx](src/pages/Investors.tsx) + [InvestorPitchSections](src/components/v2/InvestorPitchSections.tsx). The tier-3 dataroom gate compares against `VITE_DATAROOM_PASSWORD_HASH` (hashed; PR #36) — never reintroduce a plaintext `VITE_DATAROOM_PASSWORD` in the bundle.
+- **LOI flow** — `/loi/:id` ([LOIView.tsx](src/pages/LOIView.tsx)) with signatures/amendments in Supabase and metadata capture via the `capture-loi-metadata` edge function.
+- **Press kit** (`/press`) — downloads served from `public/press/`; default OG card is the branded `public/og-image.png`.
 - **Mission Control** (`/dashboard`) — tabbed UI in [src/components/dashboard/](src/components/dashboard/): `LiveFlowTab`, `MarginalGainsTab`, `FleetHealthTab`.
+- **Fleet driver scores** (`/fleet-scores`) — reads the CruzePlatform backend through the SSO bridge (see Supabase section).
+- **Live cameras** (`/cameras`, plus `LiveFeed` on `/` and `InteractiveLabV2` on `/v2`) — HLS playback via `hls.js` **pinned at 1.5.20 with SRI (sha384) + `crossorigin=anonymous`**; never load `hls.js@latest` at runtime (shipped security fix).
 - **Route Planner** (`/route-planner`) is public.
 - **Calculator / map** — [USAMap](src/components/calculator/USAMap.tsx) uses `react-simple-maps` + `topojson-client` + `d3-geo`.
+
+### Cloudflare Workers (separate deployables)
+
+Two standalone Workers live in [workers/](workers/), each with its own `wrangler.jsonc` and custom domain — deploy with `npx wrangler deploy --config workers/<name>/wrangler.jsonc`; runbooks in [docs/CLOUDFLARE_RUNBOOK.md](docs/CLOUDFLARE_RUNBOOK.md) / [docs/CLOUDFLARE_SETUP.md](docs/CLOUDFLARE_SETUP.md):
+
+- **`workers/frame-analyze`** → `analyze.cruzemaps.com` — Claude vision on traffic-cam frames (details under "SEO & content" below). Guarded by native Cloudflare rate limits (`RL_PER_IP` 8/min, `RL_GLOBAL` 240/min) because the upstream Anthropic call costs money — keep the limiters when touching the config.
+- **`workers/og-image`** → `og.cruzemaps.com` — dynamic OG image generation (`workers-og` / satori, `nodejs_compat`).
 
 ### Path aliases & TS config
 
@@ -75,8 +92,9 @@ When changing routing, SPA-fallback assets, or `vite.config.ts#base`, verify bot
 ### SEO & content
 
 - **Per-route SEO** — [src/lib/seo.ts](src/lib/seo.ts) is the single manifest of route metadata + JSON-LD. The `<SEO>` component ([src/components/SEO.tsx](src/components/SEO.tsx)) reads it at runtime via `react-helmet-async`. The post-build script [scripts/prerender.mjs](scripts/prerender.mjs) reads the same manifest and emits per-route `dist/<path>/index.html` files with meta baked in (so crawlers and LLMs see the right `<title>` before JS runs). It also emits `dist/sitemap.xml` and `dist/robots.txt`. **Add a route → add an entry to ROUTES → both runtime and prerender pick it up.**
-- **JSON-LD** — Organization on every page, plus per-route schemas (SoftwareApplication on `/`, FAQPage on `/faq`, Product on `/for-fleets`, GovernmentService on `/for-cities`, Article on each `/case-studies/:slug` and `/insights/:slug`).
-- **Content stores** — [src/content/caseStudies.ts](src/content/caseStudies.ts) and [src/content/insights.ts](src/content/insights.ts) drive the `/case-studies/[slug]` and `/insights/[slug]` routes. Add an entry to the array → new page exists.
+- **JSON-LD** — Organization on every page, plus per-route schemas (SoftwareApplication on `/`, FAQPage on `/faq`, Product on `/for-fleets`, GovernmentService on `/for-cities`, Article + Person baked into each prerendered `/insights/:slug` page — PR #64).
+- **Content stores** — [src/content/insights.ts](src/content/insights.ts), [src/content/cities.ts](src/content/cities.ts), and [src/content/lanes.ts](src/content/lanes.ts) drive the `/insights/:slug`, `/cities/:slug`, and `/lanes/:slug` routes. Add an entry to the array → new page exists. The article system + editorial strategy live in [docs/CONTENT-SEO-STRATEGY.md](docs/CONTENT-SEO-STRATEGY.md) — the `/cruze-article` skill follows it; read it before writing insight content by hand.
+- **GEO / AI-search** — [public/llms.txt](public/llms.txt) + [public/llms-full.txt](public/llms-full.txt) are maintained for LLM citation. Update them when adding significant pages or changing positioning claims.
 - **Analytics** — [src/lib/analytics.ts](src/lib/analytics.ts) wraps `posthog-js`. Init is no-op without `VITE_POSTHOG_KEY`. Funnel events are typed; add new event names to the `FunnelEvent` union before calling `track()`.
 - **Dynamic OG images** — [workers/og-image/](workers/og-image/) is a separate Cloudflare Worker (`workers-og` / satori). Deploy independently; bind to `og.cruzemaps.com`. See [docs/CLOUDFLARE_SETUP.md](docs/CLOUDFLARE_SETUP.md).
 - **Frame-analyze worker** — [workers/frame-analyze/](workers/frame-analyze/) holds the Anthropic API key as a wrangler secret and calls Claude Haiku 4.5 vision on traffic-cam frames captured by the InteractiveLab modal. The SPA captures one masked frame when the user closes their ROI polygon, POSTs it to the worker, and holds the result for the lifetime of the ROI — no background polling. To get a fresh read the user clears the ROI and redraws. Falls back to the regime simulation on any failure (network, CORS-tainted canvas, worker outage). The key never appears in the client bundle — set it via `wrangler secret put ANTHROPIC_API_KEY` and read in the worker as `env.ANTHROPIC_API_KEY`. Override the URL for dev via `VITE_FRAME_ANALYZE_URL`.
@@ -88,8 +106,15 @@ When changing routing, SPA-fallback assets, or `vite.config.ts#base`, verify bot
 - Admin actions — `change_user_role()`, `accept_invitation()`, `live_impact_stats()`, `is_admin()` are all `SECURITY DEFINER` functions; the React app calls them via `supabase.rpc()`. Don't reach for direct table writes from the client for these flows.
 - The admin portal lives in [src/components/admin/](src/components/admin/) (UsersTab / PilotsTab / InvitationsTab / AuditTab) — each is one file, edit in place rather than splitting.
 
+### CI & security posture
+
+- **Lint + type-check workflow** runs on PRs (PR #21) alongside the Lighthouse workflow ([.github/workflows/lighthouse.yml](.github/workflows/lighthouse.yml), 4 category gates — the `no-pwa` preset is deliberately dropped, PR #66).
+- **CSP** is a build-only `<meta http-equiv>` tag injected by a Vite plugin (PR #56) — the dev server (HMR/eval/ws) is unaffected, and `scripts/prerender.mjs` preserves it on every prerendered route. Don't move it to a runtime header without checking both deploy targets.
+- **Secret scanning** — a gitleaks workflow runs in CI (PR #56). Wrangler secrets and Supabase keys must never land in source.
+- **hls.js CDN fallback** — `/cameras` falls back to the recorded feed when the CDN load fails (PR #65); keep the SRI pin when touching it.
+
 ### Known scratch areas
 
-- `scrap/` (`scrap/components/`, `scrap/pages/`) holds legacy code. Not imported by `src/`. Don't edit unless explicitly asked.
 - `check_cams.cjs` is a one-off probe script for Austin traffic-cam URLs — unrelated to the app build.
 - `public/InteractiveLabV2-old.txt` is archived markup, not served code.
+- (`scrap/` and the superseded case-studies pages were deleted in PR #40 — don't resurrect them.)
