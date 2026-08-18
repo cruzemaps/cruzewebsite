@@ -12,9 +12,9 @@ import { RefreshCw, WifiOff, Loader2 } from "lucide-react";
  * whenever any feed is up, and an honest offline state otherwise.
  */
 
-export type Feed = { id: number; city: string; location: string; url: string };
+type Feed = { id: number; city: string; location: string; url: string };
 
-export const FEEDS: Feed[] = [
+const FEEDS: Feed[] = [
   { id: 3, city: "Austin", location: "IH-35", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8" },
   { id: 1, city: "Dallas", location: "IH-635", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8" },
   { id: 2, city: "Houston", location: "IH-45", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8" },
