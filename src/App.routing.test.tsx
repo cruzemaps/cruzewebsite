@@ -11,10 +11,12 @@
 // The existing component suites mount individual pages under a <MemoryRouter>,
 // which proves the library resolves and <Link> renders — but nothing asserts
 // that the *routing semantics* the app depends on still behave the same after a
-// major-version bump. This file pins exactly those semantics against a route
-// tree that mirrors the shapes used in App.tsx, so a future react-router change
-// that alters param matching, redirect resolution, or catch-all fallthrough
-// breaks CI instead of silently shipping a broken navigation.
+// major-version bump. This file pins those library-level semantics using a
+// small route tree built from the same declarative shapes App.tsx uses (static
+// route, `:slug` param, `<Navigate replace>` redirect, `*` catch-all). It is a
+// contract test for react-router itself, not a mirror of App's concrete route
+// table — its job is to fail if a future react-router change alters param
+// matching, redirect resolution, or catch-all fallthrough.
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import {
@@ -97,6 +99,8 @@ describe("react-router v7 declarative routing (migration guard)", () => {
   });
 
   it("navigates imperatively via useNavigate", () => {
+    // A `/` element that jumps to the slug route on click, then reuses the same
+    // AppLikeRoutes tree so the `/insights/:slug` shape isn't re-declared here.
     function NavButton() {
       const navigate = useNavigate();
       return (
