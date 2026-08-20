@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "scripts/preview-invitation-emails.mjs",
+        "check_cams.cjs",
+        "supabase/functions/*/index.ts"
+      ],
+      "project": ["src/**", "scripts/**", "supabase/functions/**"]
+    },
+    "workers/*": {
+      "project": ["src/**"],
+      "ignoreDependencies": ["wrangler"],
+      "ignoreBinaries": ["wrangler"]
+    }
+  }
+}
