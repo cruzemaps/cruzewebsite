@@ -59,7 +59,7 @@ export function pilotInsertFromWizard(
   return {
     user_id: userId,
     company_name: data.companyName.trim(),
-    truck_size: data.truckSize,
+    truck_size: data.truckSize.trim() || null,
     fleet_size: data.fleetSize,
     website: data.website.trim() || null,
     primary_lanes: data.primaryLanes.trim() || null,
