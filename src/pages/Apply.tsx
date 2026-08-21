@@ -9,8 +9,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Building, Truck, Cable, User, Check, Loader2, FileSignature, Download } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building,
+  Truck,
+  Cable,
+  User,
+  Check,
+  Loader2,
+  FileSignature,
+  Timer,
+  FormInput,
+  PenLine,
+  Shield,
+  FileX,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -38,8 +53,36 @@ const STEPS = [
   { key: "company", label: "Company", icon: Building },
   { key: "fleet", label: "Fleet specs", icon: Truck },
   { key: "integration", label: "Integration", icon: Cable },
-  { key: "contact", label: "Contact", icon: User },
+  { key: "contact", label: "Details", icon: User },
   { key: "loi", label: "Sign LOI", icon: FileSignature },
+] as const;
+
+const APPLY_PROCESS_FEATURES = [
+  {
+    icon: Timer,
+    title: "60-Second Setup",
+    body: "Complete your entire business transaction on just five simple screens.",
+  },
+  {
+    icon: FormInput,
+    title: "One-Page Form",
+    body: "Input your name, company, and email all in a single section.",
+  },
+  {
+    icon: PenLine,
+    title: "Instant E-Signing",
+    body: 'Click "I Agree" to execute your LOI immediately.',
+  },
+  {
+    icon: Shield,
+    title: "Corporate Protection",
+    body: "Automatically signs under your company name to protect personal assets.",
+  },
+  {
+    icon: FileX,
+    title: "Zero Paperwork Hassle",
+    body: "Eliminates messy PDFs, printing, and scanning for busy entrepreneurs.",
+  },
 ] as const;
 
 export default function Apply() {
@@ -104,7 +147,19 @@ export default function Apply() {
 
   const update = <K extends keyof WizardData>(key: K, value: WizardData[K]) => {
     setData((prev) => {
-      const next = { ...prev, [key]: value };
+      let next: WizardData = { ...prev, [key]: value };
+      // Editing identity / LOI-material fields invalidates a prior agree.
+      // Without this, a user can Agree → Back → change company → return and
+      // still submit under the old company with loiAgreed still true.
+      const loiMaterial: (keyof WizardData)[] = [
+        "contactName",
+        "companyName",
+        "fleetSize",
+        "contactTitle",
+      ];
+      if (loiMaterial.includes(key) && prev.loiAgreed) {
+        next = { ...next, loiAgreed: false };
+      }
       scheduleDraftPersist(user?.id, next);
       return next;
     });
@@ -174,13 +229,17 @@ export default function Apply() {
     }
 
     const signedDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const contactName = data.contactName.trim();
+    const companyName = data.companyName.trim();
+    const contactEmail = data.contactEmail.trim();
+    const loiInitials = data.loiInitials.trim().toUpperCase();
     const loiFullText = renderLOIText({
-      participantName: data.contactName,
-      participantCompany: data.companyName,
-      participantTitle: data.contactTitle || undefined,
+      participantName: contactName,
+      participantCompany: companyName,
+      participantTitle: data.contactTitle.trim() || undefined,
       fleetSize: data.fleetSize,
       signedDate,
-      initials: data.loiInitials,
+      initials: loiInitials,
     });
 
     const { data: loiRow, error: loiErr } = await supabase
@@ -188,13 +247,13 @@ export default function Apply() {
       .insert({
         user_id: user.id,
         pilot_application_id: pilotRow?.id ?? null,
-        participant_name: data.contactName,
-        participant_company: data.companyName,
-        participant_title: data.contactTitle || null,
-        contact_email: data.contactEmail,
+        participant_name: contactName,
+        participant_company: companyName,
+        participant_title: data.contactTitle.trim() || null,
+        contact_email: contactEmail,
         fleet_size: data.fleetSize,
         agreed: true,
-        initials: data.loiInitials.trim().toUpperCase(),
+        initials: loiInitials,
         loi_version: LOI_VERSION,
         loi_full_text: loiFullText,
         performance_fee_min_pct: PERFORMANCE_FEE_MIN_PCT,
@@ -252,7 +311,7 @@ export default function Apply() {
           <>
             <h1 className="font-display text-3xl md:text-5xl font-bold mb-2">Apply for the Cruze pilot.</h1>
             <p className="text-white/60 mb-10">
-              Five short steps including signing the LOI. We'll respond within two business days with a calibrated 30-day pilot proposal.
+              Sixty-second setup across five screens, then click I Agree to e-sign your LOI. We'll respond within two business days with a calibrated 30-day pilot proposal.
             </p>
 
             <Stepper current={step} />
@@ -325,14 +384,34 @@ export default function Apply() {
   );
 }
 
+function isNonEmpty(value: string | undefined): boolean {
+  return !!value?.trim();
+}
+
+function isValidEmail(value: string | undefined): boolean {
+  const email = value?.trim() ?? "";
+  // Practical check — HTML type=email is UX only; submit must not accept "a@b".
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
 function stepValid(step: number, data: WizardData): boolean {
   switch (step) {
-    case 0: return !!data.companyName;
-    case 1: return !!data.fleetSize && !!data.truckSize;
-    case 2: return true; // optional
-    case 3: return !!data.contactEmail && !!data.contactName;
-    case 4: return data.loiAgreed && data.loiInitials.trim().length >= 1;
-    default: return false;
+    case 0:
+      return (
+        isNonEmpty(data.companyName) &&
+        isNonEmpty(data.contactName) &&
+        isValidEmail(data.contactEmail)
+      );
+    case 1:
+      return isNonEmpty(data.fleetSize) && isNonEmpty(data.truckSize);
+    case 2:
+      return true; // optional
+    case 3:
+      return true; // name/email collected on company step
+    case 4:
+      return !!data.loiAgreed && isNonEmpty(data.loiInitials);
+    default:
+      return false;
   }
 }
 
@@ -401,15 +480,56 @@ function CompanyStep({ data, update }: { data: WizardData; update: <K extends ke
         </div>
       </div>
 
+      <div className="rounded-xl border border-brand-cyan/20 bg-brand-cyan/5 p-5">
+        <div className="text-[11px] uppercase tracking-widest text-brand-cyan font-semibold mb-4">
+          Why applying takes under a minute
+        </div>
+        <ul className="space-y-3.5">
+          {APPLY_PROCESS_FEATURES.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <li key={feature.title} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-cyan/10 text-brand-cyan">
+                  <Icon size={15} />
+                </span>
+                <div>
+                  <div className="text-sm font-semibold text-white">{feature.title}</div>
+                  <p className="text-sm text-white/60 leading-relaxed mt-0.5">{feature.body}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
       <div>
         <h2 className="font-display text-xl font-bold mb-1">Tell us about your company</h2>
-        <p className="text-white/50 text-sm">Five quick steps. We respond within two business days.</p>
+        <p className="text-white/50 text-sm">Name, company, and email in one place. Five screens total, then you e-sign.</p>
       </div>
 
       <div className="space-y-4">
         <div>
+          <Label className="text-white/70 text-sm mb-1 block">Your name *</Label>
+          <Input
+            value={data.contactName}
+            onChange={(e) => update("contactName", e.target.value)}
+            placeholder="Full name (used on your LOI)"
+            className="bg-white/5 border-white/10 text-white"
+          />
+        </div>
+        <div>
           <Label className="text-white/70 text-sm mb-1 block">Company name *</Label>
           <Input value={data.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="Swift Transport Logistics" className="bg-white/5 border-white/10 text-white" />
+        </div>
+        <div>
+          <Label className="text-white/70 text-sm mb-1 block">Work email *</Label>
+          <Input
+            type="email"
+            value={data.contactEmail}
+            onChange={(e) => update("contactEmail", e.target.value)}
+            placeholder="you@company.com"
+            className="bg-white/5 border-white/10 text-white"
+          />
         </div>
         <div>
           <Label className="text-white/70 text-sm mb-1 block">Website</Label>
@@ -499,17 +619,10 @@ function IntegrationStep({ data, update }: { data: WizardData; update: <K extend
 function ContactStep({ data, update }: { data: WizardData; update: <K extends keyof WizardData>(k: K, v: WizardData[K]) => void }) {
   return (
     <div className="space-y-4">
-      <h2 className="font-display text-xl font-bold mb-4">Where can we reach you?</h2>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <Label className="text-white/70 text-sm mb-1 block">Name *</Label>
-          <Input value={data.contactName} onChange={(e) => update("contactName", e.target.value)} className="bg-white/5 border-white/10 text-white" placeholder="Full name (used on your LOI)" />
-        </div>
-        <div>
-          <Label className="text-white/70 text-sm mb-1 block">Email *</Label>
-          <Input type="email" value={data.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} className="bg-white/5 border-white/10 text-white" />
-        </div>
-      </div>
+      <h2 className="font-display text-xl font-bold mb-1">A few more details</h2>
+      <p className="text-white/50 text-sm mb-4">
+        Optional. Helps us address your LOI under the right title and reach you quickly.
+      </p>
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <Label className="text-white/70 text-sm mb-1 block">Job title</Label>
@@ -547,6 +660,16 @@ function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof 
     [data.contactName, data.companyName, data.contactTitle, data.fleetSize, data.loiInitials, signedDate]
   );
 
+  // Re-entering the LOI step (Back → Next) must force a fresh read + Agree.
+  // Otherwise loiAgreed stays true in parent state while scroll lock remounts
+  // as unread, and Sign & submit remains enabled.
+  useEffect(() => {
+    update("loiAgreed", false);
+    setScrolledToEnd(false);
+    // Intentionally once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // The scroll container has a fixed h-72 (288px) so the LOI text always
   // overflows regardless of viewport size. The "auto-mark-read if it fits"
   // path is intentionally absent — every signer must scroll. Fixes the
@@ -574,8 +697,7 @@ function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof 
       <div>
         <h2 className="font-display text-xl font-bold mb-1">Sign your Letter of Intent</h2>
         <p className="text-white/55 text-sm">
-          Standard 30-day pilot terms. Non-binding. Pre-filled from your earlier answers. Scroll through the full
-          document below before you sign.
+          Standard 30-day pilot terms. Non-binding. Pre-filled under your company name. Scroll the full document, then click I Agree and initials to e-sign. No PDFs to print or scan.
         </p>
       </div>
 
@@ -647,8 +769,11 @@ function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof 
             className="mt-0.5 border-white/30 data-[state=checked]:bg-brand-orange data-[state=checked]:text-[#0B0E14] data-[state=checked]:border-brand-orange"
           />
           <span className="text-sm text-white/85 leading-relaxed">
-            I have read and agree to the Letter of Intent above. I understand this is a 30-day non-binding pilot
-            with a {PERFORMANCE_FEE_MIN_PCT}–{PERFORMANCE_FEE_MAX_PCT}% performance fee charged only on documented savings.
+            <span className="font-semibold text-white">I Agree</span>
+            {" "}— I have read the Letter of Intent above and execute it on behalf of{" "}
+            <span className="text-brand-cyan">{data.companyName || "my company"}</span>
+            . This is a 30-day non-binding pilot with a {PERFORMANCE_FEE_MIN_PCT}–{PERFORMANCE_FEE_MAX_PCT}%
+            performance fee charged only on documented savings. Signing under the company name protects personal assets.
           </span>
         </label>
 
@@ -661,7 +786,8 @@ function LOIStep({ data, update }: { data: WizardData; update: <K extends keyof 
             className="bg-white/5 border-white/10 text-white font-display text-lg tracking-widest max-w-[180px]"
           />
           <p className="text-xs text-white/40 mt-2">
-            Your typed initials act as an electronic signature, timestamped {signedDate}. You'll be able to download a PDF copy from your dashboard after submitting.
+            Your typed initials act as an electronic signature for {data.companyName || "your company"}, timestamped {signedDate}.
+            No printing or scanning. You can download a PDF copy from your dashboard after submitting.
           </p>
         </div>
       </div>
