@@ -58,18 +58,18 @@ export function pilotInsertFromWizard(
 ): Record<string, unknown> {
   return {
     user_id: userId,
-    company_name: data.companyName,
+    company_name: data.companyName.trim(),
     truck_size: data.truckSize,
     fleet_size: data.fleetSize,
-    website: data.website || null,
-    primary_lanes: data.primaryLanes || null,
+    website: data.website.trim() || null,
+    primary_lanes: data.primaryLanes.trim() || null,
     fms_provider: data.fmsProvider || null,
-    fms_other: data.fmsProvider === "Other" ? data.fmsOther || null : null,
-    contact_name: data.contactName,
-    contact_email: data.contactEmail,
-    contact_phone: data.contactPhone || null,
-    contact_title: data.contactTitle || null,
-    application_notes: data.notes || null,
+    fms_other: data.fmsProvider === "Other" ? data.fmsOther.trim() || null : null,
+    contact_name: data.contactName.trim(),
+    contact_email: data.contactEmail.trim(),
+    contact_phone: data.contactPhone.trim() || null,
+    contact_title: data.contactTitle.trim() || null,
+    application_notes: data.notes.trim() || null,
     status: "pending",
   };
 }
