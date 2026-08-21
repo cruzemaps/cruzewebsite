@@ -193,7 +193,7 @@ export const ROUTES: RouteMeta[] = [
     path: "/apply",
     title: "Apply for the Cruze Pilot | Fleet Onboarding",
     description:
-      "Apply to pilot Cruzemaps on your fleet in 5 quick steps including LOI signing. We benchmark against your last 90 days of telematics.",
+      "Apply to pilot Cruzemaps on your fleet in 30 seconds — one short form plus a one-click non-binding LOI. We benchmark against your last 90 days of telematics.",
     changefreq: "monthly",
     priority: 0.7,
   },
