@@ -223,6 +223,22 @@ export const ROUTES: RouteMeta[] = [
     priority: 0.4,
   },
   {
+    path: "/privacy-drives",
+    title: "Privacy Policy — Cruze Drive Logging | Cruze",
+    description:
+      "How the Cruze drive-logging app handles your data: location only while recording, motion processed on-device, no microphone, no ads, no data sales. Routes are privacy-trimmed before anyone else can see them.",
+    changefreq: "yearly",
+    priority: 0.4,
+  },
+  {
+    path: "/terms-drives",
+    title: "Terms of Service — Cruze Drive Logging | Cruze",
+    description:
+      "The terms for the Cruze drive-logging app: record drives hands-off, drive legally and attentively at all times, and follow the community rules for shared drives, reporting, and blocking.",
+    changefreq: "yearly",
+    priority: 0.4,
+  },
+  {
     path: "/support",
     title: "Support | Cruze",
     description:
