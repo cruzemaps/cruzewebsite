@@ -22,7 +22,7 @@ Cruze is a traffic-intelligence company. Most traffic jams have no crash and no 
 - [For cities and DOTs](https://cruzemaps.com/for-cities): more throughput from existing roads with no construction and no roadside hardware.
 - [FAQ](https://cruzemaps.com/faq): why there is traffic with no accident, what a phantom traffic jam is, how Cruze differs from Waze and Google Maps, and fleet and city questions.
 - [Investors](https://cruzemaps.com/investors): market, traction, defensibility, and team.
-- [Live cameras](https://cruzemaps.com/cameras): live public Texas DOT traffic camera feeds.
+- [Live cameras](https://cruzemaps.com/cameras): live public Texas traffic camera feeds.
 
 ## Team
 

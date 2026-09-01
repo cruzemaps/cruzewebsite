@@ -228,7 +228,7 @@ function LiveProof() {
             <p className="mt-6 text-lg leading-relaxed" style={{ color: muted, fontFamily: body }}>
               The drive above is our model. This is the actual feed. Cruze watches public Texas
               traffic cameras and works out how fast everything is really moving, which is the
-              signal the rest of the system runs on. Pick a city and look around.
+              signal the rest of the system runs on. Pick a corridor and look around.
             </p>
             <div className="mt-7 flex flex-wrap gap-3" style={{ fontFamily: body }}>
               <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[15px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14" }}>
