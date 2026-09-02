@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import SEO from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
-import { Camera, MapPin, Radio, WifiOff } from "lucide-react";
+import { Camera, Loader2, MapPin, Radio, WifiOff } from "lucide-react";
 import { LIVE_CAMERAS, snapshotUrl } from "@/lib/liveCameras";
 
 // Same camera list used by the homepage LiveFeed (src/lib/liveCameras.ts).
@@ -13,18 +13,36 @@ import { LIVE_CAMERAS, snapshotUrl } from "@/lib/liveCameras";
 const REFRESH_MS = 60_000;
 
 function SnapshotPlayer({ id, alt }: { id: number; alt: string }) {
-  const [bust, setBust] = useState(() => Date.now());
-  const [failed, setFailed] = useState(false);
+  const [src, setSrc] = useState<string | null>(null); // last successfully loaded frame
+  const [dead, setDead] = useState(false);
+  const hasFrame = useRef(false);
 
+  // Preload off-DOM and swap in only once loaded, so the visible frame never
+  // blanks mid-refresh. A transient refresh error keeps the last good frame;
+  // "offline" only shows when the camera never produced a frame at all.
   useEffect(() => {
-    const t = window.setInterval(() => {
-      setFailed(false);
-      setBust(Date.now());
-    }, REFRESH_MS);
-    return () => window.clearInterval(t);
-  }, []);
+    let cancelled = false;
+    const load = () => {
+      const url = snapshotUrl(id, Date.now());
+      const img = new Image();
+      img.onload = () => {
+        if (cancelled) return;
+        hasFrame.current = true;
+        setSrc(url);
+        setDead(false);
+      };
+      img.onerror = () => {
+        if (cancelled) return;
+        if (!hasFrame.current) setDead(true);
+      };
+      img.src = url;
+    };
+    load();
+    const t = window.setInterval(load, REFRESH_MS);
+    return () => { cancelled = true; window.clearInterval(t); };
+  }, [id]);
 
-  if (failed) {
+  if (dead) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center text-center px-6 gap-2">
         <WifiOff size={24} className="text-white/50" />
@@ -34,15 +52,15 @@ function SnapshotPlayer({ id, alt }: { id: number; alt: string }) {
     );
   }
 
-  return (
-    <img
-      key={bust}
-      src={snapshotUrl(id, bust)}
-      alt={alt}
-      className="w-full h-full object-cover"
-      onError={() => setFailed(true)}
-    />
-  );
+  if (!src) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <Loader2 size={22} className="animate-spin text-white/40" />
+      </div>
+    );
+  }
+
+  return <img src={src} alt={alt} className="w-full h-full object-cover" />;
 }
 
 export default function Cameras() {

@@ -11,7 +11,8 @@ import { LIVE_CAMERAS, snapshotUrl } from "@/lib/liveCameras";
  *
  * Reliability: on a load error it fails over to the next corridor
  * automatically; if every camera is down it shows an honest "reconnecting"
- * state and retries on a timer. Snapshots refresh on a timer while live.
+ * state and retries on a timer. Refreshes preload off-DOM and swap in only
+ * once loaded, so the visible frame never blanks mid-refresh.
  */
 
 const FEEDS = LIVE_CAMERAS.slice(0, 4);
@@ -26,6 +27,7 @@ export default function LiveCameras() {
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<Status>("connecting");
   const [bust, setBust] = useState(0); // 0 = not started; lazy-init near viewport
+  const [src, setSrc] = useState<string | null>(null); // last successfully loaded frame
   const cardRef = useRef<HTMLDivElement>(null);
   const failed = useRef<Set<number>>(new Set());
   const retry = useRef<number>();
@@ -41,7 +43,7 @@ export default function LiveCameras() {
     return () => io.disconnect();
   }, []);
 
-  // Periodic refresh while live: new bust value forces the <img> to refetch.
+  // Periodic refresh while live: a new bust value re-runs the preload effect.
   useEffect(() => {
     if (status !== "live") return;
     const t = window.setInterval(() => setBust(Date.now()), REFRESH_MS);
@@ -58,22 +60,35 @@ export default function LiveCameras() {
     }, 15000);
   };
 
-  const onLoad = () => {
-    failed.current.clear();
-    setStatus("live");
-  };
-
-  const onFail = () => {
-    failed.current.add(index);
-    const next = FEEDS.findIndex((_, i) => !failed.current.has(i));
-    if (next === -1) {
-      setStatus("offline");
-      scheduleRetry();
-    } else {
-      setStatus("connecting");
-      setIndex(next);
-    }
-  };
+  // Preload the current camera's snapshot off-DOM; only swap the visible
+  // frame once it has fully loaded. On error, fail over to the next camera.
+  useEffect(() => {
+    if (bust === 0) return;
+    const cam = FEEDS[index];
+    const url = snapshotUrl(cam.id, bust);
+    let cancelled = false;
+    const img = new Image();
+    img.onload = () => {
+      if (cancelled) return;
+      failed.current.clear();
+      setSrc(url);
+      setStatus("live");
+    };
+    img.onerror = () => {
+      if (cancelled) return;
+      failed.current.add(index);
+      const next = FEEDS.findIndex((_, i) => !failed.current.has(i));
+      if (next === -1) {
+        setStatus("offline");
+        scheduleRetry();
+      } else {
+        setStatus("connecting");
+        setIndex(next);
+      }
+    };
+    img.src = url;
+    return () => { cancelled = true; };
+  }, [index, bust]);
 
   useEffect(() => () => window.clearTimeout(retry.current), []);
 
@@ -90,15 +105,12 @@ export default function LiveCameras() {
   return (
     <div ref={cardRef} className="rounded-2xl overflow-hidden border shadow-2xl" style={{ borderColor: line, background: "#000" }}>
       <div className="aspect-video relative">
-        {bust > 0 && status !== "offline" && (
+        {src && (
           <img
-            key={`${cur.id}-${bust}`}
-            src={snapshotUrl(cur.id, bust)}
+            src={src}
             alt={`Live traffic camera: ${cur.location}, Austin`}
             className="w-full h-full object-cover"
             style={{ opacity: status === "live" ? 1 : 0.25, transition: "opacity .3s" }}
-            onLoad={onLoad}
-            onError={onFail}
           />
         )}
 
