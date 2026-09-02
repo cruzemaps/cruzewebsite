@@ -63,7 +63,7 @@ When changing auth, dashboard data fetching, or `ProtectedRoute`, preserve the d
 - **Press kit** (`/press`) — downloads served from `public/press/`; default OG card is the branded `public/og-image.png`.
 - **Mission Control** (`/dashboard`) — tabbed UI in [src/components/dashboard/](src/components/dashboard/): `LiveFlowTab`, `MarginalGainsTab`, `FleetHealthTab`.
 - **Fleet driver scores** (`/fleet-scores`) — reads the CruzePlatform backend through the SSO bridge (see Supabase section).
-- **Live cameras** (`/cameras`, plus `LiveFeed` on `/` and `InteractiveLabV2` on `/v2`) — HLS playback via `hls.js` **pinned at 1.5.20 with SRI (sha384) + `crossorigin=anonymous`**; never load `hls.js@latest` at runtime (shipped security fix).
+- **Live cameras** (`/cameras`, plus `LiveFeed` on `/`) — City of Austin open-data JPEG snapshots from the shared list in [src/lib/liveCameras.ts](src/lib/liveCameras.ts), preloaded off-DOM and swapped on a 60s timer (PR #81; the old TxDOT skyvdn HLS streams went behind signed-token auth in Sep 2026). `InteractiveLabV2` on `/v2`/`/lab` still uses `hls.js` against the dead skyvdn URLs and degrades to its recorded clip — if touching it, keep `hls.js` **pinned at 1.5.20 with SRI (sha384) + `crossorigin=anonymous`**; never load `hls.js@latest` at runtime (shipped security fix).
 - **Route Planner** (`/route-planner`) is public.
 - **Calculator / map** — [USAMap](src/components/calculator/USAMap.tsx) uses `react-simple-maps` + `topojson-client` + `d3-geo`.
 
@@ -110,7 +110,7 @@ When changing routing, SPA-fallback assets, or `vite.config.ts#base`, verify bot
 - **Lint + type-check workflow** runs on PRs (PR #21) alongside the Lighthouse workflow ([.github/workflows/lighthouse.yml](.github/workflows/lighthouse.yml), 4 category gates — the `no-pwa` preset is deliberately dropped, PR #66).
 - **CSP** is a build-only `<meta http-equiv>` tag injected by a Vite plugin (PR #56) — the dev server (HMR/eval/ws) is unaffected, and `scripts/prerender.mjs` preserves it on every prerendered route. Don't move it to a runtime header without checking both deploy targets.
 - **Secret scanning** — a gitleaks workflow runs in CI (PR #56). Wrangler secrets and Supabase keys must never land in source.
-- **hls.js CDN fallback** — `/cameras` falls back to the recorded feed when the CDN load fails (PR #65); keep the SRI pin when touching it.
+- **hls.js CDN fallback** — only `InteractiveLabV2` still loads `hls.js` (see "Live cameras" above); it falls back to the recorded feed when the CDN load fails (PR #65). Keep the SRI pin when touching it.
 
 ### Known scratch areas
 
