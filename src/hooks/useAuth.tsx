@@ -231,7 +231,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
       if (realtimeChannel) supabase.removeChannel(realtimeChannel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signOut = async () => {
