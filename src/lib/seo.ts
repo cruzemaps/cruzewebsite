@@ -201,8 +201,8 @@ export const ROUTES: RouteMeta[] = [
     path: "/cameras",
     title: "Live Traffic Cameras | Cruze",
     description:
-      "Live public traffic camera feeds on the Austin corridors where Cruze coordinates flow. Public snapshots, no recording.",
-    keywords: "live traffic cameras, Austin traffic, Texas traffic, I-35 camera, MoPac camera",
+      "Live TxDOT traffic camera feeds across Texas corridors where Cruze coordinates flow. Public streams, no recording.",
+    keywords: "live traffic cameras, TxDOT, Texas traffic, I-35 camera, IH-45 camera",
     changefreq: "always",
     priority: 0.7,
   },
