@@ -14,6 +14,61 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "how-much-fuel-does-an-idling-truck-burn",
+    title: "How much fuel does an idling truck burn? The hidden cost of going nowhere",
+    author: "Cruze Research",
+    publishedAt: "2026-08-21",
+    excerpt:
+      "A heavy truck burns about 0.8 gallons of diesel an hour doing nothing but idling. Across a fleet that quietly adds up to thousands of dollars per truck a year. Here is where the fuel actually goes, and which part of it is recoverable.",
+    body: `A heavy-duty truck at idle burns roughly 0.8 gallons of diesel per hour while producing zero miles (Argonne National Laboratory). That number looks small until you multiply it by how much of a truck's life is spent stopped: waiting to load, held in stop-and-go traffic, or resting overnight with the engine running to keep the cab warm. This article breaks down where idle fuel actually goes, puts a real dollar figure on it per truck and across the country, and is honest about which slice of that bill a flow product like Cruze can help with and which slice it cannot.
+
+## What counts as idling
+
+Idling is any time the engine is running while the truck is not moving. It falls into two very different buckets, and keeping them separate is the key to understanding the cost.
+
+- **Rest and workday idling.** The truck is parked. The engine runs to power heat, air conditioning, and cab electronics during a mandated rest break, or to keep systems live while waiting at a dock or a yard. This is the big, well-studied bucket.
+- **In-traffic idling.** The truck is stopped or crawling in congestion, at a light, or in a stop-and-go wave. The engine is doing the same wasteful thing, burning fuel to go nowhere, but in short repeated bursts across a shift rather than one long stretch.
+
+Both burn fuel at roughly the same idle rate. What differs is the cause, and therefore the fix.
+
+## The per-hour and per-year math
+
+Start with the single most-cited figure. Argonne National Laboratory estimates a heavy-duty truck consumes about 0.8 gallons of diesel for every hour it idles. The U.S. Department of Energy puts typical long-haul idling at around 1,800 hours per year per truck, burning roughly 1,500 gallons of diesel annually just at rest (U.S. Department of Energy, Alternative Fuels Data Center).
+
+At a diesel price of about 3.80 dollars a gallon, 1,500 gallons is roughly 5,700 dollars per truck per year spent producing no movement at all. That is before you count the extra engine wear: idling hours still age the engine, and many fleets treat one hour of idle as roughly equivalent to a set amount of mileage for maintenance planning.
+
+> A long-haul truck can spend around 1,800 hours a year with the engine running and the wheels still. At 0.8 gallons an hour, that is fuel you buy and never turn into a delivered mile.
+
+## The national bill
+
+Scaled across the fleet, idling is one of the largest avoidable fuel line items in trucking. Argonne estimates that rest-period idling by more than one million long-haul trucks consumes over 1 billion gallons of diesel every year in the United States, at a cost of around 3 billion dollars (Argonne National Laboratory). Counting every road vehicle, from passenger cars to heavy trucks, Argonne puts total fuel lost to idling at more than 6 billion gallons a year.
+
+That rest-period figure is separate from congestion. The American Transportation Research Institute found that highway congestion alone added 108.8 billion dollars in cost to the trucking industry in 2022 and wasted 6.4 billion gallons of diesel (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). A meaningful share of that congestion fuel is exactly the in-traffic idling and repeated brake-and-accelerate cycles that stop-and-go creates. We put the wider price of congestion in context in [how much does traffic actually cost](/insights/how-much-does-traffic-cost).
+
+## Why stop-and-go idling costs more than the idle rate suggests
+
+The 0.8-gallons-per-hour number understates the damage from in-traffic idling, because congestion does not just make a truck sit still. It makes it stop and start. A Class 8 tractor that has to brake to a halt and then accelerate a fully loaded rig back up to speed burns far more fuel per mile than one holding a steady cruise, and every one of those launches begins from an idle. So congestion charges the fleet twice: once for the fuel burned while stopped, and again for the fuel burned dragging 80,000 pounds back up to speed afterward. We break down that fuel curve in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go).
+
+The physics behind why that stop-and-go forms, often with no crash or bottleneck in sight, is the subject of our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams). The short version: in dense traffic a single tap of the brakes amplifies backward into a full stop, and every truck caught in that wave pays in idle fuel and re-acceleration fuel for a jam no one caused on purpose.
+
+## Which part of the idle bill is actually recoverable
+
+This is where honesty matters, because the two buckets have two different owners.
+
+**Rest and workday idling is a hardware and policy problem.** The proven fixes are auxiliary power units, battery or shore power at truck stops, bunk heaters, and automatic engine shutdown settings, along with anti-idling training and idle-tracking in telematics. A flow-optimization product does nothing for a truck parked overnight, and we will not pretend otherwise. If most of your idle hours are at rest, that is where the savings are, and idle-reduction technology is the well-documented answer.
+
+**In-traffic idling is a flow problem.** The fuel a truck burns stopped in a stop-and-go wave, and the fuel it burns launching out of it, is a function of how smoothly the surrounding traffic moves. That is the slice that better flow can touch. If the wave never forms, the truck does not stop, and it never pays the launch penalty.
+
+## Where Cruze fits, honestly
+
+[Cruze](/) works on the second bucket only. We read traffic flow from the [cameras already on the poles](/cameras), predict where a stop-and-go wave is about to form, and give a small share of drivers a gentle, well-timed speed cue so the wave is damped before it builds. The research basis is the 2018 University of Arizona result that guiding roughly one vehicle in twenty to hold a steadier speed can dissolve these waves for everyone behind them (Stern et al., Transportation Research Part C, 2018), which we cover in [can a few drivers fix traffic](/insights/can-a-few-drivers-fix-traffic).
+
+To be clear about our stage: Cruze is pre-pilot, and we make no idle-reduction or fuel-savings claims yet. Any per-truck benefit is modeled and would be measured against a fleet's own baseline during a pilot, not asserted here. What we can say is where the lever is. Rest-period idling is answered by idle-reduction hardware. In-traffic idling is answered by keeping the flow smooth in the first place, which is the problem we are built for.
+
+For a fleet, the practical takeaway is to split your idle hours before you shop for a fix. Pull the idle report from your telematics, separate parked idle from in-traffic idle, and match each to the right tool. If you run a fleet or a corridor and want to talk about the flow half of that bill, that is what we build for [fleets](/for-fleets) and [cities](/for-cities).`,
+    tags: ["fleet-ops", "economics"],
+  },
+  {
     slug: "do-ramp-meters-work",
     title: "Do ramp meters actually work? The on-ramp traffic light, explained",
     author: "Cruze Research",
@@ -915,7 +970,7 @@ The marginal-returns curve is non-linear. The first 5% of stop-and-go reduction 
 
 The implication: pilot in the right places. Cruze prioritizes corridors where measured stop-and-go intensity is in the steepest part of the curve. We share the calibration before pilot start so fleet ops know what to expect.
 
-For the physics behind why that stop-and-go forms in the first place, see our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams).`,
+For the physics behind why that stop-and-go forms in the first place, see our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams). And for the fuel a truck burns while it is stopped rather than crawling, see [how much fuel an idling truck burns](/insights/how-much-fuel-does-an-idling-truck-burn).`,
     tags: ["fleet-ops", "economics"],
   },
   {
