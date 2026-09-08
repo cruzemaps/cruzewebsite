@@ -157,7 +157,7 @@ export default function TruckScene({ p }: { p: number }) {
   // Build the looping animations once, then steer their speed every frame.
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || typeof (Element.prototype as any).animate !== "function") return;
+    if (!root || typeof Element.prototype.animate !== "function") return;
     // Respect reduced-motion: skip the continuous loops (wheels/parallax stay
     // still). The scroll-driven story (cars, brake lights, sky) still updates,
     // since that is user-driven motion, not autoplay.
@@ -170,7 +170,7 @@ export default function TruckScene({ p }: { p: number }) {
       anims.push({ a });
     });
     root.querySelectorAll<SVGElement>('[data-anim="spin"]').forEach((el) => {
-      const dur = Number((el as any).dataset.dur) || 550;
+      const dur = Number(el.dataset.dur) || 550;
       const a = el.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], { duration: dur, iterations: Infinity, easing: "linear" });
       anims.push({ a });
     });
