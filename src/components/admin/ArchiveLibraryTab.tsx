@@ -517,8 +517,16 @@ function LOIsSection({ isDemo }: { isDemo: boolean }) {
   );
 }
 
+interface PermanentDeletionRow {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  reason: string;
+  deleted_at: string;
+}
+
 function DeletionLogSection({ isDemo }: { isDemo: boolean }) {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<PermanentDeletionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -529,7 +537,7 @@ function DeletionLogSection({ isDemo }: { isDemo: boolean }) {
         return;
       }
       const { data } = await supabase.from("permanent_deletions").select("*").order("deleted_at", { ascending: false }).limit(100);
-      setItems(data || []);
+      setItems((data as PermanentDeletionRow[] | null) || []);
       setLoading(false);
     })();
   }, [isDemo]);
@@ -543,7 +551,7 @@ function DeletionLogSection({ isDemo }: { isDemo: boolean }) {
             <tr key={d.id} className="border-b border-white/5">
               <td className="py-3 px-2">
                 <span className="text-[10px] uppercase tracking-widest font-semibold text-red-400 bg-red-400/10 border border-red-400/30 px-2 py-0.5 rounded-full">
-                  {d.entity_type.replace("_", " ")}
+                  {d.entity_type.replace(/_/g, " ")}
                 </span>
               </td>
               <td className="py-3 px-2 text-white/50 text-xs font-mono">{d.entity_id.slice(0, 12)}…</td>
@@ -680,7 +688,7 @@ function HardDeleteDialog({
   confirmText: string;
   minReasonLength: number;
   rpcName: string;
-  rpcArgs: Record<string, any>;
+  rpcArgs: Record<string, unknown>;
   isDemo: boolean;
   onClose: () => void;
   onSuccess: () => void;
