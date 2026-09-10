@@ -551,7 +551,7 @@ function DeletionLogSection({ isDemo }: { isDemo: boolean }) {
             <tr key={d.id} className="border-b border-white/5">
               <td className="py-3 px-2">
                 <span className="text-[10px] uppercase tracking-widest font-semibold text-red-400 bg-red-400/10 border border-red-400/30 px-2 py-0.5 rounded-full">
-                  {d.entity_type.replace("_", " ")}
+                  {d.entity_type.replace(/_/g, " ")}
                 </span>
               </td>
               <td className="py-3 px-2 text-white/50 text-xs font-mono">{d.entity_id.slice(0, 12)}…</td>
