@@ -517,8 +517,16 @@ function LOIsSection({ isDemo }: { isDemo: boolean }) {
   );
 }
 
+interface PermanentDeletionRow {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  reason: string;
+  deleted_at: string;
+}
+
 function DeletionLogSection({ isDemo }: { isDemo: boolean }) {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<PermanentDeletionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -529,7 +537,7 @@ function DeletionLogSection({ isDemo }: { isDemo: boolean }) {
         return;
       }
       const { data } = await supabase.from("permanent_deletions").select("*").order("deleted_at", { ascending: false }).limit(100);
-      setItems(data || []);
+      setItems((data as PermanentDeletionRow[] | null) || []);
       setLoading(false);
     })();
   }, [isDemo]);
@@ -680,7 +688,7 @@ function HardDeleteDialog({
   confirmText: string;
   minReasonLength: number;
   rpcName: string;
-  rpcArgs: Record<string, any>;
+  rpcArgs: Record<string, unknown>;
   isDemo: boolean;
   onClose: () => void;
   onSuccess: () => void;
