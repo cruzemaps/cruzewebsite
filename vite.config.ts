@@ -55,6 +55,9 @@ import path from "path";
 //               cdn.jsdelivr.net           -> us-atlas topojson map data fetch
 //               storage.googleapis.com     -> coco-ssd model weights (tfjs-models)
 //               *.skyvdn.com               -> hls.js manifest/segment XHR
+//               dtx-e-cdn.maplarge.com     -> DriveTexas camera-table query that
+//                                             returns tokened stream URLs
+//                                             (src/lib/liveCameras.ts)
 //               cloudflareinsights.com     -> CF Web Analytics RUM beacon POST
 //   frame-src   cal.com / app.cal.com      -> investor "book a call" iframe
 //   worker-src  'self' blob:              -> hls.js transmux Web Worker (blob)
@@ -91,6 +94,7 @@ function cspMetaPlugin(): Plugin {
         "https://cdn.jsdelivr.net",
         "https://storage.googleapis.com",
         "https://*.skyvdn.com",
+        "https://dtx-e-cdn.maplarge.com",
         "https://cloudflareinsights.com",
       ],
       "frame-src": ["https://cal.com", "https://app.cal.com"],
