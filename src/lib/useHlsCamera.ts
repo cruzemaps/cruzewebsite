@@ -15,10 +15,15 @@ const HLS_SRI = "sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w
 
 // hls.js is loaded from a CDN at runtime (not bundled), so its own types
 // aren't available. Type only the surface this hook touches, structurally.
+// Event payloads vary by event; we only read `fatal` (on ERROR). Other
+// fields are typed `unknown` so a future reader must narrow rather than
+// silently inherit the error shape.
+type HlsEventData = { fatal?: boolean; [key: string]: unknown };
+
 interface HlsInstance {
   loadSource(url: string): void;
   attachMedia(media: HTMLMediaElement): void;
-  on(event: string, cb: (event: string, data: { fatal?: boolean }) => void): void;
+  on(event: string, cb: (event: string, data: HlsEventData) => void): void;
   destroy(): void;
 }
 
@@ -124,7 +129,7 @@ export function useHlsCamera(
             video.play().catch(() => {});
           }
         });
-        hls.on(Hls.Events.ERROR, (_: string, data: { fatal?: boolean }) => {
+        hls.on(Hls.Events.ERROR, (_: string, data: HlsEventData) => {
           if (data.fatal) onFatal();
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
