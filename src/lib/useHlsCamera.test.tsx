@@ -179,6 +179,51 @@ describe("useHlsCamera", () => {
     expect(onFail).not.toHaveBeenCalled();
   });
 
+  it("does not report onFail when the old instance emits a second fatal error mid-re-resolve (recovery not defeated)", async () => {
+    // Regression guard. On token-expiry the hook restarts, which resets
+    // startedAt and *then* awaits resolveStreamUrl + loadHlsJs before it
+    // destroys the old, still-attached hls.js instance. That instance keeps
+    // loading the expired URL and can emit a SECOND fatal error inside that
+    // async window — at which point Date.now()-startedAt ~= 0 (<60s), so a
+    // naive check misreads it as "camera down" and fires onFail, defeating the
+    // very recovery in flight (Cameras.tsx → offline; LiveFeed.tsx → city
+    // switch). A per-attempt generation guard must drop the stale error.
+    let now = 1_000_000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const hls = installMockHls();
+    const onFail = vi.fn();
+
+    // First resolve is immediate; the token-expiry re-resolve is deferred so we
+    // can fire a stale error from the old instance while start() is mid-await.
+    let releaseSecondResolve!: (url: string) => void;
+    resolveStreamUrl
+      .mockResolvedValueOnce("https://stream.example/live-1.m3u8")
+      .mockImplementationOnce(
+        () =>
+          new Promise<string>((res) => {
+            releaseSecondResolve = res;
+          })
+      );
+
+    renderHook(() => useHlsCamera(videoRef(), "cam-1", vi.fn(), onFail));
+    await waitFor(() => expect(hls.instanceCount).toBe(1));
+
+    // >60s in: expired token. Instance 1's fatal error triggers a re-resolve.
+    now += 61_000;
+    hls.fireFatalError();
+    await waitFor(() => expect(resolveStreamUrl).toHaveBeenCalledTimes(2));
+
+    // The old instance (still attached, no instance 2 yet) emits a second fatal
+    // error during the deferred re-resolve. This must NOT be read as camera-down.
+    hls.fireFatalError();
+    expect(onFail).not.toHaveBeenCalled();
+
+    // Recovery then completes cleanly: a fresh instance, no spurious failover.
+    releaseSecondResolve("https://stream.example/live-2.m3u8");
+    await waitFor(() => expect(hls.instanceCount).toBe(2));
+    expect(onFail).not.toHaveBeenCalled();
+  });
+
   it("reports onFail on a fatal error right after start (camera down)", async () => {
     let now = 1_000_000;
     vi.spyOn(Date, "now").mockImplementation(() => now);

@@ -64,6 +64,13 @@ export function useHlsCamera(
     let hls: any = null;
     let cancelled = false;
     let startedAt = 0;
+    // Each start() bumps this. A restart resets startedAt and then awaits
+    // resolveStreamUrl + loadHlsJs before it destroys the old, still-attached
+    // hls.js instance — so that instance can emit a *second* fatal error during
+    // the async window, when Date.now()-startedAt ~= 0 would misread token
+    // expiry as camera-down and defeat the recovery in flight. Handlers capture
+    // the generation they were registered under and no-op once superseded.
+    let generation = 0;
 
     const fail = () => {
       if (!cancelled) cb.current.onFail();
@@ -71,20 +78,22 @@ export function useHlsCamera(
 
     // A fatal error long after start is almost certainly token expiry —
     // restart with a fresh token. A fatal error right after start means the
-    // camera is actually down.
-    const onFatal = () => {
-      if (cancelled) return;
+    // camera is actually down. A fatal error from a superseded attempt (gen
+    // mismatch) is a straggler from the old instance and is ignored.
+    const onFatal = (gen: number) => {
+      if (cancelled || gen !== generation) return;
       if (Date.now() - startedAt > 60_000) start();
       else fail();
     };
 
     const start = async () => {
+      const gen = ++generation;
       startedAt = Date.now();
       const url = await resolveStreamUrl(cameraId);
-      if (cancelled) return;
+      if (cancelled || gen !== generation) return;
       if (!url) return fail();
       const Hls = await loadHlsJs();
-      if (cancelled) return;
+      if (cancelled || gen !== generation) return;
 
       if (Hls && Hls.isSupported()) {
         if (hls) hls.destroy();
@@ -100,27 +109,27 @@ export function useHlsCamera(
         hls.loadSource(url);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          if (!cancelled) {
+          if (!cancelled && gen === generation) {
             cb.current.onLive();
             video.play().catch(() => {});
           }
         });
         hls.on(Hls.Events.ERROR, (_: any, data: any) => {
-          if (data.fatal) onFatal();
+          if (data.fatal) onFatal(gen);
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = url;
         video.addEventListener(
           "loadedmetadata",
           () => {
-            if (!cancelled) {
+            if (!cancelled && gen === generation) {
               cb.current.onLive();
               video.play().catch(() => {});
             }
           },
           { once: true }
         );
-        video.addEventListener("error", onFatal, { once: true });
+        video.addEventListener("error", () => onFatal(gen), { once: true });
       } else {
         fail();
       }
