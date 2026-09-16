@@ -15,7 +15,9 @@
 //
 // The hook drives real DOM (a <video>, an injected <script>) and hls.js is
 // loaded from a CDN at runtime, so we mock `resolveStreamUrl`, stub a minimal
-// `window.Hls`, and drive the effect with renderHook + fake timers.
+// `window.Hls`, and drive the effect with renderHook. The >60s token-expiry
+// boundary is controlled by spying Date.now(); the SRI test uses fake timers so
+// the 8s CDN stall guard can't leak a real timer into later tests.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, cleanup, waitFor } from "@testing-library/react";
 import { createRef } from "react";
@@ -90,7 +92,6 @@ afterEach(() => {
   // each test starts from a cold CDN-load state.
   delete (window as unknown as { Hls?: unknown }).Hls;
   document.body.querySelectorAll("script").forEach((s) => s.remove());
-  vi.resetModules();
 });
 
 describe("useHlsCamera", () => {
@@ -105,26 +106,34 @@ describe("useHlsCamera", () => {
   });
 
   it("injects the pinned, SRI-guarded hls.js script (security regression guard)", async () => {
-    resolveStreamUrl.mockResolvedValue("https://stream.example/live.m3u8");
-    renderHook(() => useHlsCamera(videoRef(), "cam-1", vi.fn(), vi.fn()));
+    // This is the one test that drives the real CDN-load path (no window.Hls),
+    // which arms an 8s stall-guard setTimeout. jsdom never fires the script's
+    // onload/onerror, so use fake timers to flush microtasks and then clear the
+    // pending timer rather than leaking a real 8s timer into later tests.
+    vi.useFakeTimers();
+    try {
+      resolveStreamUrl.mockResolvedValue("https://stream.example/live.m3u8");
+      renderHook(() => useHlsCamera(videoRef(), "cam-1", vi.fn(), vi.fn()));
 
-    // The effect resolves the URL then injects the CDN <script>. Wait for it.
-    await waitFor(() => {
+      // Let start() settle its awaited promises (resolveStreamUrl, loadHlsJs)
+      // so the CDN <script> gets appended. Microtasks resolve independently of
+      // fake timers, so a few flushes suffice.
+      for (let i = 0; i < 5; i++) await vi.advanceTimersByTimeAsync(0);
+
       const script = document.body.querySelector<HTMLScriptElement>(
         `script[src="${PINNED_SRC}"]`
       );
       expect(script).not.toBeNull();
-    });
-
-    const script = document.body.querySelector<HTMLScriptElement>(
-      `script[src="${PINNED_SRC}"]`
-    )!;
-    // Never `@latest`: pinned exact version in the URL.
-    expect(script.src).toContain("hls.js@1.5.20");
-    expect(script.src).not.toContain("@latest");
-    // SRI + CORS pin — dropping either reopens the CDN-compromise hole.
-    expect(script.integrity).toMatch(/^sha384-/);
-    expect(script.crossOrigin).toBe("anonymous");
+      // Never `@latest`: pinned exact version in the URL.
+      expect(script!.src).toContain("hls.js@1.5.20");
+      expect(script!.src).not.toContain("@latest");
+      // SRI + CORS pin — dropping either reopens the CDN-compromise hole.
+      expect(script!.integrity).toMatch(/^sha384-/);
+      expect(script!.crossOrigin).toBe("anonymous");
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
+    }
   });
 
   it("reports onFail (not onLive) when the stream URL cannot be resolved", async () => {
