@@ -64,12 +64,12 @@ export function useHlsCamera(
     let hls: any = null;
     let cancelled = false;
     let startedAt = 0;
-    // Each start() bumps this. A restart resets startedAt and then awaits
-    // resolveStreamUrl + loadHlsJs before it destroys the old, still-attached
-    // hls.js instance — so that instance can emit a *second* fatal error during
-    // the async window, when Date.now()-startedAt ~= 0 would misread token
-    // expiry as camera-down and defeat the recovery in flight. Handlers capture
-    // the generation they were registered under and no-op once superseded.
+    // Each start() bumps this, and every handler captures the generation it was
+    // registered under. A token-expiry restart awaits resolveStreamUrl +
+    // loadHlsJs before it destroys the old, still-attached hls.js instance, so
+    // that instance can emit stray fatal/parsed events during the async window;
+    // the generation guard drops them instead of misreading a straggler fatal
+    // as camera-down and defeating the recovery in flight.
     let generation = 0;
 
     const fail = () => {
@@ -88,12 +88,15 @@ export function useHlsCamera(
 
     const start = async () => {
       const gen = ++generation;
-      startedAt = Date.now();
       const url = await resolveStreamUrl(cameraId);
       if (cancelled || gen !== generation) return;
       if (!url) return fail();
       const Hls = await loadHlsJs();
       if (cancelled || gen !== generation) return;
+      // Anchor the token-expiry-vs-camera-down window to when the fresh stream
+      // actually attaches, not to before the resolve + CDN awaits — a slow
+      // re-resolve must not erode the 60s classification window.
+      startedAt = Date.now();
 
       if (Hls && Hls.isSupported()) {
         if (hls) hls.destroy();
