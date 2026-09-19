@@ -28,7 +28,7 @@ interface HlsInstance {
   destroy(): void;
 }
 interface HlsStatic {
-  new (config: Record<string, unknown>): HlsInstance;
+  new (config?: Record<string, unknown>): HlsInstance;
   isSupported(): boolean;
   Events: { MANIFEST_PARSED: string; ERROR: string };
 }
