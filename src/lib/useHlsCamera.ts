@@ -13,19 +13,52 @@ import { resolveStreamUrl } from "@/lib/liveCameras";
 const HLS_SRC = "https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
 const HLS_SRI = "sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w0u/7mRvr";
 
-let hlsLoader: Promise<any> | null = null;
+// Minimal structural types for the CDN-loaded hls.js global. hls.js isn't an
+// npm dependency (it's loaded at runtime with an SRI-pinned <script>), so we
+// describe only the surface this hook uses instead of pulling in @types.
+type HlsConfig = {
+  maxBufferLength?: number;
+  maxMaxBufferLength?: number;
+  manifestLoadingTimeOut?: number;
+  manifestLoadingMaxRetry?: number;
+  levelLoadingTimeOut?: number;
+  levelLoadingMaxRetry?: number;
+  fragLoadingMaxRetry?: number;
+};
+
+type HlsErrorData = { fatal: boolean };
+
+interface HlsInstance {
+  loadSource(url: string): void;
+  attachMedia(video: HTMLVideoElement): void;
+  on(event: string, callback: (event: string, data: HlsErrorData) => void): void;
+  destroy(): void;
+}
+
+// `loadHlsJs()` resolves the constructor (`window.Hls`), not an instance, so
+// the static `isSupported()` / `Events` live here and instance methods above.
+interface HlsConstructor {
+  new (config?: HlsConfig): HlsInstance;
+  isSupported(): boolean;
+  Events: { MANIFEST_PARSED: string; ERROR: string };
+}
+
+type WindowWithHls = Window & typeof globalThis & { Hls?: HlsConstructor };
+
+let hlsLoader: Promise<HlsConstructor | null> | null = null;
 
 // A CDN load can end three ways: it loads, it errors synchronously, or it
 // stalls (the browser's TCP timeout can take 30-120s). The stall guard
 // resolves null after 8s so players fall over instead of hanging on a black
 // frame. A failed load resets the singleton so a later retry re-attempts.
-function loadHlsJs(): Promise<any> {
+function loadHlsJs(): Promise<HlsConstructor | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
-  if ((window as any).Hls) return Promise.resolve((window as any).Hls);
+  const w = window as WindowWithHls;
+  if (w.Hls) return Promise.resolve(w.Hls);
   if (!hlsLoader) {
     hlsLoader = new Promise((resolve) => {
       let settled = false;
-      const settle = (v: any) => {
+      const settle = (v: HlsConstructor | null) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
@@ -38,7 +71,7 @@ function loadHlsJs(): Promise<any> {
       script.integrity = HLS_SRI;
       script.crossOrigin = "anonymous";
       script.async = true;
-      script.onload = () => settle((window as any).Hls ?? null);
+      script.onload = () => settle((window as WindowWithHls).Hls ?? null);
       script.onerror = () => settle(null);
       document.body.appendChild(script);
     });
@@ -61,7 +94,7 @@ export function useHlsCamera(
     if (!cameraId) return;
     const video = videoRef.current;
     if (!video) return;
-    let hls: any = null;
+    let hls: HlsInstance | null = null;
     let cancelled = false;
     let startedAt = 0;
 
@@ -105,7 +138,7 @@ export function useHlsCamera(
             video.play().catch(() => {});
           }
         });
-        hls.on(Hls.Events.ERROR, (_: any, data: any) => {
+        hls.on(Hls.Events.ERROR, (_event: string, data: HlsErrorData) => {
           if (data.fatal) onFatal();
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
