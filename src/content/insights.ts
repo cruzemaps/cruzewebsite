@@ -14,6 +14,73 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "phantom-jam-vs-bottleneck",
+    title: "Phantom jam or real bottleneck? How to tell the difference",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-09-22",
+    excerpt:
+      "You are stopped dead on the freeway. Is it a crash up ahead, or a jam that formed out of nothing? The two look identical from the driver's seat, but they behave differently, and there are three quick tells that separate them, plus one reason it matters for how the road gets fixed.",
+    body: `There are two very different reasons a freeway grinds to a halt, and from the driver's seat they feel identical. One is a real bottleneck: a fixed spot where the road's capacity drops, like a crash, a lane closure, a work zone, a steep grade, or a merge that recurs at the same place every rush hour. The other is a phantom jam: stop-and-go that forms with no physical cause at all, purely from the way a dense stream of cars amplifies each other's braking. Telling them apart is easy once you know what to look for, and it matters, because the two problems are fixed in completely different ways. Here are the three tells, the physics underneath them, and why the distinction is the whole reason a company like Cruze can exist.
+
+## The short version
+
+A real bottleneck has a cause you can point to, and the head of the queue stays anchored at that spot. A phantom jam has no cause at the front, and the whole slow patch drifts backward against the direction of travel. If you crawl to the front of a jam and find a crash, a cone, or a hill, it was a bottleneck. If you reach the front and the road simply opens up with nothing there, you were just inside a phantom wave. That is the fastest field test there is.
+
+## Tell 1: is there something at the front?
+
+This is the single most reliable check. Bottlenecks are physical. When you finally reach the front of a bottleneck queue you see the reason: a fender-bender on the shoulder, a lane dropping from three to two, a police stop, a work crew, the crest of a hill where trucks slow down. The queue exists because the road can carry fewer cars per hour at that exact point than the number of cars trying to get through it.
+
+A phantom jam has no such front. You inch forward for ten minutes expecting a wreck, and then, without explanation, the cars ahead accelerate and the road is clear. Nothing happened. There was nothing to see. That eerie "wait, why were we even stopped?" moment is the signature of a phantom jam. We walk through exactly how that wall of brake lights builds from a single tap of the brakes in [why there is traffic when there's no accident](/insights/why-traffic-with-no-accident).
+
+## Tell 2: does the jam stay put, or does it travel?
+
+A bottleneck queue is anchored. Its head sits at the fixed obstruction and does not move; the tail grows upstream as more cars arrive and shrinks once demand falls below capacity. The location of the slowdown's front is pinned to the crash or the lane drop.
+
+A phantom jam moves. The whole cluster of stopped cars marches backward, upstream, against the flow of traffic, at a remarkably steady speed. In the famous 2008 experiment where researchers put cars on a circular track with no bottleneck at all, the spontaneous jam that formed drifted backward around the loop at roughly 20 km/h, about 12 mph (Sugiyama et al., "Traffic jams without bottlenecks," New Journal of Physics, 2008). The drivers kept moving forward through the jam while the jam itself moved the other way, like a standing wave that everyone passes through. We unpack that backward-marching behavior in [why traffic jams move backward](/insights/why-traffic-jams-move-backward) and the self-sustaining wave at its core in [what is a jamiton](/insights/what-is-a-jamiton).
+
+> The clean test is the front of the queue. If the front stays put, it is a bottleneck. If the whole jam is sliding backward while you drive forward through it, it is a phantom.
+
+## Tell 3: does it happen at the same place every day?
+
+Bottlenecks are creatures of habit. Because they are tied to fixed geometry, a recurring bottleneck shows up at the same interchange, the same on-ramp, the same curve, at the same time every weekday. If your commute jams at the identical half-mile every single evening, that is a structural bottleneck, not a phantom.
+
+Phantom jams are opportunistic. They form wherever traffic density happens to cross the tipping point, which can be a different stretch on different days. The one condition they all share is heavy but still-moving traffic. Below a critical density the road is stable and a stray brake tap fades out; above it, the same tap grows. That threshold, and the way throughput actually falls once you cross it, is the heart of the pillar guide, [phantom traffic jams: why traffic happens for no reason](/insights/phantom-traffic-jams).
+
+## The physics: two ways a road loses capacity
+
+Both jams trace back to the same underlying fact, that a freeway carries the most cars per hour just below the density where it breaks down, not at it. Push past that point and throughput drops. Engineers call this the capacity drop: a lane that was carrying 2,000 vehicles an hour can fall to 1,700 or 1,800 once flow breaks (Cassidy and Bertini, "Some traffic features at freeway bottlenecks," Transportation Research Part B, 1999).
+
+A bottleneck lowers that ceiling at one location. Fewer lanes, a merge, or a hill means the road at that spot simply cannot pass as many cars, so a queue forms whenever demand exceeds the local limit. The cause is geometric and permanent until you change the road or clear the incident.
+
+A phantom jam is different. There is no drop in the road's capacity anywhere. Instead, the stream of cars itself becomes unstable: at high density, human reaction time and the natural urge to over-brake mean one driver's small slowdown makes the next brake a little harder, and the next harder still, until a car near the back stops completely. The road never lost a lane. The drivers, collectively, manufactured a jam out of nothing but their own following behavior.
+
+The two also interact, which is why they can be confusing. A real bottleneck often throws off phantom-style waves: the stop-and-go you feel miles upstream of a crash is a wave that detached from the bottleneck and is now traveling back on its own. So the honest rule is about the front. A jam with an anchored, physical head is a bottleneck, even if it is shedding waves. A jam with no head at all is a pure phantom.
+
+## Why the difference decides the fix
+
+This is not a trivia distinction. It determines what actually works.
+
+If the problem is a bottleneck, you fix the location. You clear the incident, redesign the merge, meter the on-ramp so cars join in a controlled trickle instead of a capacity-breaking platoon (see [do ramp meters actually work](/insights/do-ramp-meters-work)), or, as a last resort, add capacity. Concrete and signals are the right tools when the constraint is physical.
+
+If the problem is a phantom jam, none of that helps, and this is the part most people get wrong. You cannot pour concrete to fix an instability. Widening the road does not remove the tendency of dense traffic to oscillate; it often just fills back up, which is the lesson of [why adding lanes doesn't fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic). The only thing that dissolves a phantom jam is smoothing the driving behavior that creates it, damping the wave instead of amplifying it.
+
+The striking result from the traffic-wave literature is that this does not take many drivers. In a 2018 ring-road experiment, a single vehicle driving smoothly among roughly twenty was enough to damp the stop-and-go wave for the entire loop (Stern et al., Transportation Research Part C, 2018). Fewer than one car in twenty, driving steadily, changed the behavior of the whole group. We cover that finding in [can a few drivers fix traffic](/insights/can-a-few-drivers-fix-traffic).
+
+## Where Cruze fits, honestly
+
+That 2018 result is the reason Cruze exists. Phantom jams are the share of congestion that no road widening will ever remove, and they are dissolvable by a small number of well-timed, steady drivers. Cruze aims to be the software version of that steady driver: an in-cab speed advisory that keeps a driver smooth through the pulse of dense traffic, rather than a self-driving system or new roadside hardware.
+
+Telling the two jam types apart at scale is a real measurement problem, and it is the one we work on. Reading a corridor from existing traffic cameras, our [camera pipeline](/cameras) is built to distinguish a queue anchored at a fixed bottleneck from a wave marching backward through the stream, because the response to each is different. To be clear about our stage: Cruze is pre-pilot. Everything above is the published science and the mechanism we build on, not a measured Cruze result.
+
+The reason the distinction is worth this much attention is money and time. Congestion costs U.S. drivers an estimated $74 billion and roughly 4 billion hours a year (INRIX 2024 Global Traffic Scorecard), and the trucking industry alone about $108.8 billion and 6.4 billion gallons of wasted diesel (ATRI 2024). A meaningful slice of that is phantom stop-and-go that never needed to happen, and the fuel math of those brake-then-accelerate cycles is exactly what drains a fleet's margins, which we break down in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go). You can also see how the advisory is meant to work for [fleets](/for-fleets) and for [cities](/for-cities).
+
+## The honest takeaway
+
+Next time you are stuck, run the test. Watch whether the front of the jam stays in one place or slides backward past the mileposts, and notice what is actually there when you reach it. A crash or a lane drop means a bottleneck, and the fix lives at that spot. Nothing at all means you just rode through a phantom wave, a jam the road manufactured out of dense traffic and human reflexes, and the fix is not more asphalt. It is smoother driving, which is a problem software can help with, and the one we are building for.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "do-ramp-meters-work",
     title: "Do ramp meters actually work? The on-ramp traffic light, explained",
     author: "Cruze Research",
