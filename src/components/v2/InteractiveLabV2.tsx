@@ -3,6 +3,7 @@ import { Camera, MapPin, Radio, X, BrainCircuit, AlertTriangle, TrendingUp, Chec
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import YoloOverlay, { type Box as YoloBox } from './YoloOverlay';
+import { LIVE_CAMERAS, resolveStreamUrl } from '@/lib/liveCameras';
 
 // Each camera is mapped to a *traffic regime* — a stable characterization of
 // the flow state the demo should portray for that feed. The regime drives
@@ -39,12 +40,25 @@ const FALLBACK_MP4 = '/cruze-web.mp4';
 
 // Single curated feed for the YOLO demo — San Antonio IH-10 is the most
 // reliably-busy live stream and gives the in-browser detector consistent
-// vehicles to box.
+// vehicles to box. The camera id + label come from LIVE_CAMERAS (the
+// canonical DriveTexas table) rather than a re-typed literal, so the demo
+// can't drift back to the pre-Sep-2026 camera mislabeling. `streamId` is the
+// TxDOT Lonestar name; HlsPlayer resolves the live ~15-min-tokened HLS URL
+// from it at play time — the old hardcoded un-tokened skyvdn URL 401s now.
+const LAB_STREAM = LIVE_CAMERAS.find((c) => c.id === 'TX_SAT_007');
 const CAMERAS: Array<{
     id: number; city: string; location: string; lat: number; lng: number;
-    url: string; preRecordedUrl: string; regime: Regime;
+    streamId: string; preRecordedUrl: string; regime: Regime;
 }> = [
-    { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8', preRecordedUrl: FALLBACK_MP4, regime: REGIMES.stable },
+    {
+        id: 4,
+        city: LAB_STREAM?.city ?? 'San Antonio',
+        location: LAB_STREAM?.location ?? 'IH-10 @ Callaghan',
+        lat: 29.4241, lng: -98.4936,
+        streamId: LAB_STREAM?.id ?? 'TX_SAT_007',
+        preRecordedUrl: FALLBACK_MP4,
+        regime: REGIMES.stable,
+    },
 ];
 
 const V_F = 75.0;
@@ -113,12 +127,19 @@ function classToType(cls: string): string {
     }
 }
 
-const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackSrc?: string }) => {
+const HlsPlayer = ({ streamId, fallbackSrc = FALLBACK_MP4 }: { streamId: string; fallbackSrc?: string }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
         let hls: any = null;
         let destroyed = false;
+        // The DriveTexas HLS token is good for ~15 min; a viewer left open on
+        // the lab page outlives it, so on a fatal stream error we re-resolve a
+        // fresh tokened URL ONCE before giving up to the recorded clip.
+        // `retried` is effect-local, so it is shared by the ERROR handler of
+        // BOTH the first player and the re-resolved one — that's what stops a
+        // resolve → 401 → resolve loop against a genuinely-down host.
+        let retried = false;
 
         const loadFallback = () => {
             const video = videoRef.current;
@@ -129,20 +150,27 @@ const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
             video.play().catch(() => {});
         };
 
-        const initPlayer = () => {
+        const onFatal = (label: string) => {
+            if (destroyed) return;
+            if (!retried) {
+                // Most likely the ~15-min token expired — resolve a fresh one.
+                retried = true;
+                console.warn(`[${label}] Fatal error, re-resolving a fresh stream token…`);
+                void playResolved();
+            } else {
+                console.warn(`[${label}] Fatal error after re-resolve, falling back to recorded feed.`);
+                loadFallback();
+            }
+        };
+
+        const attachHls = (src: string) => {
             const video = videoRef.current;
             if (!video || destroyed) return;
 
             video.pause();
 
-            if (src.endsWith('.mp4')) {
-                video.src = src;
-                video.loop = true;
-                video.play().catch(e => console.log('Autoplay prevented:', e));
-                return;
-            }
-
             if ((window as any).Hls && (window as any).Hls.isSupported()) {
+                if (hls) { hls.destroy(); hls = null; }
                 hls = new (window as any).Hls({
                     maxBufferLength: 10,
                     maxMaxBufferLength: 20,
@@ -157,21 +185,27 @@ const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
                     video.play().catch(e => console.log('Autoplay prevented:', e));
                 });
                 hls.on((window as any).Hls.Events.ERROR, (_: any, data: any) => {
-                    if (data.fatal) {
-                        console.warn(`[HLS] Fatal error on ${src}, falling back to recorded feed.`);
-                        loadFallback();
-                    }
+                    if (data.fatal) onFatal('HLS');
                 });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = src;
                 video.addEventListener('loadedmetadata', () => {
                     video.play().catch(e => console.log('Autoplay prevented:', e));
-                });
-                video.addEventListener('error', () => {
-                    console.warn(`[HLS Safari] Error on ${src}, falling back to recorded feed.`);
-                    loadFallback();
                 }, { once: true });
+                video.addEventListener('error', () => onFatal('HLS Safari'), { once: true });
+            } else {
+                loadFallback();
             }
+        };
+
+        // Resolve the live tokened URL from the TxDOT camera id, then play it.
+        // resolveStreamUrl returns null on any failure, in which case we drop
+        // straight to the same-origin recorded clip (canvas stays untainted).
+        const playResolved = async () => {
+            const src = await resolveStreamUrl(streamId);
+            if (destroyed) return;
+            if (!src) { loadFallback(); return; }
+            attachHls(src);
         };
 
         if (typeof window !== 'undefined' && !(window as any).Hls) {
@@ -182,10 +216,10 @@ const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
             script.integrity = 'sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w0u/7mRvr';
             script.crossOrigin = 'anonymous';
             script.async = true;
-            script.onload = initPlayer;
+            script.onload = () => { void playResolved(); };
             document.body.appendChild(script);
         } else {
-            initPlayer();
+            void playResolved();
         }
 
         return () => {
@@ -194,7 +228,7 @@ const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
                 hls.destroy();
             }
         };
-    }, [src]);
+    }, [streamId, fallbackSrc]);
 
     return (
         <video
@@ -537,7 +571,7 @@ const InteractiveLabV2 = () => {
                                     (it has no vehicles to detect, so the demo looked broken). The
                                     HlsPlayer still falls back gracefully if a feed is truly down.
                                     TODO(anudeep): add a recorded daytime traffic loop as the night/offline fallback. */}
-                                <HlsPlayer src={selectedCam?.url || ''} />
+                                <HlsPlayer streamId={selectedCam.streamId} />
 
                                 {/* In-browser YOLO (coco-ssd) — live bounding
                                     boxes around detected vehicles. The same
