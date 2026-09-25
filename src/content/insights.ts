@@ -14,6 +14,74 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "how-traffic-cameras-measure-flow",
+    title: "How do traffic cameras measure traffic flow?",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-09-25",
+    excerpt:
+      "The cameras on the poles were mostly built for humans to watch, not to measure. Here is how a road's flow, speed, and density are actually pulled from a video feed, what a single still frame can and cannot tell you, and why that limit shapes what Cruze reads today.",
+    body: `A traffic camera measures flow by counting vehicles and tracking how fast they move through the scene, but the honest answer is more specific than that, because it depends entirely on whether you have one still frame or a sequence of frames over time. A single frame can tell you how packed a road is right now. It takes consecutive frames, with the same vehicles tracked from one to the next, to measure speed and true flow rate. That distinction is the whole science of reading traffic from video, and it is the reason different sensors on the same pole report very different things. This article explains the three numbers that describe any traffic stream, the sensors that measure them, what a camera specifically can and cannot extract, and how Cruze uses existing public cameras today.
+
+## The three numbers that describe any traffic stream
+
+Every way of measuring traffic is really trying to pin down three quantities, and they are tied together by one simple identity.
+
+- **Flow** (also called volume), the number of vehicles passing a point per hour. This is what most people mean by "how much traffic."
+- **Density**, the number of vehicles packed into a length of road, per mile per lane. This is how crowded the road looks in a snapshot.
+- **Speed**, how fast those vehicles are actually moving.
+
+The three are not independent. Flow equals density multiplied by space-mean speed, the relationship at the heart of traffic engineering since Bruce Greenshields first plotted it in 1935 (Greenshields, "A study of traffic capacity," Highway Research Board, 1935). The practical consequence is that you cannot fully describe a road with just one number. A road can be dense and slow (a jam) or dense and fast (heavy but free-flowing), and those are opposite situations that a single snapshot of "how many cars are in view" cannot always tell apart. Knowing which two of the three you have measured, and which one you inferred, is the difference between a real flow measurement and a guess.
+
+## The sensors, and what each one actually reads
+
+Different detectors measure different corners of that triangle. Cameras are only one option, and it helps to see them next to the alternatives.
+
+- **Inductive loop detectors.** The oldest and still the most common traffic sensor in the United States is not a camera at all. It is a loop of wire cut into the pavement that senses metal passing over it (FHWA Traffic Detector Handbook, Third Edition, 2006). A single loop reports volume (a count) and occupancy (the fraction of time a vehicle is sitting over it, a proxy for density). To get speed from loops you need two of them a fixed distance apart, a "speed trap," and you time how long a vehicle takes to cross from one to the other. One loop cannot measure speed directly; it estimates it by assuming an average vehicle length.
+- **Radar and microwave sensors.** Side-fire radar units mounted on a pole (the Wavetronix-style sensors many states now use) measure speed directly through the Doppler shift and count vehicles per lane, without cutting the pavement. They are a common modern replacement for loops.
+- **Video image processing.** This is the camera as a virtual loop. Software draws detection zones on the video image, and when pixels in a zone change as a vehicle passes, it registers a count, the same data a loop gives, but from a camera that was often already there. This approach was commercialized in the late 1980s and has been a workhorse ever since. It reads presence and volume well; it infers speed and struggles in rain, snow, glare, and darkness.
+- **Computer-vision object detection.** The modern version does not just watch a zone, it detects each vehicle as an object and, across frames, tracks it. That is what unlocks trajectories: real per-vehicle speed, lane changes, classification of cars versus trucks, and density from an actual count rather than a proxy. It is also the most demanding: it needs the frames, the compute, and careful calibration to turn pixels into feet.
+- **Probe and connected-vehicle data.** For completeness, the speed you see in a navigation app usually does not come from a camera at all. It comes from anonymized GPS pings off phones and connected cars (the kind of data behind INRIX's scorecards). That measures speed and travel time across a whole segment, but not a true count of every vehicle, and it misses anyone not carrying a reporting device.
+
+## What one still frame can and cannot tell you
+
+Here is the part that trips people up, and the part that matters most for any camera-based system. Reach for a single still image off a traffic feed and ask what it can honestly measure.
+
+From one frame you can read **density and occupancy**: how many vehicles are in view, how much of the visible road is covered, and therefore whether the scene looks like free flow or like stop-and-go. That is real, useful information about the state of the road at that instant.
+
+What one frame cannot give you is **speed or flow rate**. Speed is a change in position over time, so it requires at least two frames with the same vehicle located in both. Flow, the vehicles-per-hour number, likewise needs vehicles counted as they cross a line over an interval. A photograph freezes time, and the two most quoted traffic numbers are both defined by the passage of time. No amount of cleverness extracts a speed from a single instant.
+
+> A single still frame tells you how packed a road is right now. It takes a sequence of frames, tracking the same cars from one to the next, to tell you how fast they are moving. That gap is the whole science of measuring flow from video.
+
+This is not a pedantic point. It is exactly the kind of distinction that separates an honest capability claim from an inflated one, and it directly shapes what a camera-reading product can truthfully say it does today versus what it is building toward.
+
+## The honest limits of camera measurement
+
+Even with full video, cameras are not a magic sensor, and it is worth being straight about where they fall short.
+
+- **Occlusion.** A truck hides the cars behind it. In dense traffic, the exact moment you most want an accurate count, vehicles overlap in the image and counts get harder, not easier.
+- **Weather and light.** Rain, snow, fog, headlight glare, and night all degrade the image. This is why traffic worsens in bad weather in ways sensors also struggle to see clearly, a problem we cover in [why traffic gets worse when it rains](/insights/why-does-traffic-get-worse-in-the-rain).
+- **Calibration.** Turning pixels into feet per second requires knowing the camera's geometry. A miscalibrated view can report a plausible-looking speed that is simply wrong.
+- **A camera sees a spot, not a corridor.** One camera watches a few hundred feet. A backward-traveling stop-and-go wave, the kind explained in [why traffic happens with no accident](/insights/why-traffic-with-no-accident), can form and roll for miles between two cameras, unseen.
+
+None of this makes cameras useless. It makes them a sensor with a specific, knowable envelope, which is the only responsible way to use one.
+
+## Why measuring flow is the first step to fixing it
+
+You cannot improve what you cannot see. The whole reason to measure flow, density, and speed is that the difference between a road carrying the most cars it can and a road that has broken down into stop-and-go is a difference in these exact numbers, often just past a tipping point in density. A freeway carries its peak volume just below the density where it jams, not at it, and reading that state is how you know whether a road is about to tip.
+
+That measurement problem is also where the money is. U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard), and much of that is stop-and-go that better information could help prevent rather than just endure. We put full numbers on that in [how much traffic actually costs](/insights/how-much-does-traffic-cost). And it is why the research on fixing flow, like the finding that guiding just one vehicle in twenty can damp a wave for everyone behind it, depends first on being able to see the wave forming (we cover that result in [can a few drivers fix traffic for everyone](/insights/can-a-few-drivers-fix-traffic)).
+
+## Where Cruze comes in
+
+Most of the cameras already on the poles were installed for a person in a traffic-management center to glance at, not to measure. [Cruze](/) reads those existing public [traffic cameras](/cameras), the same DriveTexas and DOT feeds anyone can pull up, and uses computer vision to read the state of a scene: how dense it is, and whether it looks like free flow or the onset of stop-and-go. That runs on the frames a public feed already provides, with no new hardware bolted to the road.
+
+We are deliberately precise about what that is today. Reading how packed a scene is from a frame is a present capability. Extracting per-vehicle speed and true flow over time, the temporal measurement that needs tracked vehicles across many frames, is the direction we are building, not a shipped number we would quote. Cruze is pre-pilot, and we make no traffic-reduction claims yet. The point of being this exact is the same reason the measurement itself has to be exact: a flow figure is only worth anything if you are honest about which of the three numbers you actually measured and which you inferred.
+
+For a [city or DOT](/for-cities), the appeal is measurement from cameras you already own, without a per-mile sensor build. For a [fleet](/for-fleets), it is the same reading turned toward the corridors where stop-and-go quietly burns fuel. And the reason none of it needs to wait on new lanes is the subject of [why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic): the bottleneck is usually information and coordination, not concrete. You can watch a phantom jam form and dissolve on our [homepage](/), and read the full physics in our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams).`,
+    tags: ["city-dot", "traffic-physics"],
+  },
+  {
     slug: "do-ramp-meters-work",
     title: "Do ramp meters actually work? The on-ramp traffic light, explained",
     author: "Cruze Research",
@@ -822,7 +890,7 @@ The limit, of course, is coordination. One patient driver helps locally, but a s
 
 ## Where Cruze comes in
 
-This is the exact problem [Cruze](/) is built to solve. Instead of routing one driver around a wave that already formed, Cruze works upstream of the wave itself. It reads the road from existing traffic cameras, no new hardware on the truck or the highway, predicts where a stop-and-go wave is about to form, and gives a small share of drivers a gentle, well-timed speed cue so the gap ahead absorbs the disturbance before it can grow. Keep the flow on the stable side of the threshold and the jam never builds in the first place. Same road, same cars, same number of vehicles, smoother flow.
+This is the exact problem [Cruze](/) is built to solve. Instead of routing one driver around a wave that already formed, Cruze works upstream of the wave itself. It reads the road from [existing traffic cameras](/insights/how-traffic-cameras-measure-flow), no new hardware on the truck or the highway, predicts where a stop-and-go wave is about to form, and gives a small share of drivers a gentle, well-timed speed cue so the gap ahead absorbs the disturbance before it can grow. Keep the flow on the stable side of the threshold and the jam never builds in the first place. Same road, same cars, same number of vehicles, smoother flow.
 
 It is the 5% finding turned into a product: change how a few drivers move, a few seconds early, and the whole stream behind them stops wave-jamming. For a [fleet](/for-fleets), that smoother flow is fuel saved and hard stops avoided on every congested corridor. For a [city or DOT](/for-cities), it is more throughput from the lanes you already own, measured from the [cameras](/cameras) already on the poles. You can watch a phantom jam form and then dissolve on our [homepage](/).
 
