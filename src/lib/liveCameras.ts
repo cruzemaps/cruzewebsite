@@ -57,9 +57,14 @@ export async function resolveStreamUrl(id: string): Promise<string | null> {
     const body = await res.json();
     const data = body?.data?.data;
     if (!data?.name?.length) return null;
-    // Contains can match more than one row; prefer the exact name.
+    // `Contains` can match more than one row (e.g. TX_SAT_007 also matches
+    // TX_SAT_0070), so require the EXACT name. If it isn't present, fail
+    // closed with null rather than serving an arbitrary other camera's
+    // stream — callers render that URL under a fixed label, so a wrong-row
+    // guess would silently mislabel the feed.
     const i = data.name.indexOf(id);
-    const url = data.httpsurl?.[i >= 0 ? i : 0];
+    if (i < 0) return null;
+    const url = data.httpsurl?.[i];
     return typeof url === "string" && url.startsWith("https://") ? url : null;
   } catch {
     return null;

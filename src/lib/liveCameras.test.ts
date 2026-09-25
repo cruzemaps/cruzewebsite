@@ -52,11 +52,14 @@ describe("resolveStreamUrl", () => {
     await expect(resolveStreamUrl("TX_SAT_007")).resolves.toBe(right);
   });
 
-  it("falls back to the first row when the exact name is absent", async () => {
-    const only = "https://host/rtplive/TX_SAT_0071/playlist.m3u8?token=z";
-    stubFetch({ body: tableBody(["TX_SAT_0071"], [only]) });
+  it("fails closed (null) when only a substring match is returned, never a wrong camera", async () => {
+    // `Contains` matched TX_SAT_0071 but not the exact TX_SAT_007. Serving
+    // row 0 here would render a different camera under the caller's fixed
+    // label, so the resolver must return null instead.
+    const other = "https://host/rtplive/TX_SAT_0071/playlist.m3u8?token=z";
+    stubFetch({ body: tableBody(["TX_SAT_0071"], [other]) });
 
-    await expect(resolveStreamUrl("TX_SAT_007")).resolves.toBe(only);
+    await expect(resolveStreamUrl("TX_SAT_007")).resolves.toBeNull();
   });
 
   it("returns null when the API responds non-ok", async () => {

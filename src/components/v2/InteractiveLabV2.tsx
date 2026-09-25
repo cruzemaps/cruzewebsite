@@ -48,10 +48,11 @@ const FALLBACK_MP4 = '/cruze-web.mp4';
 // demo can't drift back to the pre-Sep-2026 camera mislabeling.
 const LAB_STREAM_ID = 'TX_SAT_007';
 const LAB_STREAM = LIVE_CAMERAS.find((c) => c.id === LAB_STREAM_ID);
-if (!LAB_STREAM) {
+if (!LAB_STREAM && typeof window !== 'undefined') {
     // The id is gone from the canonical table — the demo will resolve nothing
-    // and fall back to the recorded clip. Surface it rather than silently
-    // shipping a dead feed with a stale label.
+    // and fall back to the recorded clip. Surface it in the browser rather
+    // than silently shipping a dead feed with a stale label. Guarded off the
+    // server so it can't spam the prerender build log.
     console.error(`[LabV2] ${LAB_STREAM_ID} missing from LIVE_CAMERAS; live demo will fall back to the recorded clip.`);
 }
 const CAMERAS: Array<{
@@ -165,6 +166,17 @@ const HlsPlayer = ({ streamId, fallbackSrc = FALLBACK_MP4 }: { streamId: string;
         video.loop = true;
         video.play().catch(() => {});
     }, [failed, fallbackSrc]);
+
+    // Self-heal: after falling back, periodically re-arm the live path. A
+    // transient resolve/CDN blip (or a camera that briefly dropped) would
+    // otherwise pin the whole session to the recorded clip, since the single
+    // curated stream id never changes. Clearing `failed` lets useHlsCamera
+    // re-attempt; if it fails again it just falls back and re-schedules.
+    useEffect(() => {
+        if (!failed) return;
+        const t = setInterval(() => setFailed(false), 90_000);
+        return () => clearInterval(t);
+    }, [failed]);
 
     return (
         <video
