@@ -29,7 +29,9 @@ interface HlsInstance {
 }
 
 interface HlsStatic {
-  new (config?: Record<string, number>): HlsInstance;
+  // hls.js config takes mixed value types (numbers, booleans, strings, fns);
+  // keep it open so future tuning doesn't need a type edit.
+  new (config?: Record<string, unknown>): HlsInstance;
   isSupported(): boolean;
   Events: { MANIFEST_PARSED: string; ERROR: string };
 }
