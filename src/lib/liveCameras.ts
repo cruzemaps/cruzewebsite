@@ -45,14 +45,13 @@ export async function resolveStreamUrl(id: string): Promise<string | null> {
       take: 5,
     },
   });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
     const res = await fetch(
       `${API}?request=${encodeURIComponent(request)}&aInfo=${encodeURIComponent("mluser:null;mltoken:null")}`,
       { signal: ctrl.signal }
     );
-    clearTimeout(timer);
     if (!res.ok) return null;
     const body = await res.json();
     const data = body?.data?.data;
@@ -63,5 +62,9 @@ export async function resolveStreamUrl(id: string): Promise<string | null> {
     return typeof url === "string" && url.startsWith("https://") ? url : null;
   } catch {
     return null;
+  } finally {
+    // Always clear the abort timer — including when fetch rejects — so a
+    // failed resolve doesn't leave an 8s timer dangling to fire ctrl.abort().
+    clearTimeout(timer);
   }
 }

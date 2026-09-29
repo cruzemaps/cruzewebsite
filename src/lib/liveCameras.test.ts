@@ -41,7 +41,9 @@ describe("LIVE_CAMERAS", () => {
   });
 });
 
-function mockFetchOnce(impl: () => Partial<Response> | Promise<Partial<Response>>) {
+// Installs a fetch stub that answers every call with `impl()`. resolveStreamUrl
+// only fetches once today; tests that care assert the call count explicitly.
+function mockFetch(impl: () => Partial<Response> | Promise<Partial<Response>>) {
   const fn = vi.fn(async () => impl());
   vi.stubGlobal("fetch", fn);
   return fn;
@@ -58,7 +60,7 @@ describe("resolveStreamUrl", () => {
   });
 
   it("returns the HLS url for the row whose name exactly matches the id", async () => {
-    const fetchMock = mockFetchOnce(() =>
+    const fetchMock = mockFetch(() =>
       jsonResponse({
         data: {
           data: {
@@ -77,20 +79,30 @@ describe("resolveStreamUrl", () => {
   });
 
   it("sends a table/query request carrying the requested camera id", async () => {
-    const fetchMock = mockFetchOnce(() =>
+    const fetchMock = mockFetch(() =>
       jsonResponse({
         data: { data: { name: ["TX_HOU_1002"], httpsurl: ["https://x.example/a.m3u8"] } },
       })
     );
     await resolveStreamUrl("TX_HOU_1002");
-    const calledUrl = String(fetchMock.mock.calls[0][0]);
-    const decoded = decodeURIComponent(calledUrl);
-    expect(decoded).toContain('"action":"table/query"');
-    expect(decoded).toContain("TX_HOU_1002");
+    const calledUrl = new URL(String(fetchMock.mock.calls[0][0]));
+    const request = JSON.parse(calledUrl.searchParams.get("request") ?? "{}");
+    // Assert the id sits in the WHERE filter value, not merely somewhere in the
+    // URL, so dropping it from the query filter would fail this test.
+    expect(request.action).toBe("table/query");
+    expect(request.query.table.name).toBe("appgeo/cameraPoint");
+    expect(request.query.where[0][0]).toMatchObject({
+      col: "name",
+      test: "Contains",
+      value: "TX_HOU_1002",
+    });
   });
 
+  // Documents the intentional fallback: with no exact-name match the resolver
+  // returns the first row rather than null. If that policy is ever tightened
+  // (e.g. never surface a different camera's feed), update this expectation.
   it("falls back to the first row when no exact name match is present", async () => {
-    mockFetchOnce(() =>
+    mockFetch(() =>
       jsonResponse({
         data: {
           data: {
@@ -105,17 +117,17 @@ describe("resolveStreamUrl", () => {
   });
 
   it("returns null on a non-ok HTTP response", async () => {
-    mockFetchOnce(() => jsonResponse({}, false));
+    mockFetch(() => jsonResponse({}, false));
     expect(await resolveStreamUrl("TX_DAL_001")).toBeNull();
   });
 
   it("returns null when the table returns no rows", async () => {
-    mockFetchOnce(() => jsonResponse({ data: { data: { name: [], httpsurl: [] } } }));
+    mockFetch(() => jsonResponse({ data: { data: { name: [], httpsurl: [] } } }));
     expect(await resolveStreamUrl("TX_DAL_001")).toBeNull();
   });
 
   it("returns null when the resolved url is not an https string", async () => {
-    mockFetchOnce(() =>
+    mockFetch(() =>
       jsonResponse({
         data: { data: { name: ["TX_DAL_001"], httpsurl: ["http://insecure.example/a.m3u8"] } },
       })
@@ -124,7 +136,14 @@ describe("resolveStreamUrl", () => {
   });
 
   it("returns null when fetch rejects (network error / abort)", async () => {
-    mockFetchOnce(() => Promise.reject(new Error("boom")));
+    mockFetch(() => Promise.reject(new Error("boom")));
     expect(await resolveStreamUrl("TX_DAL_001")).toBeNull();
+  });
+
+  it("clears the abort timer even when fetch rejects (no dangling timer)", async () => {
+    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+    mockFetch(() => Promise.reject(new Error("boom")));
+    await resolveStreamUrl("TX_DAL_001");
+    expect(clearSpy).toHaveBeenCalledTimes(1);
   });
 });
