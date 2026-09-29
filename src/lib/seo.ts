@@ -193,7 +193,7 @@ export const ROUTES: RouteMeta[] = [
     path: "/apply",
     title: "Apply for the Cruze Pilot | Fleet Onboarding",
     description:
-      "Apply to pilot Cruzemaps on your fleet in 5 quick steps including LOI signing. We benchmark against your last 90 days of telematics.",
+      "Apply to pilot Cruzemaps on your fleet in 30 seconds — one short form plus a one-click non-binding LOI. We benchmark against your last 90 days of telematics.",
     changefreq: "monthly",
     priority: 0.7,
   },
@@ -219,6 +219,22 @@ export const ROUTES: RouteMeta[] = [
     title: "Privacy Policy | Cruze",
     description:
       "How Cruze collects, uses, and protects driver data, including location, microphone, motion, and account information. Cruze does not sell your data or use it for advertising tracking.",
+    changefreq: "yearly",
+    priority: 0.4,
+  },
+  {
+    path: "/privacy-drives",
+    title: "Privacy Policy — Cruze Drive Logging | Cruze",
+    description:
+      "How the Cruze drive-logging app handles your data: location only while recording, motion processed on-device, no microphone, no ads, no data sales. Routes are privacy-trimmed before anyone else can see them.",
+    changefreq: "yearly",
+    priority: 0.4,
+  },
+  {
+    path: "/terms-drives",
+    title: "Terms of Service — Cruze Drive Logging | Cruze",
+    description:
+      "The terms for the Cruze drive-logging app: record drives hands-off, drive legally and attentively at all times, and follow the community rules for shared drives, reporting, and blocking.",
     changefreq: "yearly",
     priority: 0.4,
   },

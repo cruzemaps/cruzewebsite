@@ -142,7 +142,7 @@ export default function PilotsTab({
         .select("pilot_application_id")
         .in("pilot_application_id", ids);
       if (loiRows) {
-        setSignedPilotIds(new Set(loiRows.map((r: any) => r.pilot_application_id).filter(Boolean)));
+        setSignedPilotIds(new Set(loiRows.map((r: { pilot_application_id: string | null }) => r.pilot_application_id).filter(Boolean)));
       }
     }
     setLoading(false);

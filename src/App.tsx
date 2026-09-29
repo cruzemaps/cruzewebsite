@@ -37,6 +37,8 @@ const Diag = lazy(() => import("./pages/Diag"));
 const LOIView = lazy(() => import("./pages/LOIView"));
 const UIInterns = lazy(() => import("./pages/UIInterns"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const PrivacyDrives = lazy(() => import("./pages/PrivacyDrives"));
+const TermsDrives = lazy(() => import("./pages/TermsDrives"));
 const Support = lazy(() => import("./pages/Support"));
 const Terms = lazy(() => import("./pages/Terms"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -95,6 +97,8 @@ const App = () => (
 
               {/* Legal & support (required for App Store + Google Play submission) */}
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/privacy-drives" element={<PrivacyDrives />} />
+              <Route path="/terms-drives" element={<TermsDrives />} />
               <Route path="/support" element={<Support />} />
               <Route path="/terms" element={<Terms />} />
 

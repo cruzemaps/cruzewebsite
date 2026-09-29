@@ -42,7 +42,7 @@ export type ScoreBand =
   | "Needs Improvement"
   | "At Risk";
 
-export interface DriverScores {
+interface DriverScores {
   safety: number | null;
   efficiency: number | null;
   overall: number | null;
@@ -59,7 +59,7 @@ export interface FleetDriver {
   scores: DriverScores;
 }
 
-export interface FleetSummary {
+interface FleetSummary {
   driver_count?: number;
   avg_overall?: number | null;
   avg_safety?: number | null;
@@ -69,21 +69,21 @@ export interface FleetSummary {
   [key: string]: unknown;
 }
 
-export interface FleetScoresWindow {
+interface FleetScoresWindow {
   days?: number;
   start?: string;
   end?: string;
   [key: string]: unknown;
 }
 
-export interface FleetScoresResponse {
+interface FleetScoresResponse {
   window: FleetScoresWindow;
   fleet_summary: FleetSummary;
   drivers: FleetDriver[];
   phase_0_notes?: string[];
 }
 
-export type FleetScoresStatus =
+type FleetScoresStatus =
   | "exchanging" // bridging the Supabase session to a backend token via SSO
   | "needs_auth" // no token yet; show the connect-backend panel
   | "loading"

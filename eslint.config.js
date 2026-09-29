@@ -23,4 +23,25 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // Supabase Edge Functions run on Deno, not in the browser/Vite app, so the
+    // block above (browser globals, app rules) is the wrong linter for them.
+    // Give them Deno globals and relax the two rules that fight the Deno
+    // context: each file legitimately carries `@ts-nocheck` because the app
+    // tsconfig can't resolve its `npm:`/`Deno` imports (so `ban-ts-comment`
+    // is a false positive), and with the file already `@ts-nocheck`'d the
+    // `no-explicit-any` findings on dynamic request/webhook payloads check
+    // nothing. These are a separate deployable with their own runtime.
+    files: ["supabase/functions/**/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        Deno: "readonly",
+      },
+    },
+    rules: {
+      "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 );

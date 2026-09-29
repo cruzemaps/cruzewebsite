@@ -5,7 +5,7 @@ import { identifyUser, resetAnalytics } from "@/lib/analytics";
 import { toast } from "sonner";
 
 export type AppRole = "admin" | "fleet_owner" | "city_operator";
-export type AppStatus = "pending" | "active" | "suspended" | "archived";
+type AppStatus = "pending" | "active" | "suspended" | "archived";
 
 interface AuthContextType {
   user: User | any | null;
@@ -231,7 +231,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
       if (realtimeChannel) supabase.removeChannel(realtimeChannel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signOut = async () => {

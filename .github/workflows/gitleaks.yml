@@ -9,6 +9,13 @@ name: Secret Scan (gitleaks)
 on:
   push:
   pull_request:
+  schedule:
+    # Sundays 10:00 UTC — weekly full-history sweep, matching the other
+    # Cruze repos (platform 09:00, employee-hub 09:20, camera-viz 09:40).
+    # Push/PR runs only scan the incoming commit range; the scheduled run
+    # is what re-scans the entire history against newly-added gitleaks
+    # rules, so anything that snuck past review still surfaces.
+    - cron: '0 10 * * 0'
   workflow_dispatch:
 
 permissions:

@@ -1,137 +1,57 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import SEO from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
-import { Camera, MapPin, Radio } from "lucide-react";
+import { Camera, Loader2, MapPin, Radio, WifiOff } from "lucide-react";
+import { LIVE_CAMERAS } from "@/lib/liveCameras";
+import { useHlsCamera } from "@/lib/useHlsCamera";
 
-// Same camera list used inside the InteractiveLab on /investors. Surfaced
-// here as a standalone, easily-findable page so the camera feed isn't only
-// behind the investor tier-gate.
-const FALLBACK_MP4 = '/cruze-web.mp4';
+// Same camera list used by the homepage LiveFeed (src/lib/liveCameras.ts).
+// Surfaced here as a standalone, easily-findable page so the camera feed
+// isn't only on the homepage. Live TxDOT HLS video with the tokened stream
+// URL resolved at play time; on failure it shows an honest offline card,
+// never the promo clip.
 
-const CAMERAS = [
-  { id: 1, city: "Dallas", location: "IH-635", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_001/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
-  { id: 2, city: "Houston", location: "IH-45", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_HOU_1002/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
-  { id: 3, city: "Austin", location: "IH-35", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_263/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
-  { id: 4, city: "San Antonio", location: "IH-10", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
-  { id: 5, city: "Fort Worth", location: "FM-1709 @ Brock", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_DAL_002/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
-  { id: 6, city: "El Paso", location: "IH-10 @ Lee Trevino", url: "https://s70.us-east-1.skyvdn.com:443/rtplive/TX_ELP_242/playlist.m3u8", preRecordedUrl: FALLBACK_MP4 },
-];
+type Status = "connecting" | "live" | "offline";
 
-function HlsPlayer({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackSrc?: string }) {
+function HlsPlayer({ id }: { id: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [status, setStatus] = useState<Status>("connecting");
 
-  useEffect(() => {
-    const state: { hls: any; cancelled: boolean; scriptTimeout: ReturnType<typeof setTimeout> | null } = { hls: null, cancelled: false, scriptTimeout: null };
+  useHlsCamera(
+    videoRef,
+    status === "offline" ? null : id,
+    () => setStatus("live"),
+    () => setStatus("offline")
+  );
 
-    const loadFallback = () => {
-      const video = videoRef.current;
-      if (!video || state.cancelled) return;
-      if (state.hls) { state.hls.destroy(); state.hls = null; }
-      video.src = fallbackSrc;
-      video.loop = true;
-      video.play().catch(() => {});
-    };
-
-    const init = () => {
-      if (state.cancelled) return;
-      const video = videoRef.current;
-      if (!video) return;
-
-      if (src.endsWith('.mp4')) {
-        video.src = src;
-        video.loop = true;
-        video.play().catch(() => {});
-        return;
-      }
-
-      const Hls = (window as any).Hls;
-      if (Hls && Hls.isSupported()) {
-        state.hls = new Hls({
-          maxBufferLength: 10,
-          maxMaxBufferLength: 20,
-          manifestLoadingTimeOut: 8000,
-          manifestLoadingMaxRetry: 2,
-          levelLoadingTimeOut: 8000,
-          levelLoadingMaxRetry: 2,
-        });
-        state.hls.loadSource(src);
-        state.hls.attachMedia(video);
-        state.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          if (!state.cancelled) video.play().catch(() => {});
-        });
-        state.hls.on(Hls.Events.ERROR, (_: any, data: any) => {
-          if (data.fatal) {
-            console.warn(`[HLS] Fatal error on ${src}, falling back to recorded feed.`);
-            loadFallback();
-          }
-        });
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-        video.addEventListener("loadedmetadata", () => {
-          if (!state.cancelled) video.play().catch(() => {});
-        });
-        video.addEventListener("error", () => {
-          console.warn(`[HLS Safari] Error on ${src}, falling back to recorded feed.`);
-          loadFallback();
-        }, { once: true });
-      }
-    };
-
-    if (typeof window !== "undefined" && !(window as any).Hls) {
-      const script = document.createElement("script");
-      // Pinned version + SRI: never load `@latest` — a compromised or breaking
-      // CDN publish would execute arbitrary JS on the live site.
-      script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
-      script.integrity = "sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w0u/7mRvr";
-      script.crossOrigin = "anonymous";
-      script.async = true;
-      // A CDN load can end three ways: it loads (`onload`), it errors
-      // synchronously (`onerror` — offline, blocked, or SRI/integrity mismatch),
-      // or it *stalls* (connects but never resolves; the browser's TCP timeout
-      // can take 30–120s to fire `onerror`). In every case, `init` must run once
-      // or we fall back once — otherwise the player hangs on a black <video>.
-      let settled = false;
-      const settle = (run: () => void) => {
-        if (settled || state.cancelled) return;
-        settled = true;
-        if (state.scriptTimeout) { clearTimeout(state.scriptTimeout); state.scriptTimeout = null; }
-        run();
-      };
-      // Stall guard: match the manifest-load timeout so a hung CDN recovers to
-      // the recorded feed instead of leaving a black frame indefinitely.
-      state.scriptTimeout = setTimeout(() => {
-        console.warn("[HLS] hls.js CDN load timed out, falling back to recorded feed.");
-        settle(loadFallback);
-      }, 8000);
-      script.onload = () => settle(init);
-      script.onerror = () => {
-        console.warn("[HLS] hls.js failed to load from CDN, falling back to recorded feed.");
-        settle(loadFallback);
-      };
-      document.body.appendChild(script);
-    } else {
-      init();
-    }
-
-    return () => {
-      state.cancelled = true;
-      if (state.scriptTimeout) {
-        clearTimeout(state.scriptTimeout);
-        state.scriptTimeout = null;
-      }
-      if (state.hls) {
-        state.hls.destroy();
-        state.hls = null;
-      }
-    };
-  }, [src]);
-
-  return <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />;
+  return (
+    <>
+      <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline style={{ opacity: status === "live" ? 1 : 0.25, transition: "opacity .3s" }} />
+      {status === "connecting" && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Loader2 size={22} className="animate-spin text-white/40" />
+        </div>
+      )}
+      {status === "offline" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 gap-2 bg-[#07090C]/90">
+          <WifiOff size={24} className="text-white/50" />
+          <div className="text-sm text-white/70">Camera is offline right now</div>
+          <div className="text-xs text-white/40">Public TxDOT cameras drop now and then. Pick another camera or come back shortly.</div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default function Cameras() {
-  const [active, setActive] = useState(CAMERAS[2]); // default Austin
+  const [active, setActive] = useState(LIVE_CAMERAS[0]);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const pick = (cam: (typeof LIVE_CAMERAS)[number]) => {
+    setActive(cam);
+    setRetryKey((k) => k + 1); // remount the player so a failed cam retries on re-select
+  };
 
   return (
     <MarketingLayout>
@@ -152,7 +72,7 @@ export default function Cameras() {
           <Card className="bg-[#0F131C] border-white/10 overflow-hidden">
             <CardContent className="p-0">
               <div className="aspect-video bg-black relative">
-                <HlsPlayer key={active.id} src={active.url} />
+                <HlsPlayer key={`${active.id}-${retryKey}`} id={active.id} />
                 <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur text-xs">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   <span className="font-medium">LIVE</span>
@@ -164,7 +84,7 @@ export default function Cameras() {
                 <Camera size={16} className="text-brand-cyan" />
                 <div>
                   <div className="font-display font-semibold">{active.city}: {active.location}</div>
-                  <div className="text-xs text-white/40 mt-0.5">Source: TxDOT public traffic camera feed</div>
+                  <div className="text-xs text-white/40 mt-0.5">Source: TxDOT public traffic camera feed, via DriveTexas</div>
                 </div>
               </div>
             </CardContent>
@@ -172,10 +92,10 @@ export default function Cameras() {
 
           {/* Camera list */}
           <div className="space-y-3">
-            {CAMERAS.map((cam) => (
+            {LIVE_CAMERAS.map((cam) => (
               <button
                 key={cam.id}
-                onClick={() => setActive(cam)}
+                onClick={() => pick(cam)}
                 className={`w-full text-left rounded-xl border p-4 transition-colors ${
                   active.id === cam.id
                     ? "bg-brand-cyan/10 border-brand-cyan/40"

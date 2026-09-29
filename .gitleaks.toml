@@ -1,0 +1,28 @@
+# gitleaks config — repo-level secret scanning rules.
+#
+# Inherits the default ruleset (extend = useDefault) and layers
+# project-specific allowlists on top. Keep allowlists narrow: every
+# entry below should have a one-line justification, not just a glob.
+#
+# IMPORTANT: gitleaks parses `paths` as RE2 regexes, NOT shell globs
+# (`**/.env.example` is a regex parse error at scan time).
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Project-specific allowlists"
+
+# Each entry is an RE2 regex matched anywhere in the file path:
+#   .env.example — the canonical env template, placeholder values only.
+#   assets/index-<hash>.js — historical committed Vite build artifacts
+#     (e.g. commit 47ba9bb7, 2026-05-11) that embed the Supabase ANON
+#     key. That key is public by design — the client bundle is exactly
+#     where it is meant to live (role=anon verified from the JWT claims
+#     during the 2026-08-16 full-history baseline scan; it was the only
+#     finding in the repo's history). assets/ is no longer tracked on
+#     main, so this matches history-only files.
+paths = [
+  '''(?i)(^|/)\.env\.example$''',
+  '''(^|/)assets/index-[A-Za-z0-9_-]+\.js$''',
+]
