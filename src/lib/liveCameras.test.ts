@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { resolveStreamUrl } from "./liveCameras";
+import { LIVE_CAMERAS, resolveStreamUrl } from "./liveCameras";
 
 // resolveStreamUrl queries the DriveTexas (MapLarge) camera table over
 // `fetch` and pulls the tokened HLS URL out of `body.data.data`. It is the
@@ -30,6 +30,46 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+// City -> expected TxDOT Lonestar id prefix. The pre-Sep-2026 list mislabeled
+// an Austin camera as San Antonio and a Dallas one as Fort Worth (see the
+// module header); these guards fail if that regression is reintroduced.
+const CITY_PREFIX: Record<string, string> = {
+  Austin: "TX_AUS",
+  Dallas: "TX_DAL",
+  Houston: "TX_HOU",
+  "San Antonio": "TX_SAT",
+  "Fort Worth": "TX_FTW",
+  "El Paso": "TX_ELP",
+};
+
+describe("LIVE_CAMERAS", () => {
+  it("lists six cameras with unique ids", () => {
+    expect(LIVE_CAMERAS).toHaveLength(6);
+    const ids = LIVE_CAMERAS.map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("uses well-formed TxDOT Lonestar ids", () => {
+    for (const cam of LIVE_CAMERAS) {
+      expect(cam.id).toMatch(/^TX_[A-Z]{3}_\d+$/);
+    }
+  });
+
+  it("labels every camera with the city its id prefix belongs to", () => {
+    for (const cam of LIVE_CAMERAS) {
+      const prefix = CITY_PREFIX[cam.city];
+      expect(prefix, `unexpected city "${cam.city}"`).toBeDefined();
+      expect(cam.id.startsWith(prefix)).toBe(true);
+    }
+  });
+
+  it("gives every camera a non-empty location", () => {
+    for (const cam of LIVE_CAMERAS) {
+      expect(cam.location.trim().length).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("resolveStreamUrl", () => {
   it("returns the tokened HLS URL on a single-row hit", async () => {
     const url =
@@ -50,6 +90,24 @@ describe("resolveStreamUrl", () => {
     });
 
     await expect(resolveStreamUrl("TX_SAT_007")).resolves.toBe(right);
+  });
+
+  it("sends a table/query request carrying the requested camera id", async () => {
+    const fetchFn = stubFetch({
+      body: tableBody(["TX_HOU_1002"], ["https://x.example/a.m3u8"]),
+    });
+    await resolveStreamUrl("TX_HOU_1002");
+    const calledUrl = new URL(String(fetchFn.mock.calls[0][0]));
+    const request = JSON.parse(calledUrl.searchParams.get("request") ?? "{}");
+    // Assert the id sits in the WHERE filter value, not merely somewhere in the
+    // URL, so dropping it from the query filter would fail this test.
+    expect(request.action).toBe("table/query");
+    expect(request.query.table.name).toBe("appgeo/cameraPoint");
+    expect(request.query.where[0][0]).toMatchObject({
+      col: "name",
+      test: "Contains",
+      value: "TX_HOU_1002",
+    });
   });
 
   it("fails closed (null) when only a substring match is returned, never a wrong camera", async () => {
@@ -86,5 +144,12 @@ describe("resolveStreamUrl", () => {
     stubFetch(new Error("network down"));
 
     await expect(resolveStreamUrl("TX_SAT_007")).resolves.toBeNull();
+  });
+
+  it("clears the abort timer even when fetch rejects (no dangling timer)", async () => {
+    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+    stubFetch(new Error("boom"));
+    await resolveStreamUrl("TX_SAT_007");
+    expect(clearSpy).toHaveBeenCalledTimes(1);
   });
 });
