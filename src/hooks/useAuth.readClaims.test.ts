@@ -3,11 +3,15 @@ import type { Session } from "@supabase/supabase-js";
 import { readClaims } from "./useAuth";
 
 // Build a minimal JWT-shaped string: header.payload.signature where only the
-// payload (middle segment) is a base64-encoded JSON object. readClaims only
-// ever decodes the middle segment, so the header/signature are placeholders.
+// payload (middle segment) is encoded. readClaims only ever decodes the middle
+// segment, so the header/signature are placeholders. Real JWTs encode the
+// payload as base64URL (no padding, '-'/'_' alphabet) — encode it the same way
+// here so the suite exercises what Supabase actually emits.
+function base64url(json: string): string {
+  return btoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 function tokenWithClaims(payload: Record<string, unknown>): string {
-  const b64 = btoa(JSON.stringify(payload));
-  return `header.${b64}.signature`;
+  return `header.${base64url(JSON.stringify(payload))}.signature`;
 }
 
 function sessionWith(token: string | undefined): Session {
@@ -28,6 +32,18 @@ describe("readClaims — deny-by-default JWT claim decoding", () => {
   it("reads app_role / app_status from the JWT custom claims", () => {
     const token = tokenWithClaims({ app_role: "admin", app_status: "active" });
     expect(readClaims(sessionWith(token))).toEqual({ role: "admin", status: "active" });
+  });
+
+  it("decodes a payload whose base64URL contains '-'/'_' (real-JWT alphabet)", () => {
+    // Regression guard: a plain atob() throws on the base64URL alphabet, which
+    // would deny a legitimate user. This payload's base64URL contains '-'/'_'.
+    const token = tokenWithClaims({
+      app_role: "fleet_owner",
+      app_status: "active",
+      note: "ff>?~ ÿÿ",
+    });
+    expect(base64url(JSON.stringify({ app_role: "fleet_owner", app_status: "active", note: "ff>?~ ÿÿ" }))).toMatch(/[-_]/);
+    expect(readClaims(sessionWith(token))).toEqual({ role: "fleet_owner", status: "active" });
   });
 
   it("returns nulls for missing claims rather than defaulting to a role", () => {

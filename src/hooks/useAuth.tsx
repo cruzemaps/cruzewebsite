@@ -34,7 +34,15 @@ const AuthContext = createContext<AuthContextType>({
 export function readClaims(session: Session | null | undefined): { role: AppRole | null; status: AppStatus | null } {
   if (!session?.access_token) return { role: null, status: null };
   try {
-    const payload = JSON.parse(atob(session.access_token.split(".")[1]));
+    const seg = session.access_token.split(".")[1];
+    if (!seg) return { role: null, status: null };
+    // JWT payloads are base64URL, not standard base64: atob() chokes on the
+    // '-'/'_' alphabet (and missing '=' padding), which would throw for any
+    // legitimate token whose payload happens to encode those chars and —
+    // via the catch below — deny a valid user. Normalize before decoding.
+    const b64 = seg.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded));
     const role = (payload.app_role as AppRole | undefined) ?? null;
     const status = (payload.app_status as AppStatus | undefined) ?? null;
     return { role, status };
