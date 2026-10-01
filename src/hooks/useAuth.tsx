@@ -31,7 +31,7 @@ const AuthContext = createContext<AuthContextType>({
 // unauthenticated). DO NOT fall back to user_metadata.role: that field is
 // user-controllable at signup and bypassing the privilege-escalation fix in
 // migration 001 would re-open the security hole.
-function readClaims(session: Session | null | undefined): { role: AppRole | null; status: AppStatus | null } {
+export function readClaims(session: Session | null | undefined): { role: AppRole | null; status: AppStatus | null } {
   if (!session?.access_token) return { role: null, status: null };
   try {
     const payload = JSON.parse(atob(session.access_token.split(".")[1]));
