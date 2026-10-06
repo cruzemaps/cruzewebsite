@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ComposableMap, Geographies, Geography, Marker, Line } from "react-simple-maps";
-import { geoDistance, geoCentroid } from "d3-geo";
+import { geoDistance, geoCentroid, type ExtendedFeature } from "d3-geo";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
@@ -26,7 +26,9 @@ const USAMap: React.FC<USAMapProps> = ({ onRouteSelected }) => {
   const [startPoint, setStartPoint] = useState<{ name: string, coords: [number, number] } | null>(null);
   const [endPoint, setEndPoint] = useState<{ name: string, coords: [number, number] } | null>(null);
 
-  const handleStateClick = (geo: any) => {
+  // `geo` is a state feature from react-simple-maps' <Geographies>; type it as
+  // d3-geo's ExtendedFeature so geoCentroid accepts it directly (no `any`).
+  const handleStateClick = (geo: ExtendedFeature) => {
     const stateName = geo.properties.name;
     const centroid = geoCentroid(geo);
 
