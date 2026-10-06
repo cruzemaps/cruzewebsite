@@ -8,8 +8,8 @@ export type AppRole = "admin" | "fleet_owner" | "city_operator";
 type AppStatus = "pending" | "active" | "suspended" | "archived";
 
 interface AuthContextType {
-  user: User | any | null;
-  session: Session | any | null;
+  user: User | null;
+  session: Session | null;
   role: AppRole | null;
   status: AppStatus | null;
   loading: boolean;
@@ -44,8 +44,8 @@ function readClaims(session: Session | null | undefined): { role: AppRole | null
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | any | null>(null);
-  const [session, setSession] = useState<Session | any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [status, setStatus] = useState<AppStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,9 +94,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ? (sessionStorage.getItem("demo_role") as AppRole | null)
       : null;
     if (demoRole) {
-      const fakeUser = { id: `demo-${demoRole}-123`, email: `demo@${demoRole}.com`, user_metadata: { role: demoRole } };
+      // Dev-only demo mock: intentionally a partial User/Session (only the
+      // fields the SPA reads), cast explicitly rather than hidden behind an
+      // `any` on the context type so real consumers stay type-checked.
+      const fakeUser = { id: `demo-${demoRole}-123`, email: `demo@${demoRole}.com`, user_metadata: { role: demoRole } } as unknown as User;
       setUser(fakeUser);
-      setSession({ access_token: "dummy-token", user: fakeUser });
+      setSession({ access_token: "dummy-token", user: fakeUser } as unknown as Session);
       setRole(demoRole);
       setStatus("active");
       setLoading(false);
