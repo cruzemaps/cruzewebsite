@@ -14,6 +14,84 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "phantom-jam-vs-bottleneck",
+    title: "Phantom jam or real bottleneck? How to tell the difference",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-10-02",
+    excerpt:
+      "Both feel the same from the driver's seat, but one has a fixed cause you can drive up to and the other is a moving wave with nothing behind it. Here is the one test that tells them apart, and why it decides which fix actually works.",
+    body: `Here is the quick test. If the jam has an address, a spot you eventually crawl up to and drive past, a crash, a work zone, a merge, a lane drop, a toll plaza, it is a bottleneck. If the jam has no address, if the knot of brake lights travels backward along the road and then dissolves into open pavement with nothing there to explain it, it is a [phantom jam](/insights/phantom-traffic-jams), a self-sustaining stop-and-go wave. Most real congestion is a blend of the two, and telling them apart matters because they need opposite fixes.
+
+Both feel identical when you are sitting in them. You slow, you stop, you crawl, you lose time. But the cause, the cure, and even the person who can fix it are different depending on which one you are in. This article gives you the tells, explains why the distinction changes everything, and is the diagnostic companion to our pillar guide on [phantom traffic jams](/insights/phantom-traffic-jams).
+
+## The one tell that settles it: does the jam have a location?
+
+A bottleneck is a fixed constraint on the road. The jam forms at the constraint and grows backward from it, and it stays put. The front edge of the congestion, the place where cars finally speed up again, sits at the same spot on the map minute after minute. If you drive far enough forward, you reach the thing that caused it. There is always a there there.
+
+A phantom jam has no fixed location at all. The dense region of slow cars moves. It travels backward along the road, upstream against the direction of traffic, at a fairly steady 10 to 20 km/h, while the cars themselves keep rolling forward through it. By the time the wave reaches you, whatever tiny disturbance set it off has long since passed and the drivers who triggered it are miles ahead at full speed. You crawl for a minute, accelerate, and find nothing. We walk through that from the driver's seat in [why there is traffic when there's no accident](/insights/why-traffic-with-no-accident).
+
+> A bottleneck is a place. A phantom jam is a wave. One sits still and waits for you to reach it. The other comes to you and leaves nothing behind.
+
+## What a real bottleneck looks like
+
+A bottleneck is a capacity problem. Something about the road physically limits how many cars per hour can get through a point: lanes drop from three to two, an on-ramp pours cars into the stream, a crash closes a lane, a sharp curve or a steep grade slows everyone down. Demand upstream is higher than that point can pass, so a queue builds and extends backward.
+
+The signatures of a bottleneck:
+
+- **The jam front stays in one place.** The speed recovers at the same location every time, right at the constraint.
+- **You eventually see the cause.** A wreck, cones, a merge, a sign, a hill.
+- **It scales with demand and clears when demand drops.** Rush hour on, rush hour off.
+- **Clearing the constraint clears the jam.** Open the closed lane and the queue drains.
+
+One wrinkle worth knowing: once a bottleneck pushes traffic past its tipping point, the road can actually carry fewer cars per hour than it did just before it broke down. Traffic engineers call this the capacity drop, and it is why a jammed merge stays jammed long after the initial surge. We cover that mechanism in [why merging causes traffic jams](/insights/why-merging-causes-traffic-jams).
+
+## What a phantom jam looks like
+
+A phantom jam is a stability problem, not a capacity problem. The road is nowhere near full. There is no constraint. The jam is manufactured purely by how humans follow one another in dense traffic: one driver lifts off or taps the brake, the driver behind reacts a beat late and brakes a little harder, the next harder still, and past a certain density that disturbance grows instead of fading, until someone upstream comes to a full stop. The 2008 Sugiyama experiment proved this by putting 22 cars on a circular track with no obstacles at all and watching a stop-and-go wave form on its own and march backward around the loop. (Source: Sugiyama et al., "Traffic jams without bottlenecks," New Journal of Physics, 2008.)
+
+The signatures of a phantom jam:
+
+- **The slow region moves backward** against the flow while individual cars drive forward through it.
+- **There is no cause at the front.** You accelerate out of it into open road.
+- **It can appear well below the road's capacity**, triggered by density and reaction delay rather than volume. Density is the trigger, not the raw number of cars.
+- **It persists and travels** like a stable structure, often called a jamiton, even as completely different cars flow through it. We explain that in [what is a jamiton](/insights/what-is-a-jamiton).
+
+## Four quick field tests from the driver's seat
+
+You can usually classify a jam before you ever reach the front of it.
+
+1. **Does the slow spot move or stay put?** Pick a landmark where traffic is stopped. If that spot drifts backward toward you over the next minute, it is a wave. If it stays pinned to one place on the map, it is a bottleneck.
+2. **What is at the front when you finally speed up?** Something, a crash, a merge, a work zone, means bottleneck. Nothing means phantom.
+3. **How full is the road, really?** Bumper to bumper and genuinely packed points to capacity being the limit. Plenty of space but everyone still stopping and starting points to instability, a phantom wave.
+4. **Is it one jam or a train of them?** A single fixed slowdown is usually a bottleneck. A rhythmic series of stop, go, stop, go pulses stacked one after another is the signature of phantom waves, often spawning upstream of a bottleneck that pushed the density over the edge.
+
+## Why most real jams are both at once
+
+In the wild the two rarely come cleanly separated. A genuine bottleneck raises density upstream of itself, and high density is exactly the condition that lets phantom waves start forming. So a busy merge gives you the fixed jam at the merge plus a long train of moving stop-and-go waves stacked behind it. The first is a capacity problem anchored to a place. The rest are stability problems that have detached from any cause and are now traveling on their own.
+
+This is why "just widen the road" so often disappoints. Adding a lane can relieve the fixed constraint, but it does nothing about the instability, and more lanes can even give restless drivers more room to weave, which seeds fresh waves. We dig into that in [why adding lanes doesn't fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic).
+
+## Why the distinction decides the fix
+
+Getting the diagnosis right matters because the two problems respond to opposite tools.
+
+A bottleneck is fixed with geometry and timing: open the blocked lane, retime the ramp meter, clear the incident, smooth the merge. The lever is the road itself, and the people who hold it are cities and DOTs.
+
+A phantom jam cannot be fixed that way, because there is nothing at the front to fix. The lever is driver behavior. The striking finding from the traffic-wave literature is that you do not need every car to be smart to damp a wave. In a 2018 University of Arizona experiment led by Raphael Stern, guiding roughly one vehicle in twenty to hold a steadier speed was enough to suppress the stop-and-go wave for the entire loop and cut fuel use for every car behind. (Source: Stern et al., Transportation Research Part C, 2018.) Treat a phantom jam like a bottleneck and you build concrete that does not help. Treat a bottleneck like a phantom jam and you smooth behavior against a wall that will not move. You have to know which one you are looking at.
+
+## Where Cruze comes in
+
+Telling a wave from a bottleneck is hard from a single car, but it is exactly what a camera network is good at. [Cruze](/) reads the road from existing traffic cameras, no new hardware on the truck or the pole, and the same view that spots a stalled car at a fixed point can also track a dense region of slow traffic sliding backward across frames over time. A fixed slowdown is a bottleneck to flag for an operator. A slow region that moves against the flow is a phantom wave, and a wave is something you can get ahead of: predict where it is about to form and give a small share of drivers a gentle, well-timed speed cue so the gap ahead absorbs the disturbance before it can grow.
+
+For a [fleet](/for-fleets), the payoff of catching the wave rather than the bottleneck is fuel, because brake-then-accelerate cycles burn several times the fuel of steady cruising, which we break down in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go). For a [city or DOT](/for-cities), it is more throughput from the lanes you already own, measured from the [cameras](/cameras) already on the poles. Cruze is pre-pilot, so these are the mechanisms and the published science behind them, not a measured Cruze result.
+
+## The honest takeaway
+
+Next time you are stuck, run the test before you blame the road. Watch whether the slow spot stays put or drifts toward you, and notice what is actually there when you finally speed up. If there is a cause at a fixed place, it is a bottleneck, and it needs the road to change. If the jam travels and leaves nothing behind, it is a phantom wave, and it needs the driving to change, which, remarkably, takes only a few drivers rather than all of them. Most of the time you are sitting in some of both. Knowing the mix is the first step to fixing the right part.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "do-ramp-meters-work",
     title: "Do ramp meters actually work? The on-ramp traffic light, explained",
     author: "Cruze Research",
@@ -786,7 +864,7 @@ Not all congestion is phantom, and the difference is practical. A real bottlenec
 
 A phantom jam has no such anchor. It moves. The dense knot of slow cars travels backward along the road while the cause, if there ever was a discrete one, has vanished. You crawl for a minute, then accelerate to full speed, and there is nothing there.
 
-Most real-world congestion is a blend. A genuine bottleneck pushes density high enough that phantom waves start spawning upstream of it, so you get the fixed jam at the merge plus a train of moving waves stacked behind it. Recognizing which is which matters because they need opposite fixes. A bottleneck is a capacity problem you solve with geometry or signal timing. A phantom wave is a stability problem you solve by changing how drivers behave, and the tools that help one often do nothing for the other.
+Most real-world congestion is a blend. A genuine bottleneck pushes density high enough that phantom waves start spawning upstream of it, so you get the fixed jam at the merge plus a train of moving waves stacked behind it. Recognizing which is which matters because they need opposite fixes. A bottleneck is a capacity problem you solve with geometry or signal timing. A phantom wave is a stability problem you solve by changing how drivers behave, and the tools that help one often do nothing for the other. For the full diagnostic, including field tests you can run from the driver's seat, see [phantom jam or real bottleneck? How to tell the difference](/insights/phantom-jam-vs-bottleneck).
 
 ## Why adding lanes does not fix it
 
