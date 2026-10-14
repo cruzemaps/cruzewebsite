@@ -71,6 +71,12 @@ describe("LANES store invariants", () => {
       }
     }
   });
+
+  it("freightVolumeRank is a whole number (it is an ordinal ranking)", () => {
+    for (const lane of LANES) {
+      expect(Number.isInteger(lane.freightVolumeRank), lane.slug).toBe(true);
+    }
+  });
 });
 
 describe("LANES ↔ CITIES referential integrity", () => {
@@ -89,6 +95,20 @@ describe("LANES ↔ CITIES referential integrity", () => {
     for (const lane of LANES) {
       const [origin, destination] = lane.metroEndpoints;
       expect(origin, lane.slug).not.toBe(destination);
+    }
+  });
+
+  it("the endpoints are in [origin, destination] order (state suffix must match)", () => {
+    // The order matters: metroEndpoints[0] powers the origin city link and [1]
+    // the destination. A swapped-but-valid pair (both resolve, both distinct)
+    // would otherwise link the lane's origin to the wrong city page. The lane's
+    // origin/destination strings end in ", XX" — assert each endpoint city's
+    // state matches that suffix in order.
+    const stateOf = (label: string) => label.trim().slice(-2);
+    for (const lane of LANES) {
+      const [originSlug, destSlug] = lane.metroEndpoints;
+      expect(findCity(originSlug)?.state, `${lane.slug} origin`).toBe(stateOf(lane.origin));
+      expect(findCity(destSlug)?.state, `${lane.slug} destination`).toBe(stateOf(lane.destination));
     }
   });
 });

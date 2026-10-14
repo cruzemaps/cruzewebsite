@@ -73,6 +73,12 @@ describe("CITIES store invariants", () => {
     }
   });
 
+  it("congestionRank is a whole number (it is an ordinal ranking)", () => {
+    for (const city of CITIES) {
+      expect(Number.isInteger(city.congestionRank), city.slug).toBe(true);
+    }
+  });
+
   it("every city lists at least one primary corridor", () => {
     for (const city of CITIES) {
       expect(Array.isArray(city.primaryCorridors), city.slug).toBe(true);
