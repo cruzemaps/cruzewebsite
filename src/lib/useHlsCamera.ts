@@ -13,19 +13,43 @@ import { resolveStreamUrl } from "@/lib/liveCameras";
 const HLS_SRC = "https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
 const HLS_SRI = "sha384-V5ruNBgmYcC3SJRUQeNykAAAgde5gOFq/Hu0CZj7bygDP0yRIhkvX8+w0u/7mRvr";
 
-let hlsLoader: Promise<any> | null = null;
+// hls.js is loaded from a CDN at runtime (not bundled), so its own types
+// aren't available. Type only the surface this hook touches, structurally.
+// Event payloads vary by event; we only read `fatal` (on ERROR). Other
+// fields are typed `unknown` so a future reader must narrow rather than
+// silently inherit the error shape.
+type HlsEventData = { fatal?: boolean; [key: string]: unknown };
+
+interface HlsInstance {
+  loadSource(url: string): void;
+  attachMedia(media: HTMLMediaElement): void;
+  on(event: string, cb: (event: string, data: HlsEventData) => void): void;
+  destroy(): void;
+}
+
+interface HlsStatic {
+  new (config?: Record<string, unknown>): HlsInstance;
+  isSupported(): boolean;
+  Events: { MANIFEST_PARSED: string; ERROR: string };
+}
+
+const hlsWindow = () =>
+  window as unknown as { Hls?: HlsStatic };
+
+let hlsLoader: Promise<HlsStatic | null> | null = null;
 
 // A CDN load can end three ways: it loads, it errors synchronously, or it
 // stalls (the browser's TCP timeout can take 30-120s). The stall guard
 // resolves null after 8s so players fall over instead of hanging on a black
 // frame. A failed load resets the singleton so a later retry re-attempts.
-function loadHlsJs(): Promise<any> {
+function loadHlsJs(): Promise<HlsStatic | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
-  if ((window as any).Hls) return Promise.resolve((window as any).Hls);
+  const existing = hlsWindow().Hls;
+  if (existing) return Promise.resolve(existing);
   if (!hlsLoader) {
-    hlsLoader = new Promise((resolve) => {
+    hlsLoader = new Promise<HlsStatic | null>((resolve) => {
       let settled = false;
-      const settle = (v: any) => {
+      const settle = (v: HlsStatic | null) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
@@ -38,7 +62,7 @@ function loadHlsJs(): Promise<any> {
       script.integrity = HLS_SRI;
       script.crossOrigin = "anonymous";
       script.async = true;
-      script.onload = () => settle((window as any).Hls ?? null);
+      script.onload = () => settle(hlsWindow().Hls ?? null);
       script.onerror = () => settle(null);
       document.body.appendChild(script);
     });
@@ -61,7 +85,7 @@ export function useHlsCamera(
     if (!cameraId) return;
     const video = videoRef.current;
     if (!video) return;
-    let hls: any = null;
+    let hls: HlsInstance | null = null;
     let cancelled = false;
     let startedAt = 0;
 
@@ -105,7 +129,7 @@ export function useHlsCamera(
             video.play().catch(() => {});
           }
         });
-        hls.on(Hls.Events.ERROR, (_: any, data: any) => {
+        hls.on(Hls.Events.ERROR, (_: string, data: HlsEventData) => {
           if (data.fatal) onFatal();
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
