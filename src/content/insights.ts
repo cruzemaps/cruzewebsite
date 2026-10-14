@@ -34,7 +34,7 @@ To see why a few seconds of delay on the ramp pays off, you have to know one fac
 
 A big, bunched group of cars forcing its way in at an on-ramp is one of the most common ways to tip the mainline over that edge. The merge compresses the gaps, drivers already on the freeway brake to make room, and that braking becomes the seed of a backward-traveling wave, the same stop-and-go mechanism we describe in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident). Once the mainline breaks down, it stays broken long after the merge that triggered it.
 
-The meter's job is to never let the freeway cross that line. By metering the inflow, it keeps mainline density just under the critical point, where throughput is highest. Smarter meters do this with feedback: a well-known control law called ALINEA (Papageorgiou, Hadj-Salem, and Blosseville, 1991) measures how occupied the freeway is just downstream and continuously adjusts the meter rate to hold that occupancy near its sweet spot, loosening when the road is clear and tightening the moment it starts to fill.
+The meter's job is to never let the freeway cross that line. By metering the inflow, it keeps mainline density just under the critical point, where throughput is highest. Smarter meters do this with feedback: a well-known control law called ALINEA (Papageorgiou, Hadj-Salem, and Blosseville, 1991) measures how occupied the freeway is just downstream, using the loop detectors we describe in [how traffic is measured](/insights/how-do-traffic-cameras-measure-traffic), and continuously adjusts the meter rate to hold that occupancy near its sweet spot, loosening when the road is clear and tightening the moment it starts to fill.
 
 > The few seconds you wait on the ramp are the price of keeping the freeway on the fast side of its own breakdown point, where it carries the most cars.
 
@@ -968,6 +968,67 @@ See how the advisory works for [fleets](/for-fleets) and for [cities](/for-citie
 
 Next time the lane beside you looks faster, remember that roughly 70 percent of drivers in a controlled test believed the same thing while their own lane was actually quicker. Hold your lane, keep an even gap, and let the small disturbances die in front of you instead of passing them back amplified. You will arrive at nearly the same time, with less stress, and you will have quietly done the one thing that helps the road: nothing dramatic.`,
     tags: ["fundamentals", "traffic-physics"],
+  },
+  {
+    slug: "how-do-traffic-cameras-measure-traffic",
+    title: "How do traffic cameras measure traffic? Loops, radar, and computer vision, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-09-29",
+    excerpt:
+      "Most traffic cameras were built for a human to watch, not to count cars. The real measuring is done by loops in the pavement, roadside radar, and GPS traces, and increasingly by computer vision that turns an ordinary camera into a sensor. Here is how each one works.",
+    body: `Traffic is measured in three main ways today: sensors buried in or beside the road (inductive loops and radar) that count vehicles at a fixed point, anonymized GPS traces from phones and connected cars that measure how fast a whole stretch is moving, and cameras paired with computer vision that read the road from an image. The surprise for most people is that a traffic camera on its own does not measure anything. For decades it was just a video feed for a human operator to watch. What turns a camera into a measuring instrument is the software behind it. This article walks through each method, what it is good at, and where it falls short.
+
+## First, the three numbers engineers actually want
+
+Before the sensors, it helps to know what they are trying to capture. Traffic on any stretch of road is described by three linked quantities:
+
+- **Flow:** how many vehicles pass a point per hour.
+- **Speed:** how fast they are going, on average.
+- **Density:** how many vehicles are packed into a mile of lane at a given moment.
+
+These three are tied together by the fundamental relationship of traffic flow: flow equals density multiplied by speed. Know any two and you can compute the third. That single equation is why a jam is so destructive. As we explain in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident), a road carries the most vehicles per hour just below the density where it breaks down, and every sensor below is really just a different way of pinning down where a given stretch sits on that curve.
+
+## The workhorse: inductive loop detectors
+
+The oldest and still most common traffic sensor is the inductive loop: a coil of wire cut into the pavement, usually in a rectangle you can sometimes see as a faint outline in the lane. When a metal vehicle passes over it, the loop's magnetic field changes and the detector registers a vehicle. Loops are the reason a left-turn arrow knows you are waiting, and they feed the ramp meters we cover in [do ramp meters actually work](/insights/do-ramp-meters-work).
+
+A single loop gives you a count and something called occupancy, the percentage of time the loop is covered by a vehicle. Occupancy is a direct proxy for density: the more of the time metal is sitting over the loop, the more tightly packed the traffic. To get speed from loops you normally need two of them a known distance apart, a speed trap, and you time how long a vehicle takes to travel between them. (Source: FHWA, Traffic Detector Handbook, which remains the standard reference for the technology.)
+
+Loops are accurate and cheap to run once installed. Their weakness is installation and repair: putting one in means cutting the pavement and closing a lane, and they fail over time as roads crack and get resurfaced. A dead loop is a blind spot no one sees until the signal starts misbehaving.
+
+## Radar and the move to non-invasive sensors
+
+To avoid digging up the road, agencies increasingly use non-invasive sensors mounted on poles beside or above the lanes. The most common is side-fire radar, which sweeps a microwave beam across the lanes and measures each vehicle's speed directly from the Doppler shift of the reflected signal, along with counts per lane. Because it bolts to existing poles and does not require lane closures to install or service, radar has taken over much of the point-detection job that loops used to own.
+
+Radar and loops share the same basic limitation: they measure a single spot. They tell you what is happening at that gantry, and nothing about the half mile of road between it and the next one.
+
+## Probe data: measuring the road from the cars themselves
+
+The biggest shift in the last fifteen years is that a huge share of traffic data no longer comes from the road at all. It comes from the vehicles. Anonymized, aggregated GPS traces from smartphone navigation apps, connected cars, and commercial fleet telematics let data providers such as INRIX and HERE measure how fast traffic is actually moving along a segment, continuously, almost everywhere, with no roadside hardware to install or maintain.
+
+This probe data is what powers the congestion figures you see in the news. The estimate that U.S. drivers lost roughly 4 billion hours and about 74 billion dollars to congestion in 2024 comes from exactly this kind of aggregated travel-speed data (INRIX 2024 Global Traffic Scorecard). Its strength is coverage: it sees roads no agency ever wired. Its weakness is that it measures speed and travel time, not volume. Probe data can tell you a corridor slowed to a crawl, but not how many vehicles were on it, because it only sees the fraction of cars that happen to be reporting.
+
+> Loops and radar count cars at a point. Probe data times a trip along a path. A camera can see the whole scene at once, which is why teaching software to read it is worth the trouble.
+
+## Where cameras finally come in
+
+Here is the part that trips people up. The thousands of traffic cameras on poles over freeways and intersections were, for most of their history, not sensors at all. They were closed-circuit video piped into a traffic management center so a human operator could watch for stalls and crashes and dispatch help. A person, not a machine, did the reading.
+
+Computer vision changed that. Modern detection software can take the same camera feed and automatically pull out vehicle counts, classify cars versus trucks, estimate speeds, and measure queue length and lane occupancy, turning a monitoring camera into a measuring instrument without touching the pavement. A camera has one advantage none of the point sensors do: it sees a whole stretch of road in one frame, so it can watch a stop-and-go wave form and travel rather than just registering a blip as it crosses a line.
+
+Cameras are not magic either. Computer vision has to cope with rain, glare, fog, and darkness, and a feed built for a human eye is often low resolution or slow to refresh. But because the hardware is already up on the poles in most metros, the marginal cost of reading it well is software, not construction.
+
+## What reading existing cameras makes possible
+
+This last point is the one Cruze is built around. Instead of asking a city to bury new loops or a driver to buy a new car, [Cruze](/) reads the flow from the [traffic cameras already on the poles](/cameras), with no new roadside hardware, and uses that read to predict where a stop-and-go wave is about to form. Then it gives a small share of drivers a gentle, well-timed speed cue so the wave never builds, the mechanism we lay out in the pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams).
+
+For a [city or DOT](/for-cities), the appeal is that the measurement layer is already installed and paid for; the work is in reading it. Cruze is pre-pilot, so this is the mechanism and the published sensing science behind it, not a measured Cruze result. What the camera network gives us is the same three numbers every traffic engineer wants, flow, speed, and density, read continuously from infrastructure that is already there.
+
+## The honest takeaway
+
+Next time you pass a camera on a gantry, remember it is probably not counting you. The counting is done by a loop in the pavement, a radar on the pole, or the anonymized GPS trace from the phone in your own cup holder, and increasingly by software that reads the camera the way a trained operator once did, only everywhere and all the time. Each method measures a different slice of the same picture, and the modern art of traffic sensing is stitching those slices into one honest view of the road.`,
+    tags: ["city-dot", "fundamentals"],
   },
 ];
 
