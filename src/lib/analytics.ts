@@ -27,7 +27,6 @@ export function trackPageview(path: string) {
 // Funnel events. Add new ones here so call sites stay typed.
 type FunnelEvent =
   | "hero_cta_click"
-  | "demo_role_activated"
   | "roi_calc_used"
   | "fleet_cta_click"
   | "cities_cta_click"

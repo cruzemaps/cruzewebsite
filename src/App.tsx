@@ -111,7 +111,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/invite/:token" element={<InviteAccept />} />
               {/* Demo login and admin impersonation are dev-only. In production
-                  /demo goes to /login (the marketing "Try demo" buttons open it)
+                  /demo goes to /login (no public page links to it any more)
                   and /impersonate and /diag fall through to NotFound. */}
               {import.meta.env.DEV ? (
                 <>

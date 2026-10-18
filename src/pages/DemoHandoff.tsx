@@ -3,9 +3,8 @@ import { Loader2 } from "lucide-react";
 import { demoModeEnabled, setDemoSession } from "@/lib/demoMode";
 
 // Demo bridge route, DEV builds only (App.tsx mounts it behind
-// import.meta.env.DEV and production maps /demo to /login). The marketing
-// "Try demo" buttons `window.open` it in a new tab so the demo state is only
-// ever written to that tab's sessionStorage.
+// import.meta.env.DEV and production maps /demo to /login). Open it in a new
+// tab so the demo state is only ever written to that tab's sessionStorage.
 //
 // Accepts `?role=fleet_owner|city_operator` and an optional same-origin
 // `?go=` destination. Never accepts role=admin.
