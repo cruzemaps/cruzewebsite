@@ -4,7 +4,7 @@ import SEO from "@/components/SEO";
 import { findCity } from "@/content/cities";
 import { LANES } from "@/content/lanes";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, MapPin, TrendingDown, Fuel, Clock } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Fuel, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SITE } from "@/lib/seo";
 
@@ -14,9 +14,6 @@ export default function CityDetail() {
 
   if (!city) return <Navigate to="/cities" replace />;
 
-  // Naive but effective: 11% reduction on the per-driver hours/fuel waste numbers.
-  const hoursReclaimed = Math.round(city.hoursLostPerDriver * 0.11);
-  const fuelReclaimed = Math.round(city.fuelWastedPerDriverGal * 0.11);
   const lanesHere = LANES.filter((l) => l.metroEndpoints.includes(city.slug));
 
   const title = `Cruze in ${city.name}, ${city.state} | Swarm Routing for ${city.name} Traffic`;
@@ -61,12 +58,13 @@ export default function CityDetail() {
           <p className="text-white/70 text-lg max-w-3xl">{city.notes}</p>
         </header>
 
-        <div className="grid md:grid-cols-4 gap-4 mb-12">
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
           <StatTile icon={<Clock size={18} />} label="Hours lost / driver / year" value={city.hoursLostPerDriver.toString()} />
           <StatTile icon={<Fuel size={18} />} label="Gallons wasted / driver / year" value={city.fuelWastedPerDriverGal.toString()} />
-          <StatTile icon={<TrendingDown size={18} />} label="Hours reclaimable w/ Cruze" value={`~${hoursReclaimed}`} accent />
-          <StatTile icon={<TrendingDown size={18} />} label="Gallons reclaimable w/ Cruze" value={`~${fuelReclaimed}`} accent />
         </div>
+        <p className="text-white/60 text-sm mb-12">
+          A Cruze pilot here measures fuel use and hard-braking events against a control group, so any savings are measured, not projected.
+        </p>
 
         <Card className="bg-[#0F131C] border-white/10 mb-12">
           <CardContent className="p-8">

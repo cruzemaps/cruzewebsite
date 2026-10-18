@@ -109,7 +109,7 @@ export const ROUTES: RouteMeta[] = [
     path: "/for-fleets",
     title: "Cruze for Fleets | Cut Fuel, Reclaim Driver Hours",
     description:
-      "Built for fleet owners. Cruze's swarm routing cuts fuel use 8–14% and recaptures driver-hours lost to stop-and-go traffic. Try the live ROI calculator.",
+      "Cruze spots stop-and-go waves ahead and cues your drivers to ease off early, so loaded trucks stop burning diesel to rebuild speed. Pilots are measured on your own trucks against a control group.",
     keywords:
       "fleet management, fuel savings, trucking routing, FMS integration, fleet ROI, Geotab alternative, Samsara alternative, Motive alternative",
     changefreq: "monthly",

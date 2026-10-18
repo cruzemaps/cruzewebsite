@@ -184,19 +184,20 @@ const InvestorPitchSections = () => {
               className="rounded-2xl border border-white/10 bg-[#0B0E14] p-8 relative overflow-hidden"
             >
               <div className="absolute -top-20 -right-20 w-48 h-48 bg-brand-cyan/10 rounded-full blur-[70px]" />
-              <h3 className="font-display font-bold text-white text-lg mb-4 relative">Proven ROI thesis</h3>
+              <h3 className="font-display font-bold text-white text-lg mb-4 relative">ROI thesis</h3>
               <ul className="space-y-4 text-sm text-white/65 relative">
                 <li>
-                  <span className="text-brand-cyan font-semibold">Fuel alpha:</span> ~12% fuel reduction
-                  through momentum preservation.
+                  <span className="text-brand-cyan font-semibold">Fuel alpha:</span> momentum preservation. In
+                  field tests one steady car in about twenty cut fuel use across the whole ring by up to 40%
+                  (Stern et al., 2018, research not Cruze data). Each pilot measures it against a control group.
                 </li>
                 <li>
                   <span className="text-brand-cyan font-semibold">Unit economics:</span> ~$600/year software
-                  cost per semi vs. ~$8,450/year in savings (~$7,200 fuel + ~$1,250 brake maintenance).
+                  cost per semi, weighed against the fuel and brake-maintenance savings each pilot measures.
                 </li>
                 <li>
-                  <span className="text-brand-cyan font-semibold">Returns:</span> ~14× ROI for fleets with
-                  SaaS-style margins on the software layer.
+                  <span className="text-brand-cyan font-semibold">Returns:</span> fleet ROI reported from pilot
+                  data, with SaaS-style margins on the software layer.
                 </li>
               </ul>
             </motion.div>

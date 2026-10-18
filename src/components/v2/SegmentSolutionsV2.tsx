@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 
 const SegmentSolutionsV2 = () => {
   const stats = [
-    { label: "Fuel Saved", value: "12%", color: "text-brand-cyan" },
-    { label: "Driver Retention", value: "+15%", color: "text-brand-orange" },
-    { label: "Idle Time Reduced", value: "40%", color: "text-white" },
-    { label: "Collisions Prevented", value: "75%", color: "text-brand-cyan" },
-    { label: "Emissions Drop", value: "30%", color: "text-brand-orange" },
+    { label: "Fuel use", value: "Measured", color: "text-brand-cyan" },
+    { label: "Hard-braking events", value: "Measured", color: "text-brand-orange" },
+    { label: "Idle time", value: "Measured", color: "text-white" },
+    { label: "Rear-end near-misses", value: "Measured", color: "text-brand-cyan" },
+    { label: "Emissions", value: "Measured", color: "text-brand-orange" },
   ];
 
   return (
@@ -17,7 +17,7 @@ const SegmentSolutionsV2 = () => {
             Solutions Built for Your Scale
           </h2>
           <p className="text-xl text-white/60">
-            Immediate ROI, regardless of your segment.
+            Every pilot is measured against a control group, regardless of your segment.
           </p>
         </div>
 
@@ -35,7 +35,7 @@ const SegmentSolutionsV2 = () => {
                 For Fleet Managers & City Planners
               </h3>
               <p className="text-lg text-white/70 leading-relaxed font-body max-w-md">
-                Reduce fuel costs by 12% and lower insurance premiums by 30% through active speed harmonization. Reduce rear-end collisions by 75% without installing a single piece of roadside hardware.
+                Built to cut the brake-then-accelerate cycle that burns the most diesel, through active speed harmonization and without installing a single piece of roadside hardware. Our pilots measure fuel use and hard-braking events against a control group.
               </p>
               
               <div className="pt-4">
@@ -58,7 +58,7 @@ const SegmentSolutionsV2 = () => {
               {stats.map((stat, idx) => (
                 <div key={idx} className="relative z-10 flex items-center justify-between border-b border-white/10 pb-4 last:border-0 last:pb-0">
                   <span className="text-white/60 font-medium font-body">{stat.label}</span>
-                  <span className={`text-4xl font-display font-bold ${stat.color} tracking-tight`}>
+                  <span className={`text-sm uppercase tracking-widest font-display font-bold ${stat.color}`}>
                     {stat.value}
                   </span>
                 </div>
