@@ -36,6 +36,25 @@ test("flags a shipped impersonation handoff chunk", () => {
   }
 });
 
+test("does not flag the demo_role_activated analytics event name", () => {
+  const dir = fixture({ "assets/ForFleets.js": 'capture("demo_role_activated",{role:"fleet_owner"})' });
+  try {
+    assert.deepEqual(findBypassMarkers(dir), []);
+  } finally {
+    rmSync(dir, { recursive: true });
+  }
+});
+
+test("matches single-quoted and template-literal keys too", () => {
+  const dir = fixture({ "assets/a.js": "s.getItem('demo_status');s.getItem(`impersonated_user_id`)" });
+  try {
+    const markers = findBypassMarkers(dir).map((h) => h.marker).sort();
+    assert.deepEqual(markers, ["demo_status", "impersonated_user_id"]);
+  } finally {
+    rmSync(dir, { recursive: true });
+  }
+});
+
 test("passes a clean bundle and ignores non-JS files", () => {
   const dir = fixture({
     "assets/index.js": "console.log('hello')",

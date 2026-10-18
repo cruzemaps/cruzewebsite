@@ -36,7 +36,14 @@ jobs:
 
       - name: Production build has no demo, impersonation or diag code
         # `npm run build` ends with scripts/check-prod-bundle.mjs, which fails if
-        # any dev-only demo/impersonation/diag marker is in dist/.
+        # any dev-only demo/impersonation/diag marker is in dist/. Placeholder
+        # VITE_* values make the bundle match production, where analytics and
+        # Supabase code paths are not compiled away.
+        env:
+          VITE_POSTHOG_KEY: ci-placeholder
+          VITE_POSTHOG_HOST: https://example.invalid
+          VITE_SUPABASE_URL: https://example.invalid
+          VITE_SUPABASE_ANON_KEY: ci-placeholder
         run: |
           node --test scripts/check-prod-bundle.test.mjs
           npm run build
