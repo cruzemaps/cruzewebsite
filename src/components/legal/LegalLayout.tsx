@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, ArrowUpRight } from "lucide-react";
+import { LIVE_DOT_CAMERAS } from "@/lib/featureFlags";
 
 /**
  * Shared shell for the static legal + support pages (/privacy, /support,
@@ -87,7 +88,7 @@ function Nav() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: [["For fleets", "/for-fleets"], ["For cities & DOTs", "/for-cities"], ["Route planner", "/route-planner"], ["Live cameras", "/cameras"]] },
+    { h: "Product", links: [["For fleets", "/for-fleets"], ["For cities & DOTs", "/for-cities"], ["Route planner", "/route-planner"], [LIVE_DOT_CAMERAS ? "Live cameras" : "Camera map", "/cameras"]] },
     { h: "Company", links: [["Insights", "/insights"], ["Investors", "/investors"], ["Press", "/press"], ["FAQ", "/faq"]] },
     { h: "Legal & support", links: [["Support", "/support"], ["Privacy policy", "/privacy"], ["Terms of service", "/terms"]] },
   ];

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import NavbarV2 from "@/components/v2/NavbarV2";
 import InteractiveLabV2 from "@/components/v2/InteractiveLabV2";
 import SEO from "@/components/SEO";
+import { LIVE_DOT_CAMERAS } from "@/lib/featureFlags";
 
 // Hidden internal test page for the live-CV camera lab. Not linked from the
 // navbar or sitemap. Reachable only by typing /lab into the URL. The SEO
@@ -46,7 +47,10 @@ export default function Lab() {
                         Live YOLO vehicle detection
                     </h1>
                     <p className="text-sm text-white/55 max-w-3xl">
-                        Single San Antonio IH-10 feed with COCO-SSD running in-browser. Boxes appear around
+                        {LIVE_DOT_CAMERAS
+                            ? "Single San Antonio IH-10 feed"
+                            : "A recorded Cruze clip (live DOT camera feeds are switched off on this site)"}{" "}
+                        with COCO-SSD running in-browser. Boxes appear around
                         every detected vehicle and refresh ~3 times per second. Click the camera, draw an ROI,
                         and the telemetry panel reflects the count of vehicles inside your polygon — no
                         server-side vision call, all CV happens client-side.

@@ -199,11 +199,11 @@ export const ROUTES: RouteMeta[] = [
   },
   {
     path: "/cameras",
-    title: "Live Traffic Cameras | Cruze",
+    title: "Texas Traffic Camera Map | Cruze",
     description:
-      "Live TxDOT traffic camera feeds across Texas corridors where Cruze coordinates flow. Public streams, no recording.",
-    keywords: "live traffic cameras, TxDOT, Texas traffic, I-35 camera, IH-45 camera",
-    changefreq: "always",
+      "Map of public TxDOT traffic cameras on major Texas corridors, plus a simulation of how a Cruze speed cue smooths a stop-and-go wave.",
+    keywords: "traffic camera map, TxDOT cameras, Texas traffic, I-35 camera, IH-45 camera, stop-and-go wave simulation",
+    changefreq: "monthly",
     priority: 0.7,
   },
   {
