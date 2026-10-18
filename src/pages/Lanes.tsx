@@ -2,7 +2,7 @@ import MarketingLayout from "@/components/marketing/MarketingLayout";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { LANES } from "@/content/lanes";
-import { ArrowRight, TrendingDown } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 
 export default function Lanes() {
   const sorted = [...LANES].sort((a, b) => a.freightVolumeRank - b.freightVolumeRank);
@@ -20,7 +20,6 @@ export default function Lanes() {
 
         <div className="space-y-3">
           {sorted.map((lane) => {
-            const reclaimable = (lane.congestionDelayHours * 0.4).toFixed(1);
             return (
               <Link
                 key={lane.slug}
@@ -39,9 +38,9 @@ export default function Lanes() {
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="text-right">
-                      <div className="text-xs text-white/40 uppercase tracking-widest">Reclaimable / trip</div>
+                      <div className="text-xs text-white/40 uppercase tracking-widest">Peak delay / trip</div>
                       <div className="font-display text-2xl font-bold text-brand-cyan flex items-center gap-1.5">
-                        <TrendingDown size={16} /> {reclaimable}h
+                        <Clock size={16} /> +{lane.congestionDelayHours}h
                       </div>
                     </div>
                     <ArrowRight size={16} className="text-white/40 group-hover:text-brand-cyan group-hover:translate-x-1 transition-all" />

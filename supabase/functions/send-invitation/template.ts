@@ -104,7 +104,7 @@ const COPY: Record<
     subject: "Your Cruzemaps fleet pilot invitation",
     preheader: "Accept your invitation to start your Cruzemaps fleet pilot.",
     eyebrow: "Fleet pilot invitation",
-    subhead: "Cruzemaps coordinates speeds across your drivers and the swarm around them. Pilots show 8 to 14% fuel reduction and 1 to 2 hours per week reclaimed per driver.",
+    subhead: "Cruzemaps spots stop-and-go waves ahead and cues your drivers to ease off early. Your pilot measures fuel use and hard braking on your own trucks against a control group, and you see every number.",
     bullets: [
       "Live fuel and stop-and-go reduction per truck",
       "Audit-ready CO₂ ledger for sustainability reports",

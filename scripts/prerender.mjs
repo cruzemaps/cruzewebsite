@@ -40,7 +40,7 @@ async function loadProgrammaticRoutes(SITE) {
   const laneRoutes = lanes.map((l) => ({
     path: `/lanes/${l.slug}`,
     title: `${l.origin} to ${l.destination} | Cruze Lane Coordination`,
-    description: `${l.origin} to ${l.destination} via ${l.primaryRoute}: ${l.distanceMiles} miles, +${l.congestionDelayHours}h peak congestion delay. Per-trip Cruze impact for fleets running this lane.`,
+    description: `${l.origin} to ${l.destination} via ${l.primaryRoute}: ${l.distanceMiles} miles, +${l.congestionDelayHours}h peak congestion delay. What a Cruze pilot measures for fleets running this lane.`,
     changefreq: "monthly",
     priority: 0.6,
   }));

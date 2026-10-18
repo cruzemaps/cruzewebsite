@@ -458,12 +458,12 @@ export default function Apply() {
               </p>
               <div className="grid sm:grid-cols-3 gap-3 text-xs">
                 <div className="rounded-lg bg-white/5 p-3">
-                  <div className="font-display text-2xl font-bold text-brand-orange">8 to 14%</div>
-                  <div className="text-white/60 mt-1">fuel reduction in pilots</div>
+                  <div className="font-display text-2xl font-bold text-brand-orange">Your trucks</div>
+                  <div className="text-white/60 mt-1">measured against a control group</div>
                 </div>
                 <div className="rounded-lg bg-white/5 p-3">
-                  <div className="font-display text-2xl font-bold text-brand-cyan">1 to 2 hrs</div>
-                  <div className="text-white/60 mt-1">reclaimed per driver per week</div>
+                  <div className="font-display text-2xl font-bold text-brand-cyan">Your data</div>
+                  <div className="text-white/60 mt-1">fuel and braking from your own ELD, every number shared</div>
                 </div>
                 <div className="rounded-lg bg-white/5 p-3">
                   <div className="font-display text-2xl font-bold text-white">$0</div>

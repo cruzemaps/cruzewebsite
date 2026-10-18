@@ -109,13 +109,13 @@ export default function Investors() {
             for moving vehicles.
           </h1>
           <p className="text-lg text-white/70 max-w-3xl mx-auto leading-relaxed text-center mb-12">
-            Apps route drivers around traffic. Cruze coordinates them. Physics-informed swarm intelligence dissolves phantom jams before they form. Pilots show 8 to 14% fuel reduction, 38% fewer stop-and-go events, and zero new roadside hardware.
+            Apps route drivers around traffic. Cruze coordinates them. Physics-informed swarm intelligence dissolves phantom jams before they form, with zero new roadside hardware. In field tests, one steadily driven car in about twenty was enough to damp a stop-and-go wave (Stern et al., Transportation Research Part C, 2018). Our pilots measure fuel use and hard braking on fleet trucks against a control group.
           </p>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <PublicStat label="US congestion cost" value="$87B/yr" />
             <PublicStat label="Smartphone penetration" value=">95% of drivers" />
-            <PublicStat label="Pilot deployments" value="Live, with measurable ROI" />
+            <PublicStat label="Pilot results" value="Measured against a control group" />
             <PublicStat label="Hardware required" value="$0" />
           </div>
         </div>
