@@ -1,16 +1,6 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 const ImpactMapV2 = () => {
-  const [savings, setSavings] = useState(12845920);
-
-  // Simulate global savings ticking up
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSavings(prev => prev + Math.floor(Math.random() * 50) + 10);
-    }, 1500);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <section id="impact-map" className="py-32 bg-[#05070A] relative overflow-hidden">
@@ -62,19 +52,19 @@ const ImpactMapV2 = () => {
           </p>
 
           <div className="p-8 mt-8 border border-white/10 rounded-3xl bg-black/40 backdrop-blur-md shadow-2xl">
-            <div className="text-sm font-bold text-white/50 uppercase tracking-widest mb-4">Total Dollars Saved by Partners</div>
-            <div className="text-5xl md:text-7xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-[#00A3FF] tabular-nums tracking-tighter">
-              ${savings.toLocaleString('en-US')}
+            <div className="text-sm font-bold text-white/50 uppercase tracking-widest mb-4">What every pilot measures</div>
+            <div className="text-3xl md:text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-[#00A3FF] tracking-tight">
+              Against a control group
             </div>
             
             <div className="grid grid-cols-2 gap-8 mt-8 pt-8 border-t border-white/10">
               <div>
-                 <div className="text-2xl font-bold text-white mb-1">2.4M</div>
-                 <div className="text-xs font-bold text-white/40 uppercase tracking-widest">Gallons Fuel Saved</div>
+                 <div className="text-2xl font-bold text-white mb-1">Fuel use</div>
+                 <div className="text-xs font-bold text-white/40 uppercase tracking-widest">Per truck, per corridor</div>
               </div>
               <div>
-                 <div className="text-2xl font-bold text-white mb-1">11,500</div>
-                 <div className="text-xs font-bold text-white/40 uppercase tracking-widest">Tons CO2 Prevented</div>
+                 <div className="text-2xl font-bold text-white mb-1">Hard braking</div>
+                 <div className="text-xs font-bold text-white/40 uppercase tracking-widest">Events per driver</div>
               </div>
             </div>
           </div>
