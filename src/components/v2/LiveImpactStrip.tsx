@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Activity, Truck, Building2, Leaf } from "lucide-react";
+import { Activity, Truck, Building2 } from "lucide-react";
+import { type LiveStats, resolveLiveStats } from "@/lib/stats";
 
-// Compact one-line strip for the homepage. Pulls from live_impact_stats RPC
-// with a graceful fallback so the homepage never depends on Supabase.
+// Compact one-line strip for the old /v2 homepage. Pulls from the
+// live_impact_stats RPC. If the call fails the strip renders nothing rather
+// than invented numbers, so the page never depends on Supabase.
 export default function LiveImpactStrip() {
-  const [stats, setStats] = useState({ active_pilots: 0, total_fleets: 0, total_cities: 0, co2_tons: 0 });
+  const [stats, setStats] = useState<LiveStats | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -14,13 +16,9 @@ export default function LiveImpactStrip() {
       try {
         const { data, error } = await supabase.rpc("live_impact_stats");
         if (cancelled) return;
-        if (data && !error && data[0]) {
-          setStats({ ...data[0], co2_tons: Math.round(data[0].active_pilots * 18) });
-        } else {
-          setStats({ active_pilots: 12, total_fleets: 47, total_cities: 4, co2_tons: 216 });
-        }
+        setStats(resolveLiveStats(data as LiveStats[] | null, error));
       } catch {
-        if (!cancelled) setStats({ active_pilots: 12, total_fleets: 47, total_cities: 4, co2_tons: 216 });
+        if (!cancelled) setStats(null);
       } finally {
         if (!cancelled) setLoaded(true);
       }
@@ -30,6 +28,8 @@ export default function LiveImpactStrip() {
     };
   }, []);
 
+  if (loaded && !stats) return null;
+
   return (
     <section className="border-y border-white/5 bg-[#0F131C]/40">
       <div className="container mx-auto px-6 py-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
@@ -37,10 +37,9 @@ export default function LiveImpactStrip() {
           <span className="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse" />
           Live
         </div>
-        <Stat icon={<Activity size={14} />} value={stats.active_pilots} label="active pilots" loaded={loaded} />
-        <Stat icon={<Truck size={14} />} value={stats.total_fleets} label="fleets" loaded={loaded} />
-        <Stat icon={<Building2 size={14} />} value={stats.total_cities} label="cities" loaded={loaded} />
-        <Stat icon={<Leaf size={14} />} value={stats.co2_tons} label="t CO₂ this month" loaded={loaded} />
+        <Stat icon={<Activity size={14} />} value={stats?.active_pilots ?? 0} label="pilots approved or running" loaded={loaded} />
+        <Stat icon={<Truck size={14} />} value={stats?.total_fleets ?? 0} label="fleets" loaded={loaded} />
+        <Stat icon={<Building2 size={14} />} value={stats?.total_cities ?? 0} label="cities" loaded={loaded} />
       </div>
     </section>
   );

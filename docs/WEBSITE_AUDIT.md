@@ -28,12 +28,14 @@ Use this as a comeback checklist. Pilot apply/LOI work (migration `014`, `send-p
 - **Page:** `src/pages/Stats.tsx`
 - **Problem:** If RPC `live_impact_stats()` fails, UI silently uses `{ active_pilots: 12, total_fleets: 47, total_cities: 4 }` while still showing a **“Live”** pulsing badge.
 - **Fix:** Show unavailable state, hide live badge on fallback, or fail closed.
+- **Status:** Fixed. The fallback numbers and the pilots × 18 CO₂ tile were removed; the page shows an unavailable state and hides the Live badge when the RPC fails.
 
 ### 4. Homepage JSON-LD `aggregateRating`
 
 - **File:** `src/lib/seo.ts` — `SoftwareApplication` on `/` includes `aggregateRating` (4.8 / 127 reviews).
 - **Problem:** Risky if not backed by real verifiable reviews (Google rich-result / trust policies).
 - **Fix:** Remove until real, or replace with non-rating schema.
+- **Status:** Fixed. The homepage JSON-LD has no rating, and the unused `softwareJsonLd` constant that still held it was deleted.
 
 ---
 
