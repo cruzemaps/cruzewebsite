@@ -75,7 +75,7 @@ export default function ForCities() {
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-12 text-center">Built for procurement, sized for impact.</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: ShieldCheck, title: "SOC 2 Type II in progress", body: "Independent audit underway. Full data residency controls available; pilot data stays in your jurisdiction." },
+              { icon: ShieldCheck, title: "Access you can audit", body: "Role-based access enforced by row-level security in the database. Role changes made in the admin portal are logged, and every speed advisory sent to a driver is recorded." },
               { icon: FileText, title: "RFP-ready language", body: "Reusable response templates, signed BAAs/IAAs, and standard procurement narratives ready on request." },
               { icon: Network, title: "Integrates with your TMC", body: "Streams into ATMS systems via standard protocols. No rip-and-replace; no roadside hardware to install." },
               { icon: MapPin, title: "Corridor-level deployment", body: "Start on a single recurring-congestion corridor. Expand once measured benefits are confirmed." },
