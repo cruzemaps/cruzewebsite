@@ -9,6 +9,7 @@ import ContactForm from "@/components/v3/ContactForm";
 import RoadRail from "@/components/v3/RoadRail";
 import LaneDivider from "@/components/v3/LaneDivider";
 import ProductShowcase from "@/components/v3/ProductShowcase";
+import { LIVE_DOT_CAMERAS } from "@/lib/featureFlags";
 
 /**
  * Cruze homepage. Dark and cinematic: a real Cruze semi drives a dusk highway
@@ -28,7 +29,17 @@ const body = "'Inter Tight', ui-sans-serif, system-ui, sans-serif";
 
 // Deployed camera-visualization (Vercel project: cruze-camera-visualization).
 // Confirmed live: returns 200 and serves the "Cruze Camera Globe" dashboard.
+// That app shows live DOT camera imagery, so the homepage only links out to
+// it when LIVE_DOT_CAMERAS is on; otherwise these links go to the on-site
+// camera-locations map at /cameras (no images).
 const CAMERA_MAP_URL = "https://cruze-camera-visualization.vercel.app";
+
+function CameraMapLink({ className, style, children, onClick }: { className: string; style: React.CSSProperties; children: React.ReactNode; onClick?: () => void }) {
+  if (LIVE_DOT_CAMERAS) {
+    return <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className={className} style={style}>{children}</a>;
+  }
+  return <Link to="/cameras" className={className} style={style} onClick={onClick}>{children}</Link>;
+}
 
 function useFonts() {
   useEffect(() => {
@@ -76,7 +87,7 @@ function Nav() {
                 {solutions.map((s) => (
                   <Link key={s.to} to={s.to} className="block px-3 py-2 rounded-lg text-[14px] hover:text-white" style={{ color: muted }}>{s.label}</Link>
                 ))}
-                <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 py-2 rounded-lg text-[14px] hover:text-white" style={{ color: muted }}>Live camera map <ArrowUpRight size={12} /></a>
+                <CameraMapLink className="flex items-center gap-1 px-3 py-2 rounded-lg text-[14px] hover:text-white" style={{ color: muted }}>{LIVE_DOT_CAMERAS ? <>Live camera map <ArrowUpRight size={12} /></> : "Camera map"}</CameraMapLink>
               </div>
             </div>
           </div>
@@ -94,7 +105,7 @@ function Nav() {
       {open && (
         <div className="md:hidden border-t px-5 py-4 flex flex-col gap-1" style={{ borderColor: line, background: bg, fontFamily: body }}>
           {solutions.map((s) => <Link key={s.to} to={s.to} className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>{s.label}</Link>)}
-          <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="py-2.5" style={{ color: muted }}>Live camera map</a>
+          <CameraMapLink className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>{LIVE_DOT_CAMERAS ? "Live camera map" : "Camera map"}</CameraMapLink>
           <a href="#how" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>How it works</a>
           <Link to="/insights" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>Insights</Link>
           <Link to="/investors" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>Investors</Link>
@@ -223,17 +234,33 @@ function LiveProof() {
       <div className="mx-auto max-w-6xl px-5 sm:px-6 py-16 md:py-28 grid lg:grid-cols-[1fr_1.1fr] gap-10 lg:gap-12 items-center">
         <Reveal>
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>Not a render</p>
-            <h2 className="font-bold tracking-[-0.02em] leading-[1.05]" style={{ fontFamily: display, color: text, fontSize: "clamp(1.9rem, 4vw, 3rem)" }}>This is a real road, right now.</h2>
-            <p className="mt-6 text-lg leading-relaxed" style={{ color: muted, fontFamily: body }}>
-              The drive above is our model. This is the actual feed. Cruze watches public Texas
-              traffic cameras and works out how fast everything is really moving, which is the
-              signal the rest of the system runs on. Pick a city and look around.
-            </p>
+            {LIVE_DOT_CAMERAS ? (
+              <>
+                <p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>Not a render</p>
+                <h2 className="font-bold tracking-[-0.02em] leading-[1.05]" style={{ fontFamily: display, color: text, fontSize: "clamp(1.9rem, 4vw, 3rem)" }}>This is a real road, right now.</h2>
+                <p className="mt-6 text-lg leading-relaxed" style={{ color: muted, fontFamily: body }}>
+                  The drive above is our model. This is the actual feed. Cruze watches public Texas
+                  traffic cameras and works out how fast everything is really moving, which is the
+                  signal the rest of the system runs on. Pick a city and look around.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs uppercase tracking-[0.18em] mb-5" style={{ color: accent, fontFamily: body }}>Simulation</p>
+                <h2 className="font-bold tracking-[-0.02em] leading-[1.05]" style={{ fontFamily: display, color: text, fontSize: "clamp(1.9rem, 4vw, 3rem)" }}>Watch one car stop a jam before it forms.</h2>
+                <p className="mt-6 text-lg leading-relaxed" style={{ color: muted, fontFamily: body }}>
+                  Two identical loops start from the same traffic, with a stop-and-go wave just
+                  starting to build and no crash or bottleneck. Left alone, it grows until cars
+                  stop. On the right, one car follows a Cruze speed cue: hold the steady speed the
+                  road can carry and let the gap ahead absorb the wave. It is a model, not a camera
+                  feed. On real roads, Cruze reads public Texas traffic cameras to catch waves early.
+                </p>
+              </>
+            )}
             <div className="mt-7 flex flex-wrap gap-3" style={{ fontFamily: body }}>
-              <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[15px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14" }}>
-                Open the camera map <ArrowUpRight size={15} />
-              </a>
+              <CameraMapLink className="inline-flex items-center gap-1.5 text-[15px] font-medium px-5 py-2.5 rounded-full transition-opacity hover:opacity-90" style={{ background: accent, color: "#0B0E14" }}>
+                Open the camera map {LIVE_DOT_CAMERAS && <ArrowUpRight size={15} />}
+              </CameraMapLink>
               <Link to="/lab" className="text-[15px] font-medium px-5 py-2.5 rounded-full border transition-colors hover:border-white" style={{ borderColor: line, color: text }}>Watch detection run</Link>
             </div>
           </div>
@@ -557,7 +584,7 @@ function Contact() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: [["For fleets", "/for-fleets"], ["For cities & DOTs", "/for-cities"], ["Route planner", "/route-planner"], ["Live cameras", "/cameras"]] },
+    { h: "Product", links: [["For fleets", "/for-fleets"], ["For cities & DOTs", "/for-cities"], ["Route planner", "/route-planner"], [LIVE_DOT_CAMERAS ? "Live cameras" : "Camera map", "/cameras"]] },
     { h: "Company", links: [["Insights", "/insights"], ["Investors", "/investors"], ["Press", "/press"], ["FAQ", "/faq"]] },
     { h: "Legal & support", links: [["Support", "/support"], ["Privacy policy", "/privacy"], ["Terms of service", "/terms"]] },
   ];

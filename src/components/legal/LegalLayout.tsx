@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, ArrowUpRight } from "lucide-react";
+import { LIVE_DOT_CAMERAS } from "@/lib/featureFlags";
 
 /**
  * Shared shell for the static legal + support pages (/privacy, /support,
@@ -20,6 +21,7 @@ const accent = "#E8590C";
 const display = "'Space Grotesk', ui-sans-serif, system-ui, sans-serif";
 const body = "'Inter Tight', ui-sans-serif, system-ui, sans-serif";
 
+// Shows live DOT imagery, so only linked while LIVE_DOT_CAMERAS is on.
 const CAMERA_MAP_URL = "https://cruze-camera-visualization.vercel.app";
 
 export const legalTokens = { bg, bg2, text, muted, line, accent, display, body };
@@ -57,7 +59,11 @@ function Nav() {
                 {solutions.map((s) => (
                   <Link key={s.to} to={s.to} className="block px-3 py-2 rounded-lg text-[14px] hover:text-white" style={{ color: muted }}>{s.label}</Link>
                 ))}
-                <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 py-2 rounded-lg text-[14px] hover:text-white" style={{ color: muted }}>Live camera map <ArrowUpRight size={12} /></a>
+                {LIVE_DOT_CAMERAS ? (
+                  <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 py-2 rounded-lg text-[14px] hover:text-white" style={{ color: muted }}>Live camera map <ArrowUpRight size={12} /></a>
+                ) : (
+                  <Link to="/cameras" className="block px-3 py-2 rounded-lg text-[14px] hover:text-white" style={{ color: muted }}>Camera map</Link>
+                )}
               </div>
             </div>
           </div>
@@ -75,7 +81,11 @@ function Nav() {
       {open && (
         <div className="md:hidden border-t px-5 py-4 flex flex-col gap-1" style={{ borderColor: line, background: bg, fontFamily: body }}>
           {solutions.map((s) => <Link key={s.to} to={s.to} className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>{s.label}</Link>)}
-          <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="py-2.5" style={{ color: muted }}>Live camera map</a>
+          {LIVE_DOT_CAMERAS ? (
+            <a href={CAMERA_MAP_URL} target="_blank" rel="noopener noreferrer" className="py-2.5" style={{ color: muted }}>Live camera map</a>
+          ) : (
+            <Link to="/cameras" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>Camera map</Link>
+          )}
           <Link to="/insights" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>Insights</Link>
           <Link to="/investors" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>Investors</Link>
           <Link to="/support" className="py-2.5" style={{ color: muted }} onClick={() => setOpen(false)}>Support</Link>
@@ -87,7 +97,7 @@ function Nav() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: [["For fleets", "/for-fleets"], ["For cities & DOTs", "/for-cities"], ["Route planner", "/route-planner"], ["Live cameras", "/cameras"]] },
+    { h: "Product", links: [["For fleets", "/for-fleets"], ["For cities & DOTs", "/for-cities"], ["Route planner", "/route-planner"], [LIVE_DOT_CAMERAS ? "Live cameras" : "Camera map", "/cameras"]] },
     { h: "Company", links: [["Insights", "/insights"], ["Investors", "/investors"], ["Press", "/press"], ["FAQ", "/faq"]] },
     { h: "Legal & support", links: [["Support", "/support"], ["Privacy policy", "/privacy"], ["Terms of service", "/terms"]] },
   ];

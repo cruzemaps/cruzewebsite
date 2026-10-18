@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cruze-watchdog",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-04-17",
+  "observability": { "enabled": true },
+  // Cron-only: no public URL.
+  "workers_dev": false,
+  "triggers": {
+    // Every 5 min: error / CPU-limit check. 14:00 UTC (9am Central): daily digest.
+    "crons": ["*/5 * * * *", "0 14 * * *"]
+  },
+  "vars": {
+    "CF_ACCOUNT_ID": "685ebf4e47ace278e464b92e6cb2e25c"
+  }
+  // Secrets are delivered out-of-band, never committed:
+  //   wrangler secret put CF_API_TOKEN         (Account > Account Analytics > Read)
+  //   wrangler secret put DISCORD_WEBHOOK_URL
+}

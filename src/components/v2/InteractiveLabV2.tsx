@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import YoloOverlay, { type Box as YoloBox } from './YoloOverlay';
 import { LIVE_CAMERAS } from '@/lib/liveCameras';
 import { useHlsCamera } from '@/lib/useHlsCamera';
+import { LIVE_DOT_CAMERAS } from '@/lib/featureFlags';
 
 // Each camera is mapped to a *traffic regime* — a stable characterization of
 // the flow state the demo should portray for that feed. The regime drives
@@ -34,42 +35,59 @@ const REGIMES: Record<Severity, Regime> = {
 // Camera ↔ regime + pre-recorded fallback. Major interstates get heavier
 // regimes; Fort Worth FM-1709 is an FM road (low traffic) and stays in
 // `clear`. preRecordedUrl is a same-origin MP4 that the HLS player swaps in
-// when the live skyvdn.com feed errors or when the clock crosses into night
-// mode — same-origin means the canvas isn't tainted, so frame capture for
-// the vision pipeline still works against the recorded clip.
+// when the live DOT feed errors (or is off entirely because LIVE_DOT_CAMERAS
+// is disabled) — same-origin means the canvas isn't tainted, so frame capture
+// for the vision pipeline still works against the recorded clip.
 const FALLBACK_MP4 = '/cruze-web.mp4';
 
 // Single curated feed for the YOLO demo — San Antonio IH-10 is the most
 // reliably-busy live stream and gives the in-browser detector consistent
-// vehicles to box. `streamId` is the TxDOT Lonestar name; the shared
-// useHlsCamera hook resolves the live ~15-min-tokened HLS URL from it at play
-// time — the old hardcoded un-tokened skyvdn URL 401s now. The camera label
-// comes from the canonical LIVE_CAMERAS table (not a re-typed literal) so the
-// demo can't drift back to the pre-Sep-2026 camera mislabeling.
+// vehicles to box. The live DOT stream only plays when LIVE_DOT_CAMERAS is on
+// (off until a data-use agreement is signed, see src/lib/featureFlags.ts);
+// otherwise the lab runs on Cruze's own recorded clip and never contacts a DOT
+// host. When the flag IS on, `streamId` is the TxDOT Lonestar name and the
+// shared useHlsCamera hook resolves the live ~15-min-tokened HLS URL from it at
+// play time — the old hardcoded un-tokened skyvdn URL 401s now. The camera
+// label comes from the canonical LIVE_CAMERAS table (not a re-typed literal) so
+// the demo can't drift back to the pre-Sep-2026 camera mislabeling.
 const LAB_STREAM_ID = 'TX_SAT_007';
 const LAB_STREAM = LIVE_CAMERAS.find((c) => c.id === LAB_STREAM_ID);
-if (!LAB_STREAM && typeof window !== 'undefined') {
+if (LIVE_DOT_CAMERAS && !LAB_STREAM && typeof window !== 'undefined') {
     // The id is gone from the canonical table — the demo will resolve nothing
     // and fall back to the recorded clip. Surface it in the browser rather
     // than silently shipping a dead feed with a stale label. Guarded off the
-    // server so it can't spam the prerender build log.
+    // server (and off the flag-off build) so it can't spam the prerender log.
     console.error(`[LabV2] ${LAB_STREAM_ID} missing from LIVE_CAMERAS; live demo will fall back to the recorded clip.`);
 }
 const CAMERAS: Array<{
     id: number; city: string; location: string; lat: number; lng: number;
     streamId: string; preRecordedUrl: string; regime: Regime;
 }> = [
-    {
-        id: 4,
-        city: LAB_STREAM?.city ?? 'San Antonio',
-        location: LAB_STREAM?.location ?? 'IH-10 @ Callaghan',
-        // IH-10 @ Callaghan Rd interchange, San Antonio (display-only; the
-        // canonical table carries no coordinates).
-        lat: 29.4869, lng: -98.5560,
-        streamId: LAB_STREAM_ID,
-        preRecordedUrl: FALLBACK_MP4,
-        regime: REGIMES.stable,
-    },
+    // Compliance gate (pilot task T02): the live DOT stream only exists when
+    // LIVE_DOT_CAMERAS is on. With the flag off, `streamId` is '' so
+    // useHlsCamera never arms (it no-ops on a falsy id) — the lab plays only
+    // Cruze's own recorded clip and never contacts a DOT host.
+    LIVE_DOT_CAMERAS
+        ? {
+            id: 4,
+            city: LAB_STREAM?.city ?? 'San Antonio',
+            location: LAB_STREAM?.location ?? 'IH-10 @ Callaghan',
+            // IH-10 @ Callaghan Rd interchange, San Antonio (display-only; the
+            // canonical table carries no coordinates).
+            lat: 29.4869, lng: -98.5560,
+            streamId: LAB_STREAM_ID,
+            preRecordedUrl: FALLBACK_MP4,
+            regime: REGIMES.stable,
+        }
+        : {
+            id: 4,
+            city: 'Cruze',
+            location: 'Recorded clip',
+            lat: 29.4869, lng: -98.5560,
+            streamId: '',
+            preRecordedUrl: FALLBACK_MP4,
+            regime: REGIMES.stable,
+        },
 ];
 
 const V_F = 75.0;
@@ -141,10 +159,14 @@ function classToType(cls: string): string {
 const HlsPlayer = ({ streamId, fallbackSrc = FALLBACK_MP4 }: { streamId: string; fallbackSrc?: string }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     // Once the live stream can't play, swap in the same-origin recorded clip.
-    const [failed, setFailed] = useState(false);
+    // Start "failed" when there's no live stream at all (flag off → empty
+    // streamId) so the recorded clip plays on the first render instead of a
+    // blank <video>, and useHlsCamera is never armed (no DOT contact).
+    const [failed, setFailed] = useState(!streamId);
 
-    // A new target stream gets a fresh shot at going live.
-    useEffect(() => { setFailed(false); }, [streamId]);
+    // A new target stream gets a fresh shot at going live; an empty id goes
+    // straight to the recorded clip.
+    useEffect(() => { setFailed(!streamId); }, [streamId]);
 
     // Delegate live playback + token-expiry recovery to the shared hook (the
     // canonical home per CLAUDE.md): it resolves the tokened URL, loads the
@@ -172,11 +194,13 @@ const HlsPlayer = ({ streamId, fallbackSrc = FALLBACK_MP4 }: { streamId: string;
     // otherwise pin the whole session to the recorded clip, since the single
     // curated stream id never changes. Clearing `failed` lets useHlsCamera
     // re-attempt; if it fails again it just falls back and re-schedules.
+    // Skipped when there's no live stream (flag off → empty streamId): there's
+    // nothing to re-arm, and clearing `failed` would stop the recorded clip.
     useEffect(() => {
-        if (!failed) return;
+        if (!failed || !streamId) return;
         const t = setInterval(() => setFailed(false), 90_000);
         return () => clearInterval(t);
-    }, [failed]);
+    }, [failed, streamId]);
 
     return (
         <video
@@ -469,7 +493,7 @@ const InteractiveLabV2 = () => {
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-500 border-red-500/20 border">
                         <Radio className="w-4 h-4 animate-pulse" />
                         <span className="text-xs font-bold tracking-widest uppercase">
-                            Live Network Feed
+                            {LIVE_DOT_CAMERAS ? 'Live Network Feed' : 'Recorded Clip'}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">

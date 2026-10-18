@@ -48,6 +48,10 @@ jobs:
           VITE_DATAROOM_PASSWORD: ${{ secrets.VITE_DATAROOM_PASSWORD }}
           VITE_DATAROOM_URL: ${{ secrets.VITE_DATAROOM_URL }}
           VITE_FRAME_ANALYZE_URL: ${{ secrets.VITE_FRAME_ANALYZE_URL }}
+          # Live DOT camera imagery stays off unless this repo variable is
+          # "true" (only after a signed data-use agreement; see
+          # src/lib/featureFlags.ts). Cloudflare builds read the same name.
+          VITE_LIVE_DOT_CAMERAS: ${{ vars.VITE_LIVE_DOT_CAMERAS }}
         run: npm run build
 
 

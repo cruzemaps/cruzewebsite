@@ -40,21 +40,6 @@ const orgJsonLd = {
   sameAs: [],
 };
 
-const softwareJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Cruze",
-  applicationCategory: "TravelApplication",
-  operatingSystem: "iOS, Android, Web",
-  description: SITE.shortDescription,
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    ratingCount: "127",
-  },
-};
-
 // Per-route metadata. Add new routes here so they pick up SEO + sitemap entries
 // + prerendered HTML automatically.
 export const ROUTES: RouteMeta[] = [
@@ -109,7 +94,7 @@ export const ROUTES: RouteMeta[] = [
     path: "/for-fleets",
     title: "Cruze for Fleets | Cut Fuel, Reclaim Driver Hours",
     description:
-      "Built for fleet owners. Cruze's swarm routing cuts fuel use 8–14% and recaptures driver-hours lost to stop-and-go traffic. Try the live ROI calculator.",
+      "Cruze spots stop-and-go waves ahead and cues your drivers to ease off early, so loaded trucks stop burning diesel to rebuild speed. Pilots are measured on your own trucks against a control group.",
     keywords:
       "fleet management, fuel savings, trucking routing, FMS integration, fleet ROI, Geotab alternative, Samsara alternative, Motive alternative",
     changefreq: "monthly",
@@ -155,9 +140,9 @@ export const ROUTES: RouteMeta[] = [
   },
   {
     path: "/stats",
-    title: "Cruze Live Impact | Tons of CO₂ Saved Across Pilots",
+    title: "Cruze Live Impact | Pilots, Fleets and City Partners",
     description:
-      "Live, anonymized impact metrics from every Cruze pilot deployment. Updated continuously.",
+      "Live counts of Cruze pilots approved or running, fleets onboard, and city partners. Fuel and CO₂ results will appear once pilots have measured them.",
     changefreq: "daily",
     priority: 0.7,
   },
@@ -199,11 +184,11 @@ export const ROUTES: RouteMeta[] = [
   },
   {
     path: "/cameras",
-    title: "Live Traffic Cameras | Cruze",
+    title: "Texas Traffic Camera Map | Cruze",
     description:
-      "Live TxDOT traffic camera feeds across Texas corridors where Cruze coordinates flow. Public streams, no recording.",
-    keywords: "live traffic cameras, TxDOT, Texas traffic, I-35 camera, IH-45 camera",
-    changefreq: "always",
+      "Map of public TxDOT traffic cameras on major Texas corridors, plus a simulation of how a Cruze speed cue smooths a stop-and-go wave.",
+    keywords: "traffic camera map, TxDOT cameras, Texas traffic, I-35 camera, IH-45 camera, stop-and-go wave simulation",
+    changefreq: "monthly",
     priority: 0.7,
   },
   {

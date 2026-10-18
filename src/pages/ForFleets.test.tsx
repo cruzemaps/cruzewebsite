@@ -182,7 +182,7 @@ const FEATURES = [
   { feature: "Predicts congestion", cruze: true, others: true },
   { feature: "Coordinates driver speeds with the swarm", cruze: true, others: false },
   { feature: "Dissolves phantom jams before they form", cruze: true, others: false },
-  { feature: "Audit-grade CO₂ ledger", cruze: true, others: false },
+  { feature: "Logs every speed advisory and driver acknowledgement", cruze: true, others: false },
   { feature: "Works without new hardware", cruze: true, others: false },
 ];
 

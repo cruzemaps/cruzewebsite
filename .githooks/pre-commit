@@ -1,0 +1,10 @@
+#!/bin/sh
+# Blocks a commit that adds a secret (API key, token, private key, password).
+# Turn it on once per clone:  git config core.hooksPath .githooks
+# Needs gitleaks (brew install gitleaks). CI runs the same scan on every PR,
+# so this only catches the leak earlier, before it reaches GitHub.
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed, so the secret scan was skipped (brew install gitleaks)." >&2
+  exit 0
+fi
+exec gitleaks git --pre-commit --staged --redact --no-banner --verbose

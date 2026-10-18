@@ -52,7 +52,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Does Cruze work with my existing telematics, like Samsara, Geotab, or Motive?",
-    a: "Yes. Cruze is designed to run alongside your existing telematics and fleet management system, not replace it. We are pre-pilot, so the specific integration is built out with each fleet during a pilot.",
+    a: "Cruze runs alongside your existing telematics and fleet management system, not in place of it. Samsara and Motive integrations are built today. Other ELDs, including Geotab, are on request and get built out with the fleet during a pilot.",
   },
   {
     q: "What stage is Cruze at?",

@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Search, Shield, ShieldOff, Users as UsersIcon, Eye, AlertTriangle, Archive, ArchiveRestore } from "lucide-react";
 import { track } from "@/lib/analytics";
+import { demoModeEnabled } from "@/lib/demoMode";
+import { impersonationUrl } from "@/lib/impersonation";
 
 type Profile = {
   id: string;
@@ -60,7 +62,6 @@ export default function UsersTab({
   const [archiveReason, setArchiveReason] = useState("");
   const [archiveBusy, setArchiveBusy] = useState(false);
   const [impersonateTarget, setImpersonateTarget] = useState<Profile | null>(null);
-  const [impersonateBusy, setImpersonateBusy] = useState(false);
 
   const toggleSelected = (id: string) =>
     setSelected((prev) => {
@@ -105,47 +106,21 @@ export default function UsersTab({
     setArchiveTarget(null);
   };
 
-  const confirmImpersonate = async () => {
-    if (!impersonateTarget) return;
+  // Admin "view as user" preview. DEV builds only: production has no
+  // impersonation path (the button below is not rendered). The admin check and
+  // the audit row happen on the server, inside the start_impersonation RPC that
+  // the /impersonate handoff calls in the new tab (see src/lib/impersonation.ts).
+  // The new tab gets only the target id; the role it previews comes back from
+  // the server.
+  const confirmImpersonate = () => {
+    if (!import.meta.env.DEV || !impersonateTarget) return;
     const u = impersonateTarget;
-    setImpersonateBusy(true);
-    // Audit #35: AWAIT the audit row before opening the impersonation tab.
-    // Otherwise the admin can act as the user before the audit entry lands,
-    // creating an inversion where the impersonated session writes ride
-    // ahead of the audit record. Failures are surfaced rather than silently
-    // dropped.
-    if (!isDemo) {
-      const { error } = await supabase.rpc("change_user_role", {
-        target_user_id: u.id,
-        new_role: u.role,
-        new_status: u.status,
-        reason: `Impersonation session opened by admin`,
-      });
-      if (error) {
-        setImpersonateBusy(false);
-        toast.error(`Audit log failed: ${error.message}. Impersonation cancelled.`);
-        return;
-      }
-    }
-    // 2nd-pass audit #13: only track the analytics event AFTER the audit
-    // RPC succeeds. Previously PostHog could record an "impersonation"
-    // event for sessions that never opened.
-    track("role_changed", { event: "impersonation", target: u.id });
-    // CRITICAL: We previously wrote demo_role to localStorage, which is
-    // shared across all tabs of the same origin. That contaminated the
-    // admin's own tab. Now we hand off impersonation context as URL params
-    // to a dedicated /impersonate route. That route reads the params,
-    // writes them to *sessionStorage* (per-tab, isolated), then redirects
-    // to the impersonated user's dashboard. The admin's original tab is
-    // untouched and keeps its real Supabase session.
-    const dashboard =
-      u.role === "admin" ? "/admin" :
-      u.role === "city_operator" ? "/dashboard" :
-      "/fleet-dashboard";
-    const url = `/impersonate?role=${u.role}&status=${u.status}&id=${u.id}&go=${encodeURIComponent(dashboard)}`;
-    window.open(url, "_blank", "noopener");
-    setImpersonateBusy(false);
     setImpersonateTarget(null);
+    if (isDemo) {
+      toast.error("Impersonation needs a real admin session. Demo users are mock data.");
+      return;
+    }
+    window.open(impersonationUrl(u.id), "_blank", "noopener");
   };
 
   const load = async () => {
@@ -295,9 +270,11 @@ export default function UsersTab({
                       <td className="py-3 px-2 text-white/60">{u.requested_role || "N/A"}</td>
                       <td className="py-3 px-2 text-white/60 text-xs">{u.last_active_at ? new Date(u.last_active_at).toLocaleDateString() : "N/A"}</td>
                       <td className="py-3 px-2 text-right whitespace-nowrap">
-                        <Button size="sm" variant="ghost" onClick={() => setImpersonateTarget(u)} title="View as this user (logged)">
-                          <Eye size={14} />
-                        </Button>
+                        {demoModeEnabled() && (
+                          <Button size="sm" variant="ghost" onClick={() => setImpersonateTarget(u)} title="View as this user (logged)">
+                            <Eye size={14} />
+                          </Button>
+                        )}
                         {u.status === "archived" ? (
                           <Button
                             size="sm"
@@ -406,7 +383,7 @@ export default function UsersTab({
       </Dialog>
 
       {/* Audit #34/#35: Impersonate confirmation dialog (replaces confirm). */}
-      <Dialog open={!!impersonateTarget} onOpenChange={(o) => { if (!impersonateBusy && !o) setImpersonateTarget(null); }}>
+      <Dialog open={!!impersonateTarget} onOpenChange={(o) => { if (!o) setImpersonateTarget(null); }}>
         <DialogContent className="bg-[#0B0E14] border-white/10 text-white max-w-md">
           <DialogHeader>
             <DialogTitle className="font-display flex items-center gap-2">
@@ -414,18 +391,17 @@ export default function UsersTab({
             </DialogTitle>
             <DialogDescription className="text-white/50">
               You're about to open a new tab acting as <strong className="text-white">{impersonateTarget?.email}</strong>.
-              The action is logged in the role_history audit trail before the tab opens.
+              The server checks that you are an active admin and logs the session in the
+              role_history audit trail before the preview opens.
               Your own admin tab is unaffected.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setImpersonateTarget(null)} disabled={impersonateBusy}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setImpersonateTarget(null)}>Cancel</Button>
             <Button
               onClick={confirmImpersonate}
-              disabled={impersonateBusy}
               className="bg-brand-cyan text-[#0B0E14] hover:bg-brand-cyan/90 font-bold"
             >
-              {impersonateBusy && <Loader2 className="animate-spin mr-2" size={14} />}
               Open as user
             </Button>
           </DialogFooter>

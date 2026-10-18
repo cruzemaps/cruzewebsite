@@ -908,10 +908,10 @@ Apps like Waze and Google Maps don't address this. They route you around an exis
     author: "Cruze Research",
     publishedAt: "2026-04-08",
     excerpt:
-      "Per-truck, per-route, per-shift: where does the fuel actually go in stop-and-go traffic, and what's the real margin on a swarm-routing intervention?",
+      "Per-truck, per-route, per-shift: where does the fuel actually go in stop-and-go traffic, and how should a fleet measure the margin on a swarm-routing intervention?",
     body: `For a Class 8 tractor at highway speeds, brake-then-accelerate cycles can consume 4-7x the fuel-per-mile of steady-state cruise. Multiply that across a 600-truck fleet running 80,000 miles per truck per year, and the variance in routes from "smooth" to "congested" represents 8-figure annual swings in fuel spend.
 
-The marginal-returns curve is non-linear. The first 5% of stop-and-go reduction recovers 6 to 8% of fuel. The next 5% recovers another 3 to 5%. After that, the curve flattens, because pure swarm coordination cannot fully eliminate congestion when demand exceeds capacity.
+The marginal-returns curve is non-linear. The first cuts in stop-and-go recover the most fuel, and each further cut recovers less. After that, the curve flattens, because pure swarm coordination cannot fully eliminate congestion when demand exceeds capacity. Our pilots measure where a given corridor sits on that curve by tracking fuel use against a control group.
 
 The implication: pilot in the right places. Cruze prioritizes corridors where measured stop-and-go intensity is in the steepest part of the curve. We share the calibration before pilot start so fleet ops know what to expect.
 
