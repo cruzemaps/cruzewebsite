@@ -1,6 +1,7 @@
 import NavbarV2 from "@/components/v2/NavbarV2";
 import { Link } from "react-router-dom";
 import { Twitter, Linkedin, Mail } from "lucide-react";
+import { LIVE_DOT_CAMERAS } from "@/lib/featureFlags";
 
 type Props = { children: React.ReactNode };
 
@@ -45,7 +46,7 @@ function Footer() {
           <FooterLink to="/for-fleets">For Fleets</FooterLink>
           <FooterLink to="/for-cities">For Cities</FooterLink>
           <FooterLink to="/route-planner">Route Planner</FooterLink>
-          <FooterLink to="/cameras">Live Cameras</FooterLink>
+          <FooterLink to="/cameras">{LIVE_DOT_CAMERAS ? "Live Cameras" : "Camera Map"}</FooterLink>
           <FooterLink to="/apply">Apply for Pilot</FooterLink>
           <FooterLink to="/stats">Live Impact</FooterLink>
         </FooterColumn>

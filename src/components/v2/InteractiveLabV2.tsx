@@ -3,6 +3,7 @@ import { Camera, MapPin, Radio, X, BrainCircuit, AlertTriangle, TrendingUp, Chec
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import YoloOverlay, { type Box as YoloBox } from './YoloOverlay';
+import { LIVE_DOT_CAMERAS } from '@/lib/featureFlags';
 
 // Each camera is mapped to a *traffic regime* — a stable characterization of
 // the flow state the demo should portray for that feed. The regime drives
@@ -39,12 +40,18 @@ const FALLBACK_MP4 = '/cruze-web.mp4';
 
 // Single curated feed for the YOLO demo — San Antonio IH-10 is the most
 // reliably-busy live stream and gives the in-browser detector consistent
-// vehicles to box.
+// vehicles to box. The live DOT stream only plays when LIVE_DOT_CAMERAS is on
+// (off until a data-use agreement is signed, see src/lib/featureFlags.ts);
+// otherwise the lab runs on Cruze's own recorded clip and never contacts a
+// DOT host.
+const LIVE_LAB_URL = 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8';
 const CAMERAS: Array<{
     id: number; city: string; location: string; lat: number; lng: number;
     url: string; preRecordedUrl: string; regime: Regime;
 }> = [
-    { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: 'https://s70.us-east-1.skyvdn.com:443/rtplive/TX_AUS_262/playlist.m3u8', preRecordedUrl: FALLBACK_MP4, regime: REGIMES.stable },
+    LIVE_DOT_CAMERAS
+        ? { id: 4, city: 'San Antonio', location: 'IH-10', lat: 29.4241, lng: -98.4936, url: LIVE_LAB_URL, preRecordedUrl: FALLBACK_MP4, regime: REGIMES.stable }
+        : { id: 4, city: 'Cruze', location: 'Recorded clip', lat: 29.4241, lng: -98.4936, url: FALLBACK_MP4, preRecordedUrl: FALLBACK_MP4, regime: REGIMES.stable },
 ];
 
 const V_F = 75.0;
@@ -174,7 +181,8 @@ const HlsPlayer = ({ src, fallbackSrc = FALLBACK_MP4 }: { src: string; fallbackS
             }
         };
 
-        if (typeof window !== 'undefined' && !(window as any).Hls) {
+        // A same-origin MP4 needs no hls.js, so don't fetch it from the CDN.
+        if (typeof window !== 'undefined' && !(window as any).Hls && !src.endsWith('.mp4')) {
             const script = document.createElement('script');
             // Pinned version + SRI: never load `@latest` — a compromised or
             // breaking CDN publish would execute arbitrary JS on the live site.
@@ -486,7 +494,7 @@ const InteractiveLabV2 = () => {
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-500 border-red-500/20 border">
                         <Radio className="w-4 h-4 animate-pulse" />
                         <span className="text-xs font-bold tracking-widest uppercase">
-                            Live Network Feed
+                            {LIVE_DOT_CAMERAS ? 'Live Network Feed' : 'Recorded Clip'}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">

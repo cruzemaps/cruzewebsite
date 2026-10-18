@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { RefreshCw, WifiOff, Loader2 } from "lucide-react";
 import { LIVE_CAMERAS } from "@/lib/liveCameras";
 import { useHlsCamera } from "@/lib/useHlsCamera";
+import { LIVE_DOT_CAMERAS } from "@/lib/featureFlags";
+import WaveSim from "@/components/v3/WaveSim";
 
 /**
  * Self-contained live camera card for the homepage. Plays public TxDOT HLS
@@ -23,7 +25,15 @@ const line = "rgba(255,255,255,0.10)";
 
 type Status = "connecting" | "live" | "offline";
 
+// Live DOT video only when the LIVE_DOT_CAMERAS flag is on (off until a
+// data-use agreement is signed, see src/lib/featureFlags.ts). Otherwise the
+// slot shows a clearly labelled stop-and-go simulation, which makes no DOT
+// request and shows no camera image.
 export default function LiveCameras() {
+  return LIVE_DOT_CAMERAS ? <LiveVideoCard /> : <WaveSim />;
+}
+
+function LiveVideoCard() {
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<Status>("connecting");
   const [ready, setReady] = useState(false); // lazy: only start once near viewport
