@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { ArrowLeft, ShieldAlert, Users, FileCheck, History, Mail, FileSignature, Archive } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Users, FileCheck, History, Mail, FileSignature, Archive, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,19 +12,28 @@ import AuditTab from "@/components/admin/AuditTab";
 import InvitationsTab from "@/components/admin/InvitationsTab";
 import LOIsTab from "@/components/admin/LOIsTab";
 import ArchiveLibraryTab from "@/components/admin/ArchiveLibraryTab";
+import MessagesTab from "@/components/admin/MessagesTab";
+import { isMissingColumnError } from "@/lib/contactMessages";
 import { isDemoSession } from "@/lib/demoMode";
 
-type AdminTab = "users" | "pilots" | "invitations" | "lois" | "archive" | "audit";
+const ADMIN_TABS = ["users", "pilots", "invitations", "lois", "messages", "archive", "audit"] as const;
+type AdminTab = (typeof ADMIN_TABS)[number];
+
+// /admin?tab=messages opens a tab directly (the Discord alert links there).
+const tabFromParam = (value: string | null): AdminTab =>
+  (ADMIN_TABS as readonly string[]).includes(value ?? "") ? (value as AdminTab) : "users";
 
 const AdminPortal = () => {
   const { user, signOut } = useAuth();
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<AdminTab>("users");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => tabFromParam(searchParams.get("tab")));
   const [usersDrillToken, setUsersDrillToken] = useState(0);
   const [pilotsDrillToken, setPilotsDrillToken] = useState(0);
   const [invitesDrillToken, setInvitesDrillToken] = useState(0);
   const [loisDrillToken, setLoisDrillToken] = useState(0);
   const [archiveDrillToken, setArchiveDrillToken] = useState(0);
+  const [messagesDrillToken, setMessagesDrillToken] = useState(0);
   const [archiveDrillSection, setArchiveDrillSection] = useState<string | undefined>();
   const [usersStatusFilter, setUsersStatusFilter] = useState<string | undefined>();
   const [pilotsStatusFilter, setPilotsStatusFilter] = useState<string | undefined>();
@@ -34,13 +43,14 @@ const AdminPortal = () => {
     pendingPilots: 0,
     openInvites: 0,
     lois: 0,
+    openMessages: 0,
   });
   // Mock-data demo session. Always false in production (see demoMode.ts).
   const isDemo = isDemoSession();
 
   useEffect(() => {
     if (isDemo) {
-      setCounts({ users: 42, pendingUsers: 1, pendingPilots: 7, openInvites: 3, lois: 12 });
+      setCounts({ users: 42, pendingUsers: 1, pendingPilots: 7, openInvites: 3, lois: 12, openMessages: 1 });
       return;
     }
     (async () => {
@@ -49,12 +59,15 @@ const AdminPortal = () => {
       // tell whether "0 users" meant empty or RLS-denied. Track each error
       // independently and surface the first failure so the admin knows the
       // count is unreliable.
-      const [usersRes, pendingUsersRes, pendingRes, invitesRes, loisRes] = await Promise.all([
+      const [usersRes, pendingUsersRes, pendingRes, invitesRes, loisRes, messagesRes] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("profiles").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("pilot_applications").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("invitations").select("*", { count: "exact", head: true }).is("accepted_at", null),
         supabase.from("loi_signatures").select("*", { count: "exact", head: true }).is("archived_at", null),
+        // Not a HEAD request: HEAD errors have no body, and a missing
+        // handled_at column (before migration 020) must be told apart.
+        supabase.from("contact_messages").select("id", { count: "exact" }).is("handled_at", null).limit(1),
       ]);
 
       setCounts({
@@ -63,6 +76,7 @@ const AdminPortal = () => {
         pendingPilots: pendingRes.count || 0,
         openInvites: invitesRes.count || 0,
         lois: loisRes.count || 0,
+        openMessages: messagesRes.count || 0,
       });
 
       const failures: string[] = [];
@@ -71,6 +85,9 @@ const AdminPortal = () => {
       if (pendingRes.error) failures.push(`pending pilots (${pendingRes.error.message})`);
       if (invitesRes.error) failures.push(`open invitations (${invitesRes.error.message})`);
       if (loisRes.error) failures.push(`signed LOIs (${loisRes.error.message})`);
+      if (messagesRes.error && !isMissingColumnError(messagesRes.error)) {
+        failures.push(`open messages (${messagesRes.error.message})`);
+      }
       if (failures.length > 0) {
         toast.error(`Some stat counts couldn't load: ${failures.join("; ")}`);
       }
@@ -110,6 +127,18 @@ const AdminPortal = () => {
     });
   };
 
+  const drillToMessages = () => {
+    setActiveTab("messages");
+    setMessagesDrillToken((t) => t + 1);
+    requestAnimationFrame(() => {
+      tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  const onOpenMessagesChange = useCallback((openMessages: number) => {
+    setCounts((c) => (c.openMessages === openMessages ? c : { ...c, openMessages }));
+  }, []);
+
   const attentionItems = [
     counts.pendingUsers > 0 && {
       key: "pending-users",
@@ -125,6 +154,11 @@ const AdminPortal = () => {
       key: "open-invites",
       label: `${counts.openInvites} open invitation${counts.openInvites === 1 ? "" : "s"}`,
       onClick: () => drillToStat("invitations"),
+    },
+    counts.openMessages > 0 && {
+      key: "open-messages",
+      label: `${counts.openMessages} contact message${counts.openMessages === 1 ? "" : "s"} to answer`,
+      onClick: drillToMessages,
     },
   ].filter(Boolean) as { key: string; label: string; onClick: () => void }[];
 
@@ -154,7 +188,7 @@ const AdminPortal = () => {
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="mb-8">
           <h1 className="font-display text-3xl md:text-4xl font-bold mb-2">Admin Portal</h1>
-          <p className="text-white/50">Users, pilot pipeline, invitations, LOIs, and compliance tools.</p>
+          <p className="text-white/50">Users, pilot pipeline, invitations, LOIs, contact messages, and compliance tools.</p>
         </div>
 
         {isDemo && (
@@ -234,6 +268,9 @@ const AdminPortal = () => {
             <TabsTrigger value="lois" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
               <FileSignature size={14} className="mr-2" /> LOIs
             </TabsTrigger>
+            <TabsTrigger value="messages" className="data-[state=active]:bg-brand-cyan/10 data-[state=active]:text-brand-cyan">
+              <Inbox size={14} className="mr-2" /> Messages
+            </TabsTrigger>
             <span className="hidden sm:block w-px h-6 bg-white/10 mx-1 self-center" aria-hidden />
             <TabsTrigger value="archive" className="data-[state=active]:bg-white/10 data-[state=active]:text-white/90 text-white/50">
               <Archive size={14} className="mr-2" /> Archive
@@ -262,6 +299,13 @@ const AdminPortal = () => {
           </TabsContent>
           <TabsContent value="lois" className="mt-6">
             <LOIsTab isDemo={isDemo} drillDownToken={loisDrillToken} />
+          </TabsContent>
+          <TabsContent value="messages" className="mt-6">
+            <MessagesTab
+              isDemo={isDemo}
+              drillDownToken={messagesDrillToken}
+              onOpenCountChange={onOpenMessagesChange}
+            />
           </TabsContent>
           <TabsContent value="archive" className="mt-6">
             <ArchiveLibraryTab

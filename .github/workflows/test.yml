@@ -1,9 +1,10 @@
 name: Test
 
 # Hard gate: type-check + the Vitest unit suite must pass on every PR and on
-# pushes to main, plus a production-build bundle check and the SQL tests in
-# supabase/tests. The unit suite is pure-logic over src/lib (no DOM), so it is fast
-# and deterministic. The production build stays gated separately by deploy.yml.
+# pushes to main, plus a production-build bundle check, the SQL tests in
+# supabase/tests and the Deno tests for edge functions. The unit suite is
+# pure-logic over src/lib (no DOM), so it is fast and deterministic. The
+# production build stays gated separately by deploy.yml.
 on:
   push:
     branches: [main]
@@ -90,3 +91,29 @@ jobs:
           && psql -h localhost -U postgres -d t019 -v ON_ERROR_STOP=1
           -v mig=supabase/migrations/20261018_019_audit_round2_safe.sql
           -f supabase/tests/019_audit_round2_safe.test.sql
+
+      - name: contact messages inbox (migration 020)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t020"
+          && psql -h localhost -U postgres -d t020 -v ON_ERROR_STOP=1
+          -v base=supabase/migrations/20260617_015_contact_messages.sql
+          -v mig=supabase/migrations/20261018_020_contact_messages_inbox.sql
+          -f supabase/tests/020_contact_messages_inbox.test.sql
+
+  edge-functions:
+    # Deno unit tests for Supabase edge functions. No network calls to Discord
+    # or Supabase: the handlers get fake dependencies.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: notify-discord
+        run: deno test --no-lock supabase/functions/notify-discord/
