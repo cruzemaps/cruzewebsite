@@ -18,5 +18,9 @@ Cruze isn't just a map; it's a co-pilot for the collective road.
 - **Save Fuel**: Smoother driving means better mileage and lower costs.
 - **Save Lives**: Reducing sudden stops decreases the risk of rear-end collisions.
 
+## Secret scanning
+
+CI runs gitleaks on every pull request and weekly (`.github/workflows/gitleaks.yml`). To stop a leak before it leaves your machine, turn on the pre-commit hook once per clone with `git config core.hooksPath .githooks` (needs `brew install gitleaks`).
+
 ---
 *Cruze - Driving the Future of Traffic Management.*
