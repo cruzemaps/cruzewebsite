@@ -107,7 +107,7 @@ const COPY: Record<
     subhead: "Cruzemaps spots stop-and-go waves ahead and cues your drivers to ease off early. Your pilot measures fuel use and hard braking on your own trucks against a control group, and you see every number.",
     bullets: [
       "Live fuel and stop-and-go reduction per truck",
-      "Audit-ready CO₂ ledger for sustainability reports",
+      "A log of every speed advisory your drivers receive, and whether they acknowledged it",
       "Direct integration with Samsara, Geotab, Motive, Verizon Connect, and Trimble",
       "Calibrated savings projections after a 30-day pilot",
     ],
