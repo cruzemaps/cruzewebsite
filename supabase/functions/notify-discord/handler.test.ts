@@ -5,7 +5,7 @@
 //
 // CI runs this in the "edge functions" job of .github/workflows/test.yml.
 
-import assert from "node:assert/strict";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { ADMIN_MESSAGES_URL, type Deps, handle, plain, type Row, type Table } from "./handler.ts";
 
 const NOW = new Date("2026-10-18T12:00:00Z");
@@ -111,85 +111,85 @@ async function call(d: Fake, payload: unknown) {
 Deno.test("rejects non-POST and bad JSON", async () => {
   const d = fake();
   const res = await handle(new Request("https://fn.invalid/x", { method: "GET" }), d);
-  assert.equal(res.status, 405);
-  assert.equal((await call(d, "{not json")).status, 400);
-  assert.equal(d.posts.length, 0);
+  assertEquals(res.status, 405);
+  assertEquals((await call(d, "{not json")).status, 400);
+  assertEquals(d.posts.length, 0);
 });
 
 Deno.test("only INSERTs on the three tables, with a uuid id", async () => {
   const d = fake({ rows: { contact_messages: contactRow() } });
-  assert.deepEqual((await call(d, { type: "UPDATE", table: "contact_messages", record: { id: ID } })).body, {
+  assertEquals((await call(d, { type: "UPDATE", table: "contact_messages", record: { id: ID } })).body, {
     skipped: "not an insert",
   });
-  assert.deepEqual((await call(d, { type: "INSERT", table: "profiles", record: { id: ID } })).body, {
+  assertEquals((await call(d, { type: "INSERT", table: "profiles", record: { id: ID } })).body, {
     skipped: "unknown table",
   });
-  assert.equal((await call(d, { type: "INSERT", table: "contact_messages", record: { id: "x' or 1=1" } })).status, 400);
-  assert.equal((await call(d, { type: "INSERT", table: "contact_messages", record: {} })).status, 400);
-  assert.equal(d.posts.length, 0);
-  assert.equal(d.loads.length, 0);
+  assertEquals((await call(d, { type: "INSERT", table: "contact_messages", record: { id: "x' or 1=1" } })).status, 400);
+  assertEquals((await call(d, { type: "INSERT", table: "contact_messages", record: {} })).status, 400);
+  assertEquals(d.posts.length, 0);
+  assertEquals(d.loads.length, 0);
 });
 
 Deno.test("builds the embed from the database row, not the posted record", async () => {
   const d = fake({ rows: { contact_messages: contactRow() } });
   const forged = { id: ID, name: "@everyone", message: "[Reset your password](https://evil.example)" };
   const { status, body } = await call(d, { type: "INSERT", table: "contact_messages", schema: "public", record: forged });
-  assert.equal(status, 200);
-  assert.deepEqual(body, { ok: true, table: "contact_messages" });
-  assert.deepEqual(d.loads, [{ table: "contact_messages", id: ID }]);
-  assert.equal(d.posts.length, 1);
+  assertEquals(status, 200);
+  assertEquals(body, { ok: true, table: "contact_messages" });
+  assertEquals(d.loads, [{ table: "contact_messages", id: ID }]);
+  assertEquals(d.posts.length, 1);
   const sent = JSON.stringify(d.posts[0].body);
-  assert.ok(!sent.includes("evil.example"));
-  assert.ok(!sent.includes("@everyone"));
+  assert(!sent.includes("evil.example"));
+  assert(!sent.includes("@everyone"));
   const embed = d.posts[0].body.embeds[0];
   const field = (name: string) => embed.fields.find((f: Row) => f.name === name)?.value;
-  assert.equal(field("Name"), "Dana Lee");
-  assert.equal(field("Organization"), "Acme Freight");
-  assert.equal(field("Email"), "dana@example.com");
-  assert.equal(field("Message"), "Hello\nWe run 40 trucks.");
-  assert.equal(embed.url, ADMIN_MESSAGES_URL);
-  assert.deepEqual(d.posts[0].body.allowed_mentions, { parse: [] });
+  assertEquals(field("Name"), "Dana Lee");
+  assertEquals(field("Organization"), "Acme Freight");
+  assertEquals(field("Email"), "dana@example.com");
+  assertEquals(field("Message"), "Hello\nWe run 40 trucks.");
+  assertEquals(embed.url, ADMIN_MESSAGES_URL);
+  assertEquals(d.posts[0].body.allowed_mentions, { parse: [] });
 });
 
 Deno.test("an id with no row posts nothing", async () => {
   const d = fake({ rows: {} });
   const { body } = await call(d, { type: "INSERT", table: "contact_messages", record: { id: ID } });
-  assert.deepEqual(body, { skipped: "row not found" });
-  assert.equal(d.posts.length, 0);
+  assertEquals(body, { skipped: "row not found" });
+  assertEquals(d.posts.length, 0);
 });
 
 Deno.test("old and future-dated rows are not posted", async () => {
   for (const created_at of [minutesAgo(11), minutesAgo(-5), null, "not a date"]) {
     const d = fake({ rows: { contact_messages: contactRow({ created_at }) } });
     const { body } = await call(d, { type: "INSERT", table: "contact_messages", record: { id: ID } });
-    assert.deepEqual(body, { skipped: "row is not new" }, String(created_at));
-    assert.equal(d.posts.length, 0);
+    assertEquals(body, { skipped: "row is not new" }, String(created_at));
+    assertEquals(d.posts.length, 0);
   }
 });
 
 Deno.test("a replayed payload posts once", async () => {
   const d = fake({ rows: { contact_messages: contactRow() } });
   const payload = { type: "INSERT", table: "contact_messages", record: { id: ID } };
-  assert.equal((await call(d, payload)).body.ok, true);
-  assert.deepEqual((await call(d, payload)).body, { skipped: "already notified" });
-  assert.equal(d.posts.length, 1);
+  assertEquals((await call(d, payload)).body.ok, true);
+  assertEquals((await call(d, payload)).body, { skipped: "already notified" });
+  assertEquals(d.posts.length, 1);
 });
 
 Deno.test("fails closed when the database cannot be read or the claim cannot be recorded", async () => {
   const payload = { type: "INSERT", table: "contact_messages", record: { id: ID } };
   const a = fake({ loadError: "boom" });
-  assert.equal((await call(a, payload)).status, 500);
+  assertEquals((await call(a, payload)).status, 500);
   const b = fake({ rows: { contact_messages: contactRow() }, claimError: true });
-  assert.equal((await call(b, payload)).status, 500);
-  assert.equal(a.posts.length + b.posts.length, 0);
+  assertEquals((await call(b, payload)).status, 500);
+  assertEquals(a.posts.length + b.posts.length, 0);
 });
 
 Deno.test("no webhook configured is a 200 skip", async () => {
   const d = fake({ env: {}, rows: { contact_messages: contactRow() } });
   const { status, body } = await call(d, { type: "INSERT", table: "contact_messages", record: { id: ID } });
-  assert.equal(status, 200);
-  assert.ok(body.skipped);
-  assert.equal(d.loads.length, 0);
+  assertEquals(status, 200);
+  assert(body.skipped);
+  assertEquals(d.loads.length, 0);
 });
 
 Deno.test("per-table webhook secrets fall back to DISCORD_WEBHOOK_URL", async () => {
@@ -201,7 +201,7 @@ Deno.test("per-table webhook secrets fall back to DISCORD_WEBHOOK_URL", async ()
   for (const table of ["contact_messages", "pilot_applications", "loi_signatures"]) {
     await call(split, { type: "INSERT", table, record: { id: ID } });
   }
-  assert.deepEqual(split.posts.map((p) => p.url), [
+  assertEquals(split.posts.map((p) => p.url), [
     "https://discord.invalid/contact",
     "https://discord.invalid/pilots",
     "https://discord.invalid/default",
@@ -212,30 +212,30 @@ Deno.test("long messages are cut to about 500 characters", async () => {
   const d = fake({ rows: { contact_messages: contactRow({ message: "a".repeat(3000) }) } });
   await call(d, { type: "INSERT", table: "contact_messages", record: { id: ID } });
   const value = d.posts[0].body.embeds[0].fields.find((f: Row) => f.name === "Message").value;
-  assert.equal(value, "a".repeat(500) + "…");
+  assertEquals(value, "a".repeat(500) + "…");
 });
 
 Deno.test("flood guard: more than 10 in 10 minutes posts one note per window", async () => {
   const d = fake({ rows: { contact_messages: contactRow() }, recentContacts: 11 });
   const first = await call(d, { type: "INSERT", table: "contact_messages", record: { id: ID } });
-  assert.equal(first.body.ok, true);
-  assert.equal(d.posts.length, 1);
-  assert.equal(d.posts[0].body.embeds[0].title, "Contact form flood guard");
-  assert.ok(d.posts[0].body.embeds[0].description.startsWith("11 contact messages"));
-  assert.ok(!JSON.stringify(d.posts[0].body).includes("Dana Lee"));
+  assertEquals(first.body.ok, true);
+  assertEquals(d.posts.length, 1);
+  assertEquals(d.posts[0].body.embeds[0].title, "Contact form flood guard");
+  assert(d.posts[0].body.embeds[0].description.startsWith("11 contact messages"));
+  assert(!JSON.stringify(d.posts[0].body).includes("Dana Lee"));
 
   const other = "1b4e28ba-2fa1-41d2-883f-0016d3cca427";
   const d2 = fake({ rows: { contact_messages: contactRow({ id: other }) }, recentContacts: 12 });
   d2.claims = d.claims; // same database
   const second = await call(d2, { type: "INSERT", table: "contact_messages", record: { id: other } });
-  assert.deepEqual(second.body, { skipped: "flood guard" });
-  assert.equal(d2.posts.length, 0);
+  assertEquals(second.body, { skipped: "flood guard" });
+  assertEquals(d2.posts.length, 0);
 });
 
 Deno.test("flood guard does not trigger at 10", async () => {
   const d = fake({ rows: { contact_messages: contactRow() }, recentContacts: 10 });
   await call(d, { type: "INSERT", table: "contact_messages", record: { id: ID } });
-  assert.equal(d.posts[0].body.embeds[0].title, "New contact message");
+  assertEquals(d.posts[0].body.embeds[0].title, "New contact message");
 });
 
 Deno.test("pilot and LOI embeds keep their shape", async () => {
@@ -243,28 +243,28 @@ Deno.test("pilot and LOI embeds keep their shape", async () => {
   await call(d, { type: "INSERT", table: "pilot_applications", record: { id: ID } });
   await call(d, { type: "INSERT", table: "loi_signatures", record: { id: ID } });
   const [pilot, loi] = d.posts.map((p) => p.body);
-  assert.equal(pilot.embeds[0].title, "🚛 New pilot application");
-  assert.deepEqual(pilot.embeds[0].fields.map((f: Row) => f.name), [
+  assertEquals(pilot.embeds[0].title, "🚛 New pilot application");
+  assertEquals(pilot.embeds[0].fields.map((f: Row) => f.name), [
     "Company", "Fleet size", "Truck class", "Contact", "Email", "FMS", "Website", "Admin notes",
   ]);
-  assert.equal(pilot.embeds[0].url, "https://cruzemaps.com/admin");
-  assert.equal(loi.embeds[0].title, "✍️ LOI signed");
-  assert.equal(loi.embeds[0].description, "**Dana Lee** just signed the Letter of Intent.");
-  assert.equal(loi.embeds[0].url, `https://cruzemaps.com/loi/${ID}`);
-  assert.deepEqual(loi.embeds[0].fields.map((f: Row) => f.name), ["Participant", "Initials", "Company", "Fleet size", "Title"]);
-  for (const p of [pilot, loi]) assert.deepEqual(p.allowed_mentions, { parse: [] });
+  assertEquals(pilot.embeds[0].url, "https://cruzemaps.com/admin");
+  assertEquals(loi.embeds[0].title, "✍️ LOI signed");
+  assertEquals(loi.embeds[0].description, "**Dana Lee** just signed the Letter of Intent.");
+  assertEquals(loi.embeds[0].url, `https://cruzemaps.com/loi/${ID}`);
+  assertEquals(loi.embeds[0].fields.map((f: Row) => f.name), ["Participant", "Initials", "Company", "Fleet size", "Title"]);
+  for (const p of [pilot, loi]) assertEquals(p.allowed_mentions, { parse: [] });
 });
 
 Deno.test("Discord failure is a 500 and does not echo Discord's reply", async () => {
   const d = fake({ rows: { contact_messages: contactRow() }, discordStatus: 400 });
   const { status, body } = await call(d, { type: "INSERT", table: "contact_messages", record: { id: ID } });
-  assert.equal(status, 500);
-  assert.deepEqual(body, { error: "Discord 400" });
+  assertEquals(status, 500);
+  assertEquals(body, { error: "Discord 400" });
 });
 
 Deno.test("plain() escapes markdown so user text cannot form links or headings", () => {
-  assert.equal(plain("[click](https://x.example)"), "\\[click\\]\\(https://x.example\\)");
-  assert.equal(plain("# Big\n- item"), "\\# Big\n\\- item");
-  assert.equal(plain("**bold** `code` <@123> ||spoiler||"), "\\*\\*bold\\*\\* \\`code\\` \\<@123\\> \\|\\|spoiler\\|\\|");
-  assert.equal(plain("dana-lee@example.com"), "dana-lee@example.com");
+  assertEquals(plain("[click](https://x.example)"), "\\[click\\]\\(https://x.example\\)");
+  assertEquals(plain("# Big\n- item"), "\\# Big\n\\- item");
+  assertEquals(plain("**bold** `code` <@123> ||spoiler||"), "\\*\\*bold\\*\\* \\`code\\` \\<@123\\> \\|\\|spoiler\\|\\|");
+  assertEquals(plain("dana-lee@example.com"), "dana-lee@example.com");
 });
