@@ -1,7 +1,8 @@
 name: Test
 
 # Hard gate: type-check + the Vitest unit suite must pass on every PR and on
-# pushes to main. The suite is pure-logic over src/lib (no DOM), so it is fast
+# pushes to main, plus a production-build bundle check and the SQL tests in
+# supabase/tests. The unit suite is pure-logic over src/lib (no DOM), so it is fast
 # and deterministic. The production build stays gated separately by deploy.yml.
 on:
   push:
@@ -32,3 +33,35 @@ jobs:
 
       - name: Unit tests
         run: npm test
+
+      - name: Production build has no demo, impersonation or diag code
+        # `npm run build` ends with scripts/check-prod-bundle.mjs, which fails if
+        # any dev-only demo/impersonation/diag marker is in dist/.
+        run: |
+          node --test scripts/check-prod-bundle.test.mjs
+          npm run build
+
+  db:
+    # SQL tests for security-critical RPCs, against a throwaway Postgres with a
+    # stub of the Supabase auth schema. Never touches a real project.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: start_impersonation (migration 017)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261017_017_start_impersonation.sql
+          -f supabase/tests/017_start_impersonation.test.sql

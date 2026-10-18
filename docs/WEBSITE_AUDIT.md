@@ -85,14 +85,14 @@ Use this as a comeback checklist. Pilot apply/LOI work (migration `014`, `send-p
 
 - Fleet dashboard honest copy exists (“coming soon”); still no live metrics — align sales/demo language.
 
-### 12. Production demo via `/demo`
+### 12. Demo login and impersonation are dev-only (T16, Oct 2026)
 
-- **Route:** `/demo?role=fleet_owner|city_operator` (`DemoHandoff.tsx`)
-- Sets `sessionStorage.demo_role` → mock data in that tab. Good for sales; label in demos.
+- `/demo`, `/impersonate` and `/diag` are mounted only in dev builds. In production `/demo` redirects to `/login`, and the build fails if demo or impersonation code ships (`scripts/check-prod-bundle.mjs`).
+- A sales demo in production would need a separate demo organisation with fake data, enforced by the server. Not built; founder decision.
 
 ### 13. Admin demo counts
 
-- When `demo_role` is set, `AdminPortal` shows fake counts — low risk if demo URL isn’t publicized.
+- Dev builds only: when a demo session is active, `AdminPortal` shows fake counts.
 
 ---
 

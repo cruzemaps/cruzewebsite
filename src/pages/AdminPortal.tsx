@@ -12,6 +12,7 @@ import AuditTab from "@/components/admin/AuditTab";
 import InvitationsTab from "@/components/admin/InvitationsTab";
 import LOIsTab from "@/components/admin/LOIsTab";
 import ArchiveLibraryTab from "@/components/admin/ArchiveLibraryTab";
+import { isDemoSession } from "@/lib/demoMode";
 
 type AdminTab = "users" | "pilots" | "invitations" | "lois" | "archive" | "audit";
 
@@ -34,10 +35,8 @@ const AdminPortal = () => {
     openInvites: 0,
     lois: 0,
   });
-  // Audit (demo storage cleanup): canonical demo flag is sessionStorage now;
-  // legacy localStorage fallback removed so we don't pick up another tab's
-  // poisoned state. Mirrors UsersTab/FleetDashboard.
-  const isDemo = !!sessionStorage.getItem("demo_role");
+  // Mock-data demo session. Always false in production (see demoMode.ts).
+  const isDemo = isDemoSession();
 
   useEffect(() => {
     if (isDemo) {

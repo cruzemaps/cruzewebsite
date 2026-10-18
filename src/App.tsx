@@ -31,9 +31,14 @@ const LaneDetail = lazy(() => import("./pages/LaneDetail"));
 const Apply = lazy(() => import("./pages/Apply"));
 const Cameras = lazy(() => import("./pages/Cameras"));
 const Lab = lazy(() => import("./pages/Lab"));
-const ImpersonateHandoff = lazy(() => import("./pages/ImpersonateHandoff"));
-const DemoHandoff = lazy(() => import("./pages/DemoHandoff"));
-const Diag = lazy(() => import("./pages/Diag"));
+// Dev-only pages. The ternary on import.meta.env.DEV (the literal `false` in a
+// production build) keeps their chunks out of dist/ entirely, not just
+// unrouted. scripts/check-prod-bundle.mjs fails the build if they come back.
+//   - /demo and /impersonate start the mock-data demo session (src/lib/demoMode.ts).
+//   - /diag surfaces env, config and session internals.
+const ImpersonateHandoff = import.meta.env.DEV ? lazy(() => import("./pages/ImpersonateHandoff")) : null;
+const DemoHandoff = import.meta.env.DEV ? lazy(() => import("./pages/DemoHandoff")) : null;
+const Diag = import.meta.env.DEV ? lazy(() => import("./pages/Diag")) : null;
 const LOIView = lazy(() => import("./pages/LOIView"));
 const UIInterns = lazy(() => import("./pages/UIInterns"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -105,11 +110,18 @@ const App = () => (
               {/* Auth */}
               <Route path="/login" element={<Login />} />
               <Route path="/invite/:token" element={<InviteAccept />} />
-              <Route path="/impersonate" element={<ImpersonateHandoff />} />
-              <Route path="/demo" element={<DemoHandoff />} />
-              {/* Diagnostics page is dev-only: it surfaces env/config/session
-                  internals and must not be publicly mounted in production. */}
-              {import.meta.env.DEV && <Route path="/diag" element={<Diag />} />}
+              {/* Demo login and admin impersonation are dev-only. In production
+                  /demo goes to /login (the marketing "Try demo" buttons open it)
+                  and /impersonate and /diag fall through to NotFound. */}
+              {import.meta.env.DEV ? (
+                <>
+                  <Route path="/impersonate" element={<ImpersonateHandoff />} />
+                  <Route path="/demo" element={<DemoHandoff />} />
+                  <Route path="/diag" element={<Diag />} />
+                </>
+              ) : (
+                <Route path="/demo" element={<Navigate to="/login" replace />} />
+              )}
               <Route path="/loi/:id" element={<LOIView />} />
 
               {/* Protected dashboards */}
