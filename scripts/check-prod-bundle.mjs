@@ -14,8 +14,8 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Storage keys and the RPC name are matched only as whole quoted string
-// literals, so analytics event names such as "demo_role_activated" (sent by the
-// marketing "Try demo" buttons) do not count.
+// literals, so analytics event names such as "demo_role_activated" do not
+// count.
 const quoted = (key) => new RegExp(`["'\`]${key}["'\`]`);
 
 export const BYPASS_MARKERS = [

@@ -10,17 +10,16 @@ import { motion } from "framer-motion";
 import { ArrowRight, Truck, Fuel, Clock, Wallet, Leaf, ShieldCheck, Cable, Volume2, Gauge } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { track } from "@/lib/analytics";
+import ContactForm from "@/components/v3/ContactForm";
 
 export default function ForFleets() {
   const navigate = useNavigate();
 
-  const handleTryDemo = () => {
-    track("demo_role_activated", { role: "fleet_owner", from: "/for-fleets" });
-    // Audit #1: open the demo in a NEW tab and route through /demo so the
-    // demo_role write only happens in the new tab's sessionStorage. Routes
-    // through /demo (not /login?demo=...) because the Login URL bypass is
-    // gated to import.meta.env.DEV; /demo is the production-safe handoff.
-    window.open("/demo?role=fleet_owner", "_blank", "noopener");
+  // Demo mode is dev-only (T16), so the secondary CTA scrolls to the
+  // talk-to-the-team form at the bottom of this page instead.
+  const handleTalk = (location: string) => {
+    track("fleet_cta_click", { cta: "talk_to_team", location });
+    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleApply = (location: string) => {
@@ -47,17 +46,18 @@ export default function ForFleets() {
         }}
       />
 
-      <Hero onTryDemo={handleTryDemo} onApply={() => handleApply("hero")} />
+      <Hero onTalk={() => handleTalk("hero")} onApply={() => handleApply("hero")} />
       <ROISection />
       <BenefitsGrid />
       <ComparisonStrip />
       <IntegrationStrip />
       <CTAStrip onApply={() => handleApply("footer")} />
+      <ContactSection />
     </MarketingLayout>
   );
 }
 
-function Hero({ onTryDemo, onApply }: { onTryDemo: () => void; onApply: () => void }) {
+function Hero({ onTalk, onApply }: { onTalk: () => void; onApply: () => void }) {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/10 via-transparent to-brand-cyan/10 pointer-events-none" />
@@ -76,12 +76,12 @@ function Hero({ onTryDemo, onApply }: { onTryDemo: () => void; onApply: () => vo
             <Button onClick={onApply} className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6 h-12">
               Apply for the Pilot <ArrowRight className="ml-2" size={16} />
             </Button>
-            <Button onClick={onTryDemo} variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-full px-6 h-12">
-              Try the live demo
+            <Button onClick={onTalk} variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-full px-6 h-12">
+              Talk to the team
             </Button>
           </div>
           <p className="text-white/40 text-sm mt-4">
-            No credit card. The demo loads a pre-populated fleet dashboard.
+            Questions first? Send the team a note.
           </p>
         </motion.div>
 
@@ -362,6 +362,18 @@ function IntegrationStrip() {
         ))}
       </div>
       <p className="text-white/50 text-sm mt-6">Samsara and Motive today. Other ELDs on request.</p>
+    </section>
+  );
+}
+
+function ContactSection() {
+  return (
+    <section id="contact" className="py-24 container mx-auto px-6 max-w-2xl text-center">
+      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Talk to the team</h2>
+      <p className="text-white/60 mb-8">
+        Tell us about your fleet and lanes. We will tell you what a pilot on your trucks would measure.
+      </p>
+      <ContactForm />
     </section>
   );
 }
