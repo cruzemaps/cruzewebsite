@@ -72,3 +72,12 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1
           -v mig=supabase/migrations/20261017_017_start_impersonation.sql
           -f supabase/tests/017_start_impersonation.test.sql
+
+      - name: close anon reads (migration 018)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t018"
+          && psql -h localhost -U postgres -d t018 -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261017_018_close_anon_reads.sql
+          -f supabase/tests/018_close_anon_reads.test.sql
