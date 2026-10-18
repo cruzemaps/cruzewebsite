@@ -5,7 +5,8 @@
       "entry": [
         "scripts/preview-invitation-emails.mjs",
         "check_cams.cjs",
-        "supabase/functions/*/index.ts"
+        "supabase/functions/*/index.ts",
+        "supabase/functions/*/*.test.ts"
       ],
       "project": ["src/**", "scripts/**", "supabase/functions/**"]
     },

@@ -1,212 +1,75 @@
-// Supabase Edge Function — posts a Discord embed when a pilot application or
-// LOI signature row is inserted.
+// Supabase Edge Function: posts a Discord embed when a pilot application, LOI
+// signature or contact message row is inserted.
 //
-// Wire two DB webhooks (Database → Webhooks in the Supabase dashboard):
-//   1. pilot_applications INSERT → POST → this function
-//   2. loi_signatures     INSERT → POST → this function
+// Called by three database webhook triggers (no auth header, so deploy with
+// --no-verify-jwt):
+//   1. notify_discord_on_pilot_application  pilot_applications INSERT
+//   2. notify_discord_on_loi_signed          loi_signatures INSERT
+//   3. notify_discord_on_contact_message     contact_messages INSERT (migration 020)
 //
-// The function inspects payload.table to decide which embed to send.
+// The payload is not trusted beyond type, table and record.id: the row is read
+// back from the database with the service role and the embed is built from
+// that. Rules and embeds live in handler.ts; tests in handler.test.ts.
 //
-// Secrets (Supabase dashboard → Edge Function Secrets):
-//   - DISCORD_WEBHOOK_URL          (required; default channel for both events)
-//   - DISCORD_WEBHOOK_PILOTS       (optional; used for pilot_applications if set)
-//   - DISCORD_WEBHOOK_LOIS         (optional; used for loi_signatures if set)
+// Secrets (Supabase dashboard, Edge Function Secrets):
+//   - DISCORD_WEBHOOK_URL       (default channel for every event)
+//   - DISCORD_WEBHOOK_PILOTS    (optional; pilot_applications)
+//   - DISCORD_WEBHOOK_LOIS      (optional; loi_signatures)
+//   - DISCORD_WEBHOOK_CONTACT   (optional; contact_messages)
+//   - SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY are injected by Supabase.
 //
-// If only DISCORD_WEBHOOK_URL is set, both events go there. Set the
-// per-event URLs to split notifications into different Discord channels.
+// Needs public.discord_notifications_sent from migration 020; apply it first.
 //
-// Deploy: paste this file contents into a new Edge Function called
-// "notify-discord" in the Supabase dashboard.
+// Deploy from the repo root:
+//   supabase functions deploy notify-discord --project-ref zodrljxcwqkjiipobrhs --no-verify-jwt
 
-// @ts-nocheck — Deno runtime, not Node. The repo's tsconfig doesn't load this file.
+// @ts-nocheck: Deno runtime, not Node. The repo's tsconfig doesn't load this file.
 
 import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { COLUMNS, handle } from "./handler.ts";
 
-interface PilotApplicationRow {
-  id: string;
-  user_id: string;
-  company_name: string | null;
-  truck_size: string | null;
-  fleet_size: string | null;
-  status: string;
-  notes: string | null;
-  contact_name: string | null;
-  contact_email: string | null;
-  fms_provider: string | null;
-  website: string | null;
-  created_at: string;
-}
+const url = Deno.env.get("SUPABASE_URL");
+const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const db = url && serviceKey ? createClient(url, serviceKey, { auth: { persistSession: false } }) : null;
 
-interface LOISignatureRow {
-  id: string;
-  user_id: string;
-  pilot_application_id: string | null;
-  participant_name: string;
-  participant_company: string;
-  participant_title: string | null;
-  fleet_size: string;
-  initials: string;
-  signed_at: string;
-}
+serve((req) =>
+  handle(req, {
+    env: (name) => Deno.env.get(name),
+    now: () => new Date(),
 
-interface WebhookPayload {
-  type: "INSERT" | "UPDATE" | "DELETE";
-  table: string;
-  schema: string;
-  record: PilotApplicationRow | LOISignatureRow;
-  old_record: any;
-}
+    async loadRow(table, id) {
+      if (!db) return { row: null, error: "Supabase service credentials missing" };
+      const { data, error } = await db.from(table).select(COLUMNS[table]).eq("id", id).maybeSingle();
+      if (error) return { row: null, error: error.message };
+      return { row: data };
+    },
 
-// Discord embed colors (decimal-encoded hex)
-const COLOR_PILOT = 0xff8c00;      // brand orange
-const COLOR_LOI   = 0x00b4c0;      // brand cyan-teal
+    async claim(key) {
+      if (!db) return "error";
+      const { error } = await db.from("discord_notifications_sent").insert({ key });
+      if (!error) return "claimed";
+      if (error.code === "23505") return "duplicate";
+      console.error(`notify-discord: claim ${key} failed: ${error.message}`);
+      return "error";
+    },
 
-const SITE_URL = "https://cruzemaps.com";
+    async countContactsSince(sinceIso) {
+      if (!db) return null;
+      const { count, error } = await db
+        .from("contact_messages")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", sinceIso);
+      return error ? null : count ?? 0;
+    },
 
-serve(async (req) => {
-  if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
-
-  const DEFAULT_URL = Deno.env.get("DISCORD_WEBHOOK_URL");
-  const PILOTS_URL  = Deno.env.get("DISCORD_WEBHOOK_PILOTS") || DEFAULT_URL;
-  const LOIS_URL    = Deno.env.get("DISCORD_WEBHOOK_LOIS")   || DEFAULT_URL;
-
-  // Audit #38: when no Discord webhook is configured, return 200 with a
-  // skip marker. The DB webhook treats non-2xx as a delivery failure and
-  // will retry every minute forever, hammering the function with noise
-  // while we have nothing to deliver. Returning 200 + skipped lets the
-  // operator opt out of Discord without the failure storm.
-  if (!DEFAULT_URL && !PILOTS_URL && !LOIS_URL) {
-    return json({ skipped: "no Discord webhook URL configured" });
-  }
-
-  let payload: WebhookPayload;
-  try {
-    payload = await req.json();
-  } catch {
-    return json({ error: "Invalid JSON" }, 400);
-  }
-
-  if (payload.type !== "INSERT") {
-    return json({ skipped: "not an insert" });
-  }
-
-  let webhookUrl: string | undefined;
-  let body: any;
-
-  if (payload.table === "pilot_applications") {
-    const row = payload.record as PilotApplicationRow;
-    webhookUrl = PILOTS_URL;
-    body = pilotEmbed(row);
-  } else if (payload.table === "loi_signatures") {
-    const row = payload.record as LOISignatureRow;
-    webhookUrl = LOIS_URL;
-    body = loiEmbed(row);
-  } else {
-    return json({ skipped: `unknown table ${payload.table}` });
-  }
-
-  if (!webhookUrl) {
-    // Same logic as the global skip above — opt-out for this specific table.
-    return json({ skipped: `no webhook URL configured for ${payload.table}` });
-  }
-
-  const discordRes = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!discordRes.ok) {
-    const errText = await discordRes.text();
-    console.error("Discord error:", errText);
-    return json({ error: `Discord ${discordRes.status}: ${errText}` }, 500);
-  }
-
-  return json({ ok: true, table: payload.table });
-});
-
-function pilotEmbed(row: PilotApplicationRow) {
-  const fields = [
-    { name: "Company", value: row.company_name || "(unspecified)", inline: true },
-    { name: "Fleet size", value: row.fleet_size || "(unspecified)", inline: true },
-    { name: "Truck class", value: row.truck_size || "(unspecified)", inline: true },
-  ];
-
-  if (row.contact_name) {
-    fields.push({ name: "Contact", value: row.contact_name, inline: true });
-  }
-  if (row.contact_email) {
-    fields.push({ name: "Email", value: row.contact_email, inline: true });
-  }
-  if (row.fms_provider) {
-    fields.push({ name: "FMS", value: row.fms_provider, inline: true });
-  }
-  if (row.website) {
-    fields.push({ name: "Website", value: row.website, inline: false });
-  }
-  if (row.notes) {
-    fields.push({
-      name: "Admin notes",
-      value: row.notes.length > 1024 ? row.notes.slice(0, 1020) + "…" : row.notes,
-      inline: false,
-    });
-  }
-
-  return {
-    username: "Cruzemaps",
-    avatar_url: `${SITE_URL}/logo.png`,
-    embeds: [
-      {
-        title: "🚛 New pilot application",
-        description: `A new fleet just submitted a pilot application.`,
-        url: `${SITE_URL}/admin`,
-        color: COLOR_PILOT,
-        fields,
-        footer: {
-          text: `Application ID ${row.id.slice(0, 8)} · ${new Date(row.created_at).toLocaleString("en-US")}`,
-          icon_url: `${SITE_URL}/logo.png`,
-        },
-        timestamp: row.created_at,
-      },
-    ],
-  };
-}
-
-function loiEmbed(row: LOISignatureRow) {
-  const fields: any[] = [
-    { name: "Participant", value: row.participant_name, inline: true },
-    { name: "Initials", value: row.initials, inline: true },
-    { name: "Company", value: row.participant_company, inline: false },
-    { name: "Fleet size", value: row.fleet_size, inline: true },
-  ];
-
-  if (row.participant_title) {
-    fields.push({ name: "Title", value: row.participant_title, inline: true });
-  }
-
-  return {
-    username: "Cruzemaps",
-    avatar_url: `${SITE_URL}/logo.png`,
-    embeds: [
-      {
-        title: "✍️ LOI signed",
-        description: `**${row.participant_name}** just signed the Letter of Intent.`,
-        url: `${SITE_URL}/loi/${row.id}`,
-        color: COLOR_LOI,
-        fields,
-        footer: {
-          text: `Signature ID ${row.id.slice(0, 8)} · ${new Date(row.signed_at).toLocaleString("en-US")}`,
-          icon_url: `${SITE_URL}/logo.png`,
-        },
-        timestamp: row.signed_at,
-      },
-    ],
-  };
-}
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+    async postDiscord(webhookUrl, body) {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      return { ok: res.ok, status: res.status, text: res.ok ? "" : await res.text() };
+    },
+  })
+);
