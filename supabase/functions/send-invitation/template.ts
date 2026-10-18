@@ -81,7 +81,7 @@ const COPY: Record<
       "Review and approve incoming pilot applications",
       "Manage roles and access for the entire team",
       "Inspect every change with the immutable audit log",
-      "Issue invitations, suspend accounts, and impersonate users for support",
+      "Issue invitations and suspend or archive accounts",
     ],
     accentText: BRAND.cyan,
     accentBar: BRAND.cyanBright,

@@ -1,29 +1,23 @@
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { demoModeEnabled, setDemoSession } from "@/lib/demoMode";
 
-// Public-demo bridge route. The marketing pages (`/for-fleets`,
-// `/for-cities`) `window.open` this in a new tab so the demo activation
-// only writes to *that* new tab's sessionStorage — the original tab keeps
-// whatever real session the user has. Distinct from `/impersonate`, which
-// sets `impersonated_user_id` and surfaces an ImpersonationBanner.
+// Demo bridge route, DEV builds only (App.tsx mounts it behind
+// import.meta.env.DEV and production maps /demo to /login). The marketing
+// "Try demo" buttons `window.open` it in a new tab so the demo state is only
+// ever written to that tab's sessionStorage.
 //
-// Accepts `?role=fleet_owner|city_operator` and an optional `?go=`
-// destination. Falls back to the role's natural dashboard.
-//
-// Lives outside Login.tsx because the URL-bypass branch in Login is
-// gated to `import.meta.env.DEV`. The marketing CTAs need the demo to
-// work in production too — that's what this bridge enables, while keeping
-// the broader URL-bypass attack surface dev-only.
-//
-// Audit (2nd pass) #2: deliberately does NOT accept `role=admin`. The admin
-// demo is always dev-only (`/login?demo=admin` is gated to import.meta.env.DEV).
-// A public `/demo?role=admin` would let anyone walk into the admin portal in
-// their tab and read the local mock data. Marketing only uses fleet_owner +
-// city_operator anyway; admin demo is for engineers.
+// Accepts `?role=fleet_owner|city_operator` and an optional same-origin
+// `?go=` destination. Never accepts role=admin.
 const PUBLIC_DEMO_ROLES = new Set(["fleet_owner", "city_operator"]);
 
 export default function DemoHandoff() {
   useEffect(() => {
+    if (!demoModeEnabled()) {
+      window.location.replace("/login");
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const role = params.get("role");
 
@@ -32,7 +26,7 @@ export default function DemoHandoff() {
       return;
     }
 
-    sessionStorage.setItem("demo_role", role);
+    setDemoSession(role as "fleet_owner" | "city_operator");
 
     const fallback = role === "city_operator" ? "/dashboard" : "/fleet-dashboard";
     const go = params.get("go") || fallback;

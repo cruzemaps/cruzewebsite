@@ -1,24 +1,22 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
+import { clearDemoSession, getImpersonatedUserId } from "@/lib/demoMode";
 
-// Mounted at the top of every protected dashboard. If sessionStorage has an
-// impersonation marker, show a sticky banner so admins don't forget they're
-// not in their own account, and so they have a one-click exit.
+// Mounted at the top of every protected dashboard. If this tab is in an admin
+// "view as user" preview (DEV builds only, see demoMode.ts), show a sticky
+// banner so admins don't forget they're not in their own account, and so they
+// have a one-click exit.
 export function ImpersonationBanner() {
   const [target, setTarget] = useState<string | null>(null);
 
   useEffect(() => {
-    setTarget(sessionStorage.getItem("impersonated_user_id"));
+    setTarget(getImpersonatedUserId());
   }, []);
 
   if (!target) return null;
 
   const exit = () => {
-    sessionStorage.removeItem("impersonated_user_id");
-    sessionStorage.removeItem("demo_role");
-    sessionStorage.removeItem("demo_status");
-    localStorage.removeItem("demo_role");
-    localStorage.removeItem("demo_status");
+    clearDemoSession();
     window.location.href = "/admin";
   };
 

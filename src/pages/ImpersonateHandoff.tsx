@@ -1,76 +1,33 @@
 import { useEffect, useState } from "react";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { beginImpersonation } from "@/lib/impersonation";
+import { getImpersonatedUserId } from "@/lib/demoMode";
+import { track } from "@/lib/analytics";
 
-// Bridge route that runs only in the freshly-opened impersonation tab.
-// Reads role/id/dest from the URL the admin's impersonate() built, writes
-// them to sessionStorage (per-tab, isolated from the admin's own tab),
-// then redirects to the impersonated user's dashboard.
+// Bridge route for the admin "view as user" preview. Mounted in DEV builds
+// only (see App.tsx); production has no impersonation route.
 //
-// 2nd-pass audit #2: the route is mounted unauthenticated in App.tsx, which
-// previously meant ANY visitor could craft `/impersonate?role=admin&id=...`
-// and walk into the admin portal in their tab. Hardening: before honoring the
-// query string, we verify that this origin's Supabase session belongs to an
-// admin (Supabase persists tokens to localStorage, which IS shared across
-// tabs of the same origin — so the admin's real session is visible to this
-// tab too). Non-admins / unauthenticated visitors get bounced.
+// The admin check and the audit row both happen on the server inside the
+// start_impersonation RPC (migration 017). This page never reads the role
+// from the URL or from the JWT: it only enters the preview with the role the
+// server returned. Supabase keeps its session in localStorage, which is shared
+// across tabs of the same origin, so the RPC carries the admin's real JWT.
 export default function ImpersonateHandoff() {
-  const [denied, setDenied] = useState(false);
+  const [denied, setDenied] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const params = new URLSearchParams(window.location.search);
-      const role = params.get("role");
-      const status = params.get("status");
-      const id = params.get("id");
-      const go = params.get("go") || "/";
-
-      if (!role || !id) {
-        window.location.replace("/");
+      const outcome = await beginImpersonation(window.location.search, (fn, args) => supabase.rpc(fn, args));
+      if (outcome.kind === "denied") {
+        setDenied(outcome.reason);
         return;
       }
-
-      // Same-origin destination only. Defeats open-redirect attempts where
-      // an attacker injects `?go=https://evil.example/`.
-      if (!go.startsWith("/") || go.startsWith("//")) {
-        window.location.replace("/admin");
-        return;
-      }
-
-      // Whitelist roles the admin tooling actually impersonates.
-      const allowedRoles = new Set(["fleet_owner", "city_operator", "admin"]);
-      if (!allowedRoles.has(role)) {
-        window.location.replace("/admin");
-        return;
-      }
-
-      // Verify caller is an admin in this origin's persisted Supabase session.
-      const { data } = await supabase.auth.getSession();
-      let appRole: string | undefined;
-      try {
-        if (data.session?.access_token) {
-          const payload = JSON.parse(atob(data.session.access_token.split(".")[1]));
-          appRole = payload.app_role;
-        }
-      } catch {
-        appRole = undefined;
-      }
-      // user_metadata fallback (matches the rest of the app's role resolution
-      // in case the JWT custom-claims hook isn't installed yet).
-      const metaRole = data.session?.user?.user_metadata?.role as string | undefined;
-      const isAdmin = appRole === "admin" || metaRole === "admin";
-
-      if (!isAdmin) {
-        setDenied(true);
-        return;
-      }
-
-      sessionStorage.setItem("demo_role", role);
-      sessionStorage.setItem("demo_status", status || "active");
-      sessionStorage.setItem("impersonated_user_id", id);
-
+      // Analytics only after the server accepted and audited the session.
+      const target = getImpersonatedUserId();
+      if (target) track("role_changed", { event: "impersonation", target });
       // replace, not assign, so back button skips the bridge
-      window.location.replace(go);
+      window.location.replace(outcome.to);
     })();
   }, []);
 
@@ -81,9 +38,9 @@ export default function ImpersonateHandoff() {
           <ShieldAlert className="w-10 h-10 text-red-400 mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold mb-2">Impersonation requires admin sign-in</h1>
           <p className="text-white/60 text-sm">
-            This bridge can only be opened from the admin portal in an authenticated session.
-            Sign in as an admin and try again from the Users tab.
+            The server did not accept this request. Sign in as an active admin and try again from the Users tab.
           </p>
+          <p className="text-white/30 text-xs mt-3">{denied}</p>
         </div>
       </div>
     );

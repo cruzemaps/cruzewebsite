@@ -3,6 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { identifyUser, resetAnalytics } from "@/lib/analytics";
 import { toast } from "sonner";
+import { clearDemoSession, isDemoSession } from "@/lib/demoMode";
 
 export type AppRole = "admin" | "fleet_owner" | "city_operator";
 type AppStatus = "pending" | "active" | "suspended" | "archived";
@@ -234,10 +235,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
-    if (sessionStorage.getItem("demo_role")) {
-      sessionStorage.removeItem("demo_role");
-      sessionStorage.removeItem("demo_status");
-      sessionStorage.removeItem("impersonated_user_id");
+    // isDemoSession() is always false in production, so a stray demo_role key
+    // can never stop a real user's Supabase session from being signed out.
+    if (isDemoSession()) {
+      clearDemoSession();
       resetAnalytics();
       window.location.href = "/login";
       return;
