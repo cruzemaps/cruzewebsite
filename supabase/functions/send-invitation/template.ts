@@ -106,9 +106,9 @@ const COPY: Record<
     eyebrow: "Fleet pilot invitation",
     subhead: "Cruzemaps spots stop-and-go waves ahead and cues your drivers to ease off early. Your pilot measures fuel use and hard braking on your own trucks against a control group, and you see every number.",
     bullets: [
-      "Live fuel and stop-and-go reduction per truck",
+      "Fuel use and hard braking per truck, measured against a control group during your pilot",
       "A log of every speed advisory your drivers receive, and whether they acknowledged it",
-      "Direct integration with Samsara, Geotab, Motive, Verizon Connect, and Trimble",
+      "Samsara and Motive integrations today; other ELDs on request",
       "Calibrated savings projections after a 30-day pilot",
     ],
     accentText: BRAND.orange,

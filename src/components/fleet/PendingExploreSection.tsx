@@ -115,10 +115,10 @@ export function PendingExploreSection() {
 
       <Card className="bg-[#0F131C] border-white/10">
         <CardContent className="p-6">
-          <h4 className="font-display font-semibold text-lg mb-1">Plugs into your FMS in under a day</h4>
-          <p className="text-white/50 text-sm mb-4">No rip-and-replace. Cruze runs alongside your existing telematics.</p>
+          <h4 className="font-display font-semibold text-lg mb-1">Runs alongside your ELD</h4>
+          <p className="text-white/50 text-sm mb-4">No rip-and-replace. Samsara and Motive today. Other ELDs on request.</p>
           <div className="flex flex-wrap gap-2">
-            {["Samsara", "Geotab", "Motive", "Verizon Connect", "Trimble", "Omnitracs"].map((name) => (
+            {["Samsara", "Motive"].map((name) => (
               <span key={name} className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/70 text-xs">
                 {name}
               </span>

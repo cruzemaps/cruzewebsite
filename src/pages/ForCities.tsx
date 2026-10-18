@@ -76,7 +76,7 @@ export default function ForCities() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { icon: ShieldCheck, title: "Access you can audit", body: "Role-based access enforced by row-level security in the database. Role changes made in the admin portal are logged, and every speed advisory sent to a driver is recorded." },
-              { icon: FileText, title: "RFP-ready language", body: "Reusable response templates, signed BAAs/IAAs, and standard procurement narratives ready on request." },
+              { icon: FileText, title: "Answers in writing", body: "Send your RFP questions or security questionnaire and we answer them in writing, based on what the product does today." },
               { icon: Network, title: "Integrates with your TMC", body: "Streams into ATMS systems via standard protocols. No rip-and-replace; no roadside hardware to install." },
               { icon: MapPin, title: "Corridor-level deployment", body: "Start on a single recurring-congestion corridor. Expand once measured benefits are confirmed." },
               { icon: Activity, title: "Measurable in 30 days", body: "Pre/post analyses with control segments. We share calibrated impact reports each Monday." },

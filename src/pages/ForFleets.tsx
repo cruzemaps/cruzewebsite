@@ -350,17 +350,18 @@ export function ComparisonStrip() {
 }
 
 function IntegrationStrip() {
-  const integrations = ["Samsara", "Geotab", "Motive", "Verizon Connect", "Trimble", "Omnitracs"];
+  const integrations = ["Samsara", "Motive"];
   return (
     <section className="py-16 container mx-auto px-6 text-center">
       <div className="flex items-center justify-center gap-2 text-white/50 text-xs uppercase tracking-widest mb-6">
-        <Cable size={14} /> Plugs into your existing FMS in under a day
+        <Cable size={14} /> Built-in ELD integrations
       </div>
       <div className="flex flex-wrap justify-center gap-6 text-white/60 font-display">
         {integrations.map((i) => (
           <span key={i} className="px-4 py-2 rounded-full bg-white/5 border border-white/10">{i}</span>
         ))}
       </div>
+      <p className="text-white/50 text-sm mt-6">Samsara and Motive today. Other ELDs on request.</p>
     </section>
   );
 }

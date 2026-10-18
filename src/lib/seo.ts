@@ -40,21 +40,6 @@ const orgJsonLd = {
   sameAs: [],
 };
 
-const softwareJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Cruze",
-  applicationCategory: "TravelApplication",
-  operatingSystem: "iOS, Android, Web",
-  description: SITE.shortDescription,
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    ratingCount: "127",
-  },
-};
-
 // Per-route metadata. Add new routes here so they pick up SEO + sitemap entries
 // + prerendered HTML automatically.
 export const ROUTES: RouteMeta[] = [
@@ -155,9 +140,9 @@ export const ROUTES: RouteMeta[] = [
   },
   {
     path: "/stats",
-    title: "Cruze Live Impact | Tons of CO₂ Saved Across Pilots",
+    title: "Cruze Live Impact | Pilots, Fleets and City Partners",
     description:
-      "Live, anonymized impact metrics from every Cruze pilot deployment. Updated continuously.",
+      "Live counts of Cruze pilots approved or running, fleets onboard, and city partners. Fuel and CO₂ results will appear once pilots have measured them.",
     changefreq: "daily",
     priority: 0.7,
   },
