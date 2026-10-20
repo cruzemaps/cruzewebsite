@@ -100,7 +100,11 @@ function Hero({ onTalk, onApply }: { onTalk: () => void; onApply: () => void }) 
   );
 }
 
-// ROI calculator. Numbers are planning assumptions, not pilot results; replace with measured data once pilots report.
+// ROI calculator. The 11% fuel reduction, 1.5 reclaimed hours per driver per week
+// and 15% congestion-crash reduction are planning assumptions with no source:
+// Cruze chose them, and no pilot, customer or study is behind them. The 10.21 kg
+// CO2 per gallon (EPA) and the 24-32% rear-end crash share (NHTSA) are cited.
+// Replace the unsourced three with measured data once pilots report.
 // Exported (alongside ComparisonStrip below) so the component test suite can
 // mount these two logic-bearing sections in isolation without dragging in the
 // full MarketingLayout (Navbar -> useAuth -> Supabase).
@@ -125,9 +129,9 @@ export function ROISection() {
   };
 
   const result = useMemo(() => {
-    // Planning assumptions, not measured results: 11% fuel reduction, 1.5 hours/week reclaimed/driver,
-    // 10.21 kg CO2 per gallon of diesel (EPA), and a 15% cut in the
-    // congestion-related crash subset (see the CSA block below).
+    // Planning assumptions with no source, not measured results: 11% fuel reduction,
+    // 1.5 hours/week reclaimed per driver, and a 15% cut in the congestion-related
+    // crash subset (see the CSA block below). Cited: 10.21 kg CO2 per gallon of diesel (EPA).
     const annualMiles = trucks * milesPerTruckYear;
     const annualGallons = annualMiles / Math.max(mpg, 1);
     const fuelSaved = annualGallons * 0.11;
@@ -167,7 +171,7 @@ export function ROISection() {
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">See your savings.</h2>
           <p className="text-white/60 max-w-2xl mx-auto">
-            Drop in your fleet specs. This calculator uses planning assumptions, not pilot results: 11% fuel reduction, 1.5 reclaimed driver-hours per week, and a 15% cut in congestion-related crashes. A pilot replaces them with your own measured numbers.
+            Drop in your fleet specs. This calculator uses planning assumptions with no source yet, not pilot results: an 11% fuel reduction, 1.5 reclaimed driver-hours per week, and a 15% cut in congestion-related crashes. Cruze chose those three numbers; no pilot, customer or study is behind them. A pilot replaces them with your own measured numbers.
           </p>
         </div>
 
@@ -200,7 +204,7 @@ export function ROISection() {
                 <ResultRow icon={<Clock size={18} />} label="Hours reclaimed" value={`${result.hoursReclaimedYear.toLocaleString()} hr/yr`} />
               </div>
               <p className="text-xs text-white/40 leading-relaxed">
-                Estimates only; actual savings depend on fleet density on Cruze-coordinated corridors and integration depth with your FMS. CSA / safety savings apply a conservative 15% reduction to only the congestion-related rear-end / sudden-stop crashes speed-smoothing targets — modeled as ~25% of your recordable crashes (NHTSA: rear-end crashes are 24-32% of all crashes) — against your own crash rate and cost per crash, not all crashes. The 15% reduction sits below the 27-46% NHTSA forward-collision-warning effectiveness range it is benchmarked against, and Cruze has not yet measured its own crash-reduction rate. We share calibrated projections after a 30-day pilot.
+                Estimates only; actual savings depend on fleet density on Cruze-coordinated corridors and integration depth with your FMS. The 11% fuel reduction and the 1.5 reclaimed hours per driver per week are assumptions with no source. CSA / safety savings apply an assumed 15% reduction, also with no source, to only the congestion-related rear-end / sudden-stop crashes that speed smoothing targets, modeled as about 25% of your recordable crashes (NHTSA: rear-end crashes are 24-32% of all crashes), against your own crash rate and cost per crash, not all crashes. The 15% sits below the 27-46% effectiveness NHTSA reports for forward-collision warning, a different technology, and Cruze has not yet measured its own crash-reduction rate. We share calibrated projections after a 30-day pilot.
               </p>
               <Link to="/login?role=fleet_owner" className="inline-flex items-center gap-2 text-brand-orange font-semibold">
                 Run a real 30-day pilot <ArrowRight size={16} />

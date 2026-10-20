@@ -54,7 +54,7 @@ const RoutePlanner = () => {
             Visualize Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-brand-cyan">Logistics Savings</span>
           </h1>
           <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto">
-            Click two states below to build a route profile. We'll calculate the freight path and project what smoother flow could be worth on it. The numbers are planning assumptions, not pilot results.
+            Click two states below to build a route profile. We'll calculate the freight path and project what smoother flow could be worth on it. The numbers are planning assumptions with no source yet, not pilot results.
           </p>
         </motion.div>
 
@@ -118,7 +118,7 @@ const RoutePlanner = () => {
                   </div>
                   <div className="mt-4 flex items-center gap-2 text-sm text-brand-cyan">
                     <TrendingUp className="w-4 h-4" />
-                    <span>Based on {currentMetrics.centsMile} / mile efficiency</span>
+                    <span>Assumes {currentMetrics.centsMile} per mile. That band is a planning assumption with no source yet, not a measured result.</span>
                   </div>
                 </div>
               </>
@@ -136,7 +136,7 @@ const RoutePlanner = () => {
             <Card className="bg-white/5 border-white/10 text-white backdrop-blur-xl overflow-hidden mt-8">
               <CardHeader>
                 <CardTitle>Fleet Volume Projection</CardTitle>
-                <CardDescription className="text-white/50">Estimated cumulative savings scaling with the number of trips taken on this specific route per year.</CardDescription>
+                <CardDescription className="text-white/50">Estimated cumulative savings scaling with the number of trips taken on this specific route per year, from the same unsourced per-mile assumption.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px] w-full mt-4">

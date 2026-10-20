@@ -195,7 +195,7 @@ export const ROUTES: RouteMeta[] = [
     path: "/route-planner",
     title: "Cruze Route Planner | Swarm-Coordinated Routing",
     description:
-      "Plan a route with Cruze and see what smoother flow could be worth on it. The projections use planning assumptions, not pilot results.",
+      "Plan a route with Cruze and see what smoother flow could be worth on it. The projections use planning assumptions with no source yet, not pilot results.",
     changefreq: "weekly",
     priority: 0.6,
   },
