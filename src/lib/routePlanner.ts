@@ -2,6 +2,12 @@
 // Extracted from RoutePlanner.tsx so the projection logic (the page's only
 // real computation) is testable without mounting the USAMap / recharts stack.
 // The page itself just renders the numbers these functions return.
+//
+// The per-mile bands in REGION_METRICS are planning assumptions with no source.
+// They were written when the page was built and come from no pilot, customer,
+// fuel-price series or published study; every dollar figure the page shows is
+// derived from them. Replace them with measured per-mile results once a pilot
+// reports, or with a cited figure, and say which on the page.
 
 export type RegionKey = "southeast" | "northeast" | "southwest" | "midwest";
 

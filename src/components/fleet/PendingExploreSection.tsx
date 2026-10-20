@@ -36,8 +36,8 @@ export function PendingExploreSection() {
             <div>
               <h4 className="font-display font-semibold text-lg mb-1">Quick savings calculator</h4>
               <p className="text-white/50 text-sm mb-5">
-                Planning assumptions, not pilot results: 11% fuel reduction, 1.5 reclaimed driver-hours per week, 50 working weeks
-                per year.
+                Planning assumptions with no source yet, not pilot results: 11% fuel reduction, 1.5 reclaimed driver-hours per week,
+                50 working weeks per year. Cruze chose these numbers; a pilot replaces them with measured ones.
               </p>
               <div className="space-y-4">
                 <ExploreSlider
