@@ -31,7 +31,7 @@ Don't use Cypress. Playwright has caught up and surpassed for parallel execution
 
 ## Existing context the test suite must understand
 
-The codebase has a **demo bypass** in [src/hooks/useAuth.tsx](../src/hooks/useAuth.tsx). When `localStorage.demo_role` is set, the auth provider mints a fake user/session without calling Supabase. Tests can use this to skip real auth in component tests, but should NOT use it in E2E auth-flow tests — those need the real Supabase path.
+The codebase has a **dev-only demo bypass** ([src/lib/demoMode.ts](../src/lib/demoMode.ts), read by [src/hooks/useAuth.tsx](../src/hooks/useAuth.tsx)). In a dev build, when `sessionStorage.demo_role` is set, the auth provider mints a fake user/session without calling Supabase. Production builds ignore it. Tests can use this to skip real auth in component tests, but should NOT use it in E2E auth-flow tests — those need the real Supabase path.
 
 The codebase uses **JWT custom claims** for role/status (set by `custom_access_token_hook` in [supabase/migrations/20260504_003_jwt_claims.sql](../supabase/migrations/20260504_003_jwt_claims.sql)). After a role change, the user's existing JWT still has the OLD role until refresh. Tests should explicitly assert this lag and exercise the sign-out-and-back-in flow that resolves it.
 
@@ -242,7 +242,7 @@ For a Claude session with focused execution: 4-6 hours of model time. The bulk g
 
 **Beware async race conditions in role-change E2E**. Supabase's session refresh isn't instantaneous after `change_user_role` is called. Tests that promote a user should explicitly sign out and sign back in (don't rely on `supabase.auth.refreshSession()` to pick up new claims; the auth hook only fires on token issuance).
 
-**Demo bypass cleanup**. Tests that set `localStorage.demo_role` must clean it up in `afterEach` or subsequent tests will leak demo state.
+**Demo bypass cleanup**. Tests that set `sessionStorage.demo_role` (with `vi.stubEnv("DEV", true)`) must clean it up in `afterEach` or subsequent tests will leak demo state.
 
 **Playwright + Supabase rate limits**. Supabase has aggressive rate limits on auth endpoints. If running E2E in parallel, either rate-limit the test concurrency to 1 for auth tests, or stub Supabase for component tests and reserve real auth for a smaller E2E surface.
 

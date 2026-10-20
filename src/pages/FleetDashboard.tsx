@@ -12,6 +12,7 @@ import {
 } from "@/components/fleet/FleetPilotStagePanels";
 import type { PilotApplicationRow, PilotLifecycleStatus } from "@/lib/pilotApplication";
 import { PILOT_STATUS_LABELS } from "@/lib/pilotApplication";
+import { getDemoStatus, isDemoSession } from "@/lib/demoMode";
 
 type LOISummary = { id: string; signed_at: string; participant_company: string };
 
@@ -27,8 +28,9 @@ const FleetDashboard = () => {
     const fetchApplication = async () => {
       if (!user) return;
 
-      if (sessionStorage.getItem("demo_role")) {
-        const demoStatus = sessionStorage.getItem("demo_status") as PilotLifecycleStatus | null;
+      // Demo session (DEV builds only): mock data, never a Supabase query.
+      if (isDemoSession()) {
+        const demoStatus = getDemoStatus() as PilotLifecycleStatus | null;
         if (!cancelled && demoStatus) {
           setApp({
             id: "demo",
@@ -91,7 +93,7 @@ const FleetDashboard = () => {
     fetchApplication();
 
     let channel: ReturnType<typeof supabase.channel> | null = null;
-    if (user && !sessionStorage.getItem("demo_role")) {
+    if (user && !isDemoSession()) {
       channel = supabase
         .channel(`status_updates_${user.id}`)
         .on(

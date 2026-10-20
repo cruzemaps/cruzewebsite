@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Loader2, Building2, Truck, Route } from "lucide-react";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
+import { setDemoSession } from "@/lib/demoMode";
 
 type RoleType = "fleet_owner" | "city_operator";
 
@@ -34,10 +35,10 @@ const Login = () => {
     const params = new URLSearchParams(location.search);
     const demo = params.get('demo');
     if (demo === 'admin') {
-      sessionStorage.setItem("demo_role", "admin");
+      setDemoSession("admin");
       window.location.href = "/admin";
     } else if (demo === 'fleet_owner' || demo === 'city_operator') {
-      sessionStorage.setItem("demo_role", demo);
+      setDemoSession(demo);
       window.location.href = demo === 'city_operator' ? "/dashboard" : "/fleet-dashboard";
     }
   }, [location.search]);
@@ -319,7 +320,7 @@ const Login = () => {
                     key={r}
                     type="button"
                     onClick={() => {
-                      sessionStorage.setItem("demo_role", r);
+                      setDemoSession(r);
                       window.location.href =
                         r === "admin" ? "/admin" : r === "city_operator" ? "/dashboard" : "/fleet-dashboard";
                     }}

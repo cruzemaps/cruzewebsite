@@ -54,7 +54,7 @@ const RoutePlanner = () => {
             Visualize Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-brand-cyan">Logistics Savings</span>
           </h1>
           <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto">
-            Click two states below to build a route profile. We'll instantly calculate the freight path and project your savings based on regional optimization logic.
+            Click two states below to build a route profile. We'll calculate the freight path and project what smoother flow could be worth on it. The numbers are planning assumptions, not pilot results.
           </p>
         </motion.div>
 

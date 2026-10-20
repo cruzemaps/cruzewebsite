@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import { createHash } from "node:crypto";
 import path from "path";
@@ -50,11 +50,18 @@ import path from "path";
 //                                             remote preview/analytics pixels
 //   media-src   'self' blob: *.skyvdn.com  -> MSE blob URLs from hls.js + the
 //                                             TxDOT skyvdn HLS feeds (native HLS)
+//                                             (*.skyvdn.com only with the flag)
 //   connect-src supabase.co (+wss)         -> Supabase REST + realtime socket
 //               us[-assets].i.posthog.com  -> PostHog ingestion + assets
 //               cdn.jsdelivr.net           -> us-atlas topojson map data fetch
 //               storage.googleapis.com     -> coco-ssd model weights (tfjs-models)
 //               *.skyvdn.com               -> hls.js manifest/segment XHR
+//               dtx-e-cdn.maplarge.com     -> DriveTexas camera-table query that
+//                                             (both DOT hosts only when
+//                                             VITE_LIVE_DOT_CAMERAS=true; see
+//                                             src/lib/featureFlags.ts)
+//                                             returns tokened stream URLs
+//                                             (src/lib/liveCameras.ts)
 //               cloudflareinsights.com     -> CF Web Analytics RUM beacon POST
 //   frame-src   cal.com / app.cal.com      -> investor "book a call" iframe
 //   worker-src  'self' blob:              -> hls.js transmux Web Worker (blob)
@@ -63,7 +70,12 @@ import path from "path";
 // CSP ignores frame-ancestors per spec, and GitHub Pages cannot set the header.
 // Clickjacking protection should be added at a header/CDN layer if one is
 // introduced. See the PR body for origins to smoke-test.
-function cspMetaPlugin(): Plugin {
+function cspMetaPlugin(liveDotCameras: boolean): Plugin {
+  // DOT camera hosts are allowed only while live DOT imagery is switched on.
+  // With the flag off (the default) the browser itself refuses any request to
+  // them, as a backstop to the gated code.
+  const dotMedia = liveDotCameras ? ["https://*.skyvdn.com"] : [];
+  const dotConnect = liveDotCameras ? ["https://*.skyvdn.com", "https://dtx-e-cdn.maplarge.com"] : [];
   const buildCsp = (scriptHash: string) => {
     const directives: Record<string, string[]> = {
       "default-src": ["'self'"],
@@ -81,7 +93,7 @@ function cspMetaPlugin(): Plugin {
       "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
       "img-src": ["'self'", "data:", "blob:", "https:"],
-      "media-src": ["'self'", "blob:", "https://*.skyvdn.com"],
+      "media-src": ["'self'", "blob:", ...dotMedia],
       "connect-src": [
         "'self'",
         "https://*.supabase.co",
@@ -90,7 +102,7 @@ function cspMetaPlugin(): Plugin {
         "https://us-assets.i.posthog.com",
         "https://cdn.jsdelivr.net",
         "https://storage.googleapis.com",
-        "https://*.skyvdn.com",
+        ...dotConnect,
         "https://cloudflareinsights.com",
       ],
       "frame-src": ["https://cal.com", "https://app.cal.com"],
@@ -142,7 +154,11 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   base: "/",
-  plugins: [react(), cspMetaPlugin()],
+  plugins: [
+    react(),
+    // Same variable the app reads in src/lib/featureFlags.ts.
+    cspMetaPlugin(loadEnv(mode, process.cwd(), "VITE_").VITE_LIVE_DOT_CAMERAS === "true"),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

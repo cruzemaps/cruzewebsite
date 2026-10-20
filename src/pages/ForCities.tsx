@@ -4,23 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { ArrowRight, Building2, ShieldCheck, FileText, MapPin, Users, Network, Activity } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { track } from "@/lib/analytics";
+import ContactForm from "@/components/v3/ContactForm";
 
 export default function ForCities() {
-  const navigate = useNavigate();
-
-  const handleTryDemo = () => {
-    track("demo_role_activated", { role: "city_operator", from: "/for-cities" });
-    // Audit #1: open the demo in a new tab so the current tab's session
-    // isn't poisoned. Routes through /demo (the production-safe handoff —
-    // /login?demo= is gated behind import.meta.env.DEV).
-    window.open("/demo?role=city_operator", "_blank", "noopener");
-  };
-
+  // A briefing request goes to the contact form at the bottom of this page.
+  // It used to send prospects to /login, and the "Tour Mission Control" demo
+  // is dev-only since T16, so neither was a usable next step.
   const handleBriefing = (location: string) => {
     track("cities_cta_click", { cta: "request_briefing", location });
-    navigate("/login?role=city_operator");
+    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -53,8 +47,10 @@ export default function ForCities() {
               <Button onClick={() => handleBriefing("hero")} className="bg-brand-cyan hover:bg-brand-cyan/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6 h-12">
                 Request a briefing <ArrowRight className="ml-2" size={16} />
               </Button>
-              <Button onClick={handleTryDemo} variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-full px-6 h-12">
-                Tour Mission Control
+              <Button asChild variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-full px-6 h-12">
+                <Link to="/insights/phantom-traffic-jams" onClick={() => track("cities_cta_click", { cta: "read_phantom_jams", location: "hero" })}>
+                  How phantom jams form
+                </Link>
               </Button>
             </div>
           </motion.div>
@@ -75,8 +71,8 @@ export default function ForCities() {
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-12 text-center">Built for procurement, sized for impact.</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: ShieldCheck, title: "SOC 2 Type II in progress", body: "Independent audit underway. Full data residency controls available; pilot data stays in your jurisdiction." },
-              { icon: FileText, title: "RFP-ready language", body: "Reusable response templates, signed BAAs/IAAs, and standard procurement narratives ready on request." },
+              { icon: ShieldCheck, title: "Access you can audit", body: "Role-based access enforced by row-level security in the database. Role changes made in the admin portal are logged, and every speed advisory sent to a driver is recorded." },
+              { icon: FileText, title: "Answers in writing", body: "Send your RFP questions or security questionnaire and we answer them in writing, based on what the product does today." },
               { icon: Network, title: "Integrates with your TMC", body: "Streams into ATMS systems via standard protocols. No rip-and-replace; no roadside hardware to install." },
               { icon: MapPin, title: "Corridor-level deployment", body: "Start on a single recurring-congestion corridor. Expand once measured benefits are confirmed." },
               { icon: Activity, title: "Measurable in 30 days", body: "Pre/post analyses with control segments. We share calibrated impact reports each Monday." },
@@ -98,13 +94,13 @@ export default function ForCities() {
 
       <section className="py-24 container mx-auto px-6 max-w-4xl">
         <div className="rounded-3xl bg-gradient-to-br from-brand-cyan/15 to-transparent border border-brand-cyan/20 p-12">
-          <h2 className="font-display text-2xl md:text-4xl font-bold mb-4">Download the executive briefing.</h2>
+          <h2 className="font-display text-2xl md:text-4xl font-bold mb-4">Request a briefing.</h2>
           <p className="text-white/70 mb-8 max-w-xl">
-            16-page primer for transportation directors: phantom jam economics, deployment patterns, federal funding alignment (USDOT SMART Grants, ARPA-IT/CARS).
+            Tell us which corridor gives your team the most trouble. We will walk you through how Cruze works and what a pilot on that corridor would measure.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button onClick={() => handleBriefing("footer")} className="bg-brand-cyan hover:bg-brand-cyan/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6 h-12">
-              Get the briefing
+              Request a briefing
             </Button>
             <a
               href="mailto:cities@cruzemaps.com?subject=Cruze%20briefing%20request"
@@ -114,6 +110,14 @@ export default function ForCities() {
             </a>
           </div>
         </div>
+      </section>
+
+      <section id="contact" className="pb-24 container mx-auto px-6 max-w-2xl text-center">
+        <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Talk to us</h2>
+        <p className="text-white/60 mb-8">
+          Name the corridor, the agency and the problem. A person on the team will reply.
+        </p>
+        <ContactForm />
       </section>
     </MarketingLayout>
   );

@@ -7,20 +7,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { motion } from "framer-motion";
-import { ArrowRight, Truck, Fuel, Clock, Wallet, Leaf, ShieldCheck, Cable } from "lucide-react";
+import { ArrowRight, Truck, Fuel, Clock, Wallet, Leaf, ShieldCheck, Cable, Volume2, Gauge } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { track } from "@/lib/analytics";
+import ContactForm from "@/components/v3/ContactForm";
 
 export default function ForFleets() {
   const navigate = useNavigate();
 
-  const handleTryDemo = () => {
-    track("demo_role_activated", { role: "fleet_owner", from: "/for-fleets" });
-    // Audit #1: open the demo in a NEW tab and route through /demo so the
-    // demo_role write only happens in the new tab's sessionStorage. Routes
-    // through /demo (not /login?demo=...) because the Login URL bypass is
-    // gated to import.meta.env.DEV; /demo is the production-safe handoff.
-    window.open("/demo?role=fleet_owner", "_blank", "noopener");
+  // Demo mode is dev-only (T16), so the secondary CTA scrolls to the
+  // talk-to-the-team form at the bottom of this page instead.
+  const handleTalk = (location: string) => {
+    track("fleet_cta_click", { cta: "talk_to_team", location });
+    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleApply = (location: string) => {
@@ -36,7 +35,7 @@ export default function ForFleets() {
           "@type": "Product",
           name: "Cruze for Fleets",
           description:
-            "Swarm-coordinated routing software for trucking and last-mile fleets. Cuts fuel use 8–14% and recaptures driver-hours lost to congestion.",
+            "Speed-coordination software for trucking and last-mile fleets. Cruze spots stop-and-go waves forming ahead and cues drivers to ease off early, so trucks roll through instead of braking. Every pilot is measured on the fleet's own trucks against a control group.",
           brand: { "@type": "Brand", name: "Cruze" },
           offers: {
             "@type": "Offer",
@@ -47,17 +46,18 @@ export default function ForFleets() {
         }}
       />
 
-      <Hero onTryDemo={handleTryDemo} onApply={() => handleApply("hero")} />
+      <Hero onTalk={() => handleTalk("hero")} onApply={() => handleApply("hero")} />
       <ROISection />
       <BenefitsGrid />
       <ComparisonStrip />
       <IntegrationStrip />
       <CTAStrip onApply={() => handleApply("footer")} />
+      <ContactSection />
     </MarketingLayout>
   );
 }
 
-function Hero({ onTryDemo, onApply }: { onTryDemo: () => void; onApply: () => void }) {
+function Hero({ onTalk, onApply }: { onTalk: () => void; onApply: () => void }) {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/10 via-transparent to-brand-cyan/10 pointer-events-none" />
@@ -70,18 +70,18 @@ function Hero({ onTryDemo, onApply }: { onTryDemo: () => void; onApply: () => vo
             Stop paying for <span className="text-brand-orange">stop-and-go</span>.
           </h1>
           <p className="text-white/70 text-lg mb-8 max-w-lg">
-            Cruze coordinates speeds across your drivers, and the swarm around them, to dissolve phantom jams. Pilots show 8 to 14% fuel reduction and 1 to 2 hours per week reclaimed per driver.
+            Every stop-and-go wave makes a loaded truck brake, then burn diesel to get back up to speed. Cruze spots the wave forming ahead and cues your driver to ease off a few miles per hour early, so the truck rolls through it. Then we measure the result on your trucks, against a control group, using your own ELD fuel data. You see every number.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button onClick={onApply} className="bg-brand-orange hover:bg-brand-orange/90 text-[#0B0E14] font-bold tracking-wide rounded-full px-6 h-12">
               Apply for the Pilot <ArrowRight className="ml-2" size={16} />
             </Button>
-            <Button onClick={onTryDemo} variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-full px-6 h-12">
-              Try the live demo
+            <Button onClick={onTalk} variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-full px-6 h-12">
+              Talk to the team
             </Button>
           </div>
           <p className="text-white/40 text-sm mt-4">
-            No credit card. The demo loads a pre-populated fleet dashboard.
+            Questions first? Send the team a note.
           </p>
         </motion.div>
 
@@ -100,7 +100,7 @@ function Hero({ onTryDemo, onApply }: { onTryDemo: () => void; onApply: () => vo
   );
 }
 
-// ROI calculator. Numbers are illustrative pilot averages; tune as data grows.
+// ROI calculator. Numbers are planning assumptions, not pilot results; replace with measured data once pilots report.
 // Exported (alongside ComparisonStrip below) so the component test suite can
 // mount these two logic-bearing sections in isolation without dragging in the
 // full MarketingLayout (Navbar -> useAuth -> Supabase).
@@ -125,7 +125,7 @@ export function ROISection() {
   };
 
   const result = useMemo(() => {
-    // Conservative assumptions: 11% fuel reduction, 1.5 hours/week reclaimed/driver,
+    // Planning assumptions, not measured results: 11% fuel reduction, 1.5 hours/week reclaimed/driver,
     // 10.21 kg CO2 per gallon of diesel (EPA), and a 15% cut in the
     // congestion-related crash subset (see the CSA block below).
     const annualMiles = trucks * milesPerTruckYear;
@@ -167,7 +167,7 @@ export function ROISection() {
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">See your savings.</h2>
           <p className="text-white/60 max-w-2xl mx-auto">
-            Drop in your fleet specs. We use conservative pilot averages: 11% fuel reduction, 1.5 reclaimed driver-hours per week, and a 15% cut in congestion-related crashes.
+            Drop in your fleet specs. This calculator uses planning assumptions, not pilot results: 11% fuel reduction, 1.5 reclaimed driver-hours per week, and a 15% cut in congestion-related crashes. A pilot replaces them with your own measured numbers.
           </p>
         </div>
 
@@ -282,14 +282,14 @@ function ResultRow({ icon, label, value }: { icon: React.ReactNode; label: strin
 
 function BenefitsGrid() {
   const items = [
-    { icon: Fuel, title: "8–14% fuel reduction", body: "Coordinated speeds eliminate the brake-then-accelerate cycle that consumes the most diesel per mile." },
-    { icon: Clock, title: "1–2 hrs/week per driver", body: "Stop-and-go time recaptured. Drivers run fewer disrupted segments and arrive on schedule more often." },
-    { icon: ShieldCheck, title: "Fewer rear-end events", body: "Smoother flow lowers sudden-stop incidents, which translates directly to insurance favorability." },
-    { icon: Leaf, title: "Audit-ready CO₂ ledger", body: "Per-truck emissions reduction tracked in a SOC 2-aligned dashboard. CDP/CSRD-ready exports." },
+    { icon: Fuel, title: "The fuel is in the wave", body: "A loaded 80,000 lb truck that brakes in a wave turns its momentum into brake heat, then burns diesel to win it back. Congestion cost U.S. trucking 6.4 billion gallons of diesel in 2022 (ATRI, Cost of Congestion to the Trucking Industry, 2024 update)." },
+    { icon: Gauge, title: "One steady vehicle in twenty", body: "In a University of Arizona field test, one car holding a steady speed in a ring of about twenty damped the stop-and-go wave and cut fuel use across all of them by up to 40%, with far fewer hard brakes (Stern et al., Transportation Research Part C, 2018). That is published research, not a Cruze result." },
+    { icon: Volume2, title: "\u201cEase to 55\u201d", body: "When a wave is forming ahead, your driver hears one short voice cue to ease off a few miles per hour. It is a suggestion, never a command, and hands stay on the wheel." },
+    { icon: ShieldCheck, title: "Measured on your trucks", body: "Your pilot runs coordinated trucks against a control group on the same lanes, using fuel and braking data from your own ELD. You see every number." },
   ];
   return (
     <section className="py-24 container mx-auto px-6">
-      <h2 className="font-display text-3xl md:text-5xl font-bold mb-12 text-center">Why fleet owners choose Cruze</h2>
+      <h2 className="font-display text-3xl md:text-5xl font-bold mb-12 text-center">Where the savings come from</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {items.map((it) => (
           <Card key={it.title} className="bg-[#0F131C] border-white/10 hover:border-brand-orange/30 transition-colors">
@@ -313,7 +313,7 @@ export function ComparisonStrip() {
     { feature: "Predicts congestion", cruze: true, others: true },
     { feature: "Coordinates driver speeds with the swarm", cruze: true, others: false },
     { feature: "Dissolves phantom jams before they form", cruze: true, others: false },
-    { feature: "Audit-grade CO₂ ledger", cruze: true, others: false },
+    { feature: "Logs every speed advisory and driver acknowledgement", cruze: true, others: false },
     { feature: "Works without new hardware", cruze: true, others: false },
   ];
   return (
@@ -350,17 +350,30 @@ export function ComparisonStrip() {
 }
 
 function IntegrationStrip() {
-  const integrations = ["Samsara", "Geotab", "Motive", "Verizon Connect", "Trimble", "Omnitracs"];
+  const integrations = ["Samsara", "Motive"];
   return (
     <section className="py-16 container mx-auto px-6 text-center">
       <div className="flex items-center justify-center gap-2 text-white/50 text-xs uppercase tracking-widest mb-6">
-        <Cable size={14} /> Plugs into your existing FMS in under a day
+        <Cable size={14} /> Built-in ELD integrations
       </div>
       <div className="flex flex-wrap justify-center gap-6 text-white/60 font-display">
         {integrations.map((i) => (
           <span key={i} className="px-4 py-2 rounded-full bg-white/5 border border-white/10">{i}</span>
         ))}
       </div>
+      <p className="text-white/50 text-sm mt-6">Samsara and Motive today. Other ELDs on request.</p>
+    </section>
+  );
+}
+
+function ContactSection() {
+  return (
+    <section id="contact" className="py-24 container mx-auto px-6 max-w-2xl text-center">
+      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Talk to the team</h2>
+      <p className="text-white/60 mb-8">
+        Tell us about your fleet and lanes. We will tell you what a pilot on your trucks would measure.
+      </p>
+      <ContactForm />
     </section>
   );
 }

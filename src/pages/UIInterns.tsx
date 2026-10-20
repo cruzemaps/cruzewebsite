@@ -339,16 +339,16 @@ const UIInterns = () => {
                     <div className="w-10 h-10 rounded-full bg-brand-orange/10 flex items-center justify-center mr-2 border border-brand-orange/20">
                         <Plus className="w-5 h-5 text-brand-orange" />
                     </div>
-                    {[
+                    {([
                         { type: 'speedometer', icon: <Gauge className="w-4 h-4" />, label: 'Metric' },
                         { type: 'suggested', icon: <Variable className="w-4 h-4" />, label: 'Target' },
                         { type: 'signal', icon: <TrafficCone className="w-4 h-4" />, label: 'State' },
                         { type: 'hazard', icon: <AlertTriangle className="w-4 h-4" />, label: 'Alert' },
                         { type: 'route', icon: <Navigation className="w-4 h-4" />, label: 'Path' },
-                    ].map(tool => (
-                        <Button 
+                    ] as const).map(tool => (
+                        <Button
                             key={tool.type}
-                            onClick={() => addItem(tool.type as any)}
+                            onClick={() => addItem(tool.type)}
                             variant="ghost" 
                             className="h-10 rounded-full text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-white hover:bg-white/5 px-4"
                         >

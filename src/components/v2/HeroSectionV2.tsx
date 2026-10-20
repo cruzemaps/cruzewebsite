@@ -147,7 +147,7 @@ const HeroSectionV2 = () => {
                     {/* Floating Data Badge */}
                     <div className="bg-white/10 text-white border border-white/20 px-4 py-2 rounded-xl backdrop-blur-xl flex items-center gap-2 shadow-2xl translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100">
                          <span className="text-xs font-mono uppercase text-white/60">Flow</span>
-                         <span className="text-brand-cyan font-bold">+86%</span>
+                         <span className="text-brand-cyan font-bold">Stabilizing</span>
                     </div>
                   </div>
 

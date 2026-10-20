@@ -1,8 +1,10 @@
 name: Test
 
 # Hard gate: type-check + the Vitest unit suite must pass on every PR and on
-# pushes to main. The suite is pure-logic over src/lib (no DOM), so it is fast
-# and deterministic. The production build stays gated separately by deploy.yml.
+# pushes to main, plus a production-build bundle check, the SQL tests in
+# supabase/tests and the Deno tests for edge functions. The unit suite is
+# pure-logic over src/lib (no DOM), so it is fast and deterministic. The
+# production build stays gated separately by deploy.yml.
 on:
   push:
     branches: [main]
@@ -32,3 +34,86 @@ jobs:
 
       - name: Unit tests
         run: npm test
+
+      - name: Production build has no demo, impersonation or diag code
+        # `npm run build` ends with scripts/check-prod-bundle.mjs, which fails if
+        # any dev-only demo/impersonation/diag marker is in dist/. Placeholder
+        # VITE_* values make the bundle match production, where analytics and
+        # Supabase code paths are not compiled away.
+        env:
+          VITE_POSTHOG_KEY: ci-placeholder
+          VITE_POSTHOG_HOST: https://example.invalid
+          VITE_SUPABASE_URL: https://example.invalid
+          VITE_SUPABASE_ANON_KEY: ci-placeholder
+        run: |
+          node --test scripts/check-prod-bundle.test.mjs
+          npm run build
+
+  db:
+    # SQL tests for security-critical RPCs, against a throwaway Postgres with a
+    # stub of the Supabase auth schema. Never touches a real project.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: start_impersonation (migration 017)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261017_017_start_impersonation.sql
+          -f supabase/tests/017_start_impersonation.test.sql
+
+      - name: close anon reads (migration 018)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t018"
+          && psql -h localhost -U postgres -d t018 -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261017_018_close_anon_reads.sql
+          -f supabase/tests/018_close_anon_reads.test.sql
+
+      - name: audit round 2, safe replacement for 011 (migration 019)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t019"
+          && psql -h localhost -U postgres -d t019 -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261018_019_audit_round2_safe.sql
+          -f supabase/tests/019_audit_round2_safe.test.sql
+
+      - name: contact messages inbox (migration 020)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t020"
+          && psql -h localhost -U postgres -d t020 -v ON_ERROR_STOP=1
+          -v base=supabase/migrations/20260617_015_contact_messages.sql
+          -v mig=supabase/migrations/20261018_020_contact_messages_inbox.sql
+          -f supabase/tests/020_contact_messages_inbox.test.sql
+
+  edge-functions:
+    # Deno unit tests for Supabase edge functions. No network calls to Discord
+    # or Supabase: the handlers get fake dependencies.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: notify-discord
+        run: deno test --no-lock supabase/functions/notify-discord/

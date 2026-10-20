@@ -3,13 +3,14 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { identifyUser, resetAnalytics } from "@/lib/analytics";
 import { toast } from "sonner";
+import { clearDemoSession, isDemoSession } from "@/lib/demoMode";
 
 export type AppRole = "admin" | "fleet_owner" | "city_operator";
 type AppStatus = "pending" | "active" | "suspended" | "archived";
 
 interface AuthContextType {
-  user: User | any | null;
-  session: Session | any | null;
+  user: User | null;
+  session: Session | null;
   role: AppRole | null;
   status: AppStatus | null;
   loading: boolean;
@@ -31,10 +32,18 @@ const AuthContext = createContext<AuthContextType>({
 // unauthenticated). DO NOT fall back to user_metadata.role: that field is
 // user-controllable at signup and bypassing the privilege-escalation fix in
 // migration 001 would re-open the security hole.
-function readClaims(session: Session | null | undefined): { role: AppRole | null; status: AppStatus | null } {
+export function readClaims(session: Session | null | undefined): { role: AppRole | null; status: AppStatus | null } {
   if (!session?.access_token) return { role: null, status: null };
   try {
-    const payload = JSON.parse(atob(session.access_token.split(".")[1]));
+    const seg = session.access_token.split(".")[1];
+    if (!seg) return { role: null, status: null };
+    // JWT payloads are base64URL, not standard base64: atob() chokes on the
+    // '-'/'_' alphabet (and missing '=' padding), which would throw for any
+    // legitimate token whose payload happens to encode those chars and —
+    // via the catch below — deny a valid user. Normalize before decoding.
+    const b64 = seg.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded));
     const role = (payload.app_role as AppRole | undefined) ?? null;
     const status = (payload.app_status as AppStatus | undefined) ?? null;
     return { role, status };
@@ -44,8 +53,8 @@ function readClaims(session: Session | null | undefined): { role: AppRole | null
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | any | null>(null);
-  const [session, setSession] = useState<Session | any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [status, setStatus] = useState<AppStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,9 +103,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ? (sessionStorage.getItem("demo_role") as AppRole | null)
       : null;
     if (demoRole) {
-      const fakeUser = { id: `demo-${demoRole}-123`, email: `demo@${demoRole}.com`, user_metadata: { role: demoRole } };
+      // Demo-only partial shapes (dev-gated above). Cast here rather than
+      // widening the context type to `any` for every consumer — only `id`,
+      // `email`, and `access_token`/`user` are ever read off these.
+      const fakeUser = { id: `demo-${demoRole}-123`, email: `demo@${demoRole}.com`, user_metadata: { role: demoRole } } as unknown as User;
       setUser(fakeUser);
-      setSession({ access_token: "dummy-token", user: fakeUser });
+      setSession({ access_token: "dummy-token", user: fakeUser } as unknown as Session);
       setRole(demoRole);
       setStatus("active");
       setLoading(false);
@@ -231,14 +243,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
       if (realtimeChannel) supabase.removeChannel(realtimeChannel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signOut = async () => {
-    if (sessionStorage.getItem("demo_role")) {
-      sessionStorage.removeItem("demo_role");
-      sessionStorage.removeItem("demo_status");
-      sessionStorage.removeItem("impersonated_user_id");
+    // isDemoSession() is always false in production, so a stray demo_role key
+    // can never stop a real user's Supabase session from being signed out.
+    if (isDemoSession()) {
+      clearDemoSession();
       resetAnalytics();
       window.location.href = "/login";
       return;

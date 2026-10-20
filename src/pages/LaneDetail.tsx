@@ -5,7 +5,7 @@ import { findLane } from "@/content/lanes";
 import { findCity } from "@/content/cities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, MapPin, Truck, Clock, TrendingDown, Fuel } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Truck, Clock, Fuel } from "lucide-react";
 import { SITE } from "@/lib/seo";
 
 export default function LaneDetail() {
@@ -14,18 +14,14 @@ export default function LaneDetail() {
 
   if (!lane) return <Navigate to="/lanes" replace />;
 
-  // Per-trip projections at conservative pilot averages
-  const reclaimableHours = +(lane.congestionDelayHours * 0.4).toFixed(1);
-  // Class 8 at 6.5 mpg averaging $3.85/gal: per-trip fuel ≈ distance/6.5 * $3.85
-  const tripGallons = +(lane.distanceMiles / 6.5).toFixed(1);
-  const tripFuelCost = +(tripGallons * 3.85).toFixed(0);
-  const tripFuelSaved = +(tripFuelCost * 0.11).toFixed(0);
+  // Class 8 at 6.5 mpg: per-trip fuel burn ≈ distance / 6.5
+  const tripGallons = Math.round(lane.distanceMiles / 6.5);
 
   const originCity = findCity(lane.metroEndpoints[0]);
   const destCity = findCity(lane.metroEndpoints[1]);
 
   const title = `${lane.origin} to ${lane.destination} | Cruze Lane Coordination`;
-  const description = `${lane.origin} to ${lane.destination} via ${lane.primaryRoute}: ${lane.distanceMiles} miles, ${lane.averageDriveTimeHours}h typical drive with +${lane.congestionDelayHours}h peak congestion delay. See Cruze's per-trip impact for fleets running this lane.`;
+  const description = `${lane.origin} to ${lane.destination} via ${lane.primaryRoute}: ${lane.distanceMiles} miles, ${lane.averageDriveTimeHours}h typical drive with +${lane.congestionDelayHours}h peak congestion delay. See what a Cruze pilot measures for fleets running this lane.`;
 
   return (
     <MarketingLayout>
@@ -70,8 +66,8 @@ export default function LaneDetail() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           <StatTile icon={<MapPin size={18} />} label="Distance" value={`${lane.distanceMiles} mi`} />
           <StatTile icon={<Clock size={18} />} label="Typical drive" value={`${lane.averageDriveTimeHours} h`} />
-          <StatTile icon={<TrendingDown size={18} />} label="Reclaimable / trip" value={`~${reclaimableHours} h`} accent />
-          <StatTile icon={<Fuel size={18} />} label="Fuel saved / trip" value={`~$${tripFuelSaved}`} accent />
+          <StatTile icon={<Clock size={18} />} label="Peak delay / trip" value={`+${lane.congestionDelayHours} h`} accent />
+          <StatTile icon={<Fuel size={18} />} label="Fuel burn / trip" value={`~${tripGallons} gal`} accent />
         </div>
 
         <Card className="bg-[#0F131C] border-white/10 mb-8">
@@ -81,9 +77,7 @@ export default function LaneDetail() {
               At free flow, this lane runs {lane.distanceMiles} miles via {lane.primaryRoute} in roughly {lane.averageDriveTimeHours} hours. Peak periods add about {lane.congestionDelayHours} hours of delay, almost entirely caused by phantom-jam waves in the metro endpoints.
             </p>
             <p className="text-white/70 leading-relaxed">
-              For a 50-truck fleet running this lane daily, the projected annual recovery is{" "}
-              <strong className="text-brand-cyan">{Math.round(reclaimableHours * 50 * 250)} driver-hours</strong> and{" "}
-              <strong className="text-brand-cyan">${(tripFuelSaved * 50 * 250).toLocaleString()}</strong> in fuel, before accounting for downstream insurance and maintenance benefits.
+              A Cruze pilot on this lane measures fuel use, hard-braking events and delay for coordinated trucks against a control group running the same lane, so any savings are your own measured numbers rather than a projection.
             </p>
           </CardContent>
         </Card>

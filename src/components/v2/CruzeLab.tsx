@@ -42,7 +42,7 @@ const CruzeLab = () => {
     lastUpdateRef.current = now;
 
     setCars(prevCars => {
-      let newCars = [...prevCars];
+      const newCars = [...prevCars];
       
       for (let i = 0; i < NUM_CARS; i++) {
         const car = newCars[i];
