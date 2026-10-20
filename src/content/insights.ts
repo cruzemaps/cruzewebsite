@@ -264,6 +264,66 @@ Next time you are stuck, run the test. Watch whether the front of the jam stays 
     tags: ["fundamentals", "traffic-physics"],
   },
   {
+    slug: "does-eco-driving-save-fuel",
+    title: "Does eco-driving actually save fuel? Speed smoothing for fleets, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-10-13",
+    excerpt:
+      "Smoothing out hard acceleration and braking really does cut fuel use, by a few durable percent for a trained fleet. But an individual driver can only smooth their own pedal, not the stop-and-go wave coming at them. Here is what the evidence shows, and where its ceiling is.",
+    body: `Yes, but modestly and reliably rather than dramatically, and the honest version of the answer matters for a fleet deciding where to spend. Eco-driving means smoothing out the parts of driving that waste fuel: hard acceleration, hard braking, and the stop-and-go surging that comes with them. In a controlled trial of Norwegian truck drivers, training plus monthly follow-ups cut diesel use by about 5 to 9 percent, and that lines up with the physics, because aggressive, surging driving can lower a vehicle's fuel economy by 10 to 40 percent in stop-and-go traffic. A few percent of a fleet's fuel bill is real money. The catch, which most eco-driving pitches skip, is that a driver can only smooth their own inputs, not the road in front of them.
+
+## Why smooth driving burns less fuel
+
+Every time you accelerate, you spend fuel to give the vehicle kinetic energy. Every time you brake, you throw almost all of that energy away as heat in the brakes. A brake-then-accelerate cycle is a round trip that buys you nothing and bills you twice: once to build the speed, once to build it again after you scrubbed it off. Steady cruising avoids that waste and keeps the engine working in its efficient band instead of repeatedly spooling up from low revs.
+
+The effect is bigger the heavier the vehicle, because kinetic energy scales with mass. A loaded Class 8 tractor-trailer can weigh around 36,000 kilograms, so each unnecessary slowdown-and-recovery throws away a large amount of energy. We put numbers on that round trip in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go): for a Class 8 truck at highway speeds, brake-then-accelerate cycles can consume several times the fuel-per-mile of steady cruise.
+
+The cleanest public figure for how much driving style matters comes from the U.S. Department of Energy. Its fueleconomy.gov guidance states that aggressive driving, meaning speeding, rapid acceleration, and hard braking, "can lower your gas mileage by roughly 15% to 30% at highway speeds and 10% to 40% in stop-and-go traffic." Those ranges trace back to an Oak Ridge National Laboratory study led by John Thomas, published by SAE International in 2017, which built a vehicle energy model and ran driving experiments to isolate the cost of aggressive style. (Sources: U.S. DOE fueleconomy.gov, "Driving More Efficiently"; Thomas et al., "Fuel Consumption Sensitivity of Conventional and Hybrid Electric Light-Duty Gasoline Vehicles to Driving Style," SAE Int. J. Fuels Lubr., 2017.) That study measured light-duty passenger cars, not trucks, so treat it as the mechanism rather than a truck number, but the mechanism is exactly the one a heavier vehicle feels more of, not less.
+
+> A brake-then-accelerate cycle is a round trip that buys you nothing and bills you twice: once to build the speed, and once to build it again after you threw it away.
+
+## What eco-driving training actually delivers
+
+The strongest evidence that you can turn this physics into fleet savings is a randomized controlled experiment on real trucks. Pinchasik and colleagues at Norway's Institute of Transport Economics tested an eco-driving course combined with active monthly follow-ups and non-monetary incentives against a control group, using in-vehicle device data to measure the result. Drivers who got the training and the follow-ups cut diesel consumption by roughly 5 to 9 percent, and, unusually for this kind of study, the effect persisted rather than fading away. (Source: Pinchasik, Hovi, Bø, and Mjøsund, "Can active follow-ups and carrots make eco-driving stick? Findings from a controlled experiment among truck drivers in Norway," Energy Research & Social Science, volume 75, 2021.)
+
+Two honest caveats about that number. First, the sample was small, around 14 drivers at one company, so read 5 to 9 percent as a credible indicative range, not a precise fleet-wide promise. Second, the authors found the largest savings came from engine and gear management, not from any single pedal habit, which is a useful warning against over-selling "just accelerate gently" as the whole story.
+
+The result that travels best is the one about durability. The reason many eco-driving programs disappoint is not that the technique fails, it is that a one-off training day fades within weeks as drivers drift back to old habits. What made the Norwegian savings stick was the active follow-up, the monthly loop that kept the behavior in front of drivers. That is the real design lesson for a fleet: eco-driving is a sustained program, not a seminar.
+
+## Running it as a fleet program: what moves the needle
+
+The practical levers are well established and worth doing:
+
+- **Anticipate and coast.** Reading the road far enough ahead to lift off early and roll toward a stop, instead of holding speed and braking late, avoids both the braking loss and the re-acceleration that follows.
+- **Gentle acceleration and steady speed.** Smooth throttle keeps the engine efficient and avoids the surging that fuel economy punishes most.
+- **Cut avoidable idling.** A stationary engine makes zero miles per gallon, so time spent idling is pure loss on top of the moving-vehicle savings.
+- **Coach with the telematics you already have.** Most fleets already log harsh-acceleration and harsh-braking events. The value is not the dashboard, it is a regular feedback loop that turns those events into a conversation, which is the follow-up mechanism the Norwegian trial showed is what makes savings last.
+
+None of this is exotic. The hard part is sustaining it across a driver roster with real turnover, which is why the durable-effect finding matters more than any headline percentage.
+
+## The ceiling: one smooth driver cannot smooth the road
+
+Here is the limit that an honest fleet analysis has to include. A driver controls their own pedal. They do not control the brake lights that appear 200 meters ahead. When a stop-and-go wave rolls back through traffic, the slowdown is forced on every vehicle it reaches, and the brake-then-accelerate cycle that wastes the fuel is not a choice anyone made, it is the road imposing it. You cannot eco-drive your way out of a jam you are already stuck in.
+
+And a large share of that stop-and-go is not caused by crashes or bottlenecks at all. It is self-generated, the phantom waves that form out of ordinary following behavior, which we explain in the pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams) and walk through from the driver's seat in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident). Eco-driving makes a driver a smaller contributor to those waves, which genuinely helps, but it leaves the biggest fuel sink, the surging the wave forces on them, untouched.
+
+## Where Cruze fits: eco-driving the whole stream
+
+Cruze is a traffic-intelligence company that predicts stop-and-go waves and guides a small share of drivers to smooth them out. The way to think about it is eco-driving moved up a level, from the individual pedal to the flow of the whole stream.
+
+The leverage comes from a striking result in the traffic-wave literature. In a 2018 ring-road experiment led by Raphael Stern, a single smoothly controlled vehicle among roughly twenty was enough to damp the stop-and-go wave for the entire loop, which we cover in [can a few drivers fix traffic for everyone](/insights/can-a-few-drivers-fix-traffic). A smooth adaptive-cruise system can help here or, tuned wrong, can make waves worse, a tension we unpack in [does adaptive cruise control prevent or cause traffic jams](/insights/does-adaptive-cruise-control-prevent-traffic-jams). The point is that keeping a wave from forming removes the forced surging that no amount of individual eco-driving can avoid, which is where the fuel actually goes. One well-placed smooth driver protects the fuel economy of everyone behind them.
+
+For a fleet, this stacks on top of a driver program rather than replacing it: train and reinforce smooth driving for the fuel you can control, and smooth the stream for the fuel the road currently forces you to burn. The scale of the prize is why it is worth it. The American Transportation Research Institute put the cost of congestion to the U.S. trucking industry at about 108.8 billion dollars and 6.4 billion gallons of wasted diesel in its 2024 analysis (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). A meaningful slice of that is stop-and-go that never needed to happen.
+
+One honesty note: Cruze is pre-pilot, so the stream-level numbers above are the published science and the mechanism, not a measured Cruze result. See how the advisory is meant to work for [fleets](/for-fleets) and for [cities](/for-cities).
+
+## The honest takeaway
+
+Eco-driving works. Smoothing your own acceleration and braking cuts fuel by a few percent, and the savings last if you reinforce them instead of treating training as a one-time event. For a fleet burning millions of gallons a year, a few durable percent is worth the program on its own. But its ceiling is the road itself: the most expensive surging is the kind the traffic forces on a driver, not the kind the driver chooses, and closing that gap means smoothing the wave, not just the pedal.`,
+    tags: ["fleet-ops", "economics"],
+  },
+  {
     slug: "do-ramp-meters-work",
     title: "Do ramp meters actually work? The on-ramp traffic light, explained",
     author: "Cruze Research",
