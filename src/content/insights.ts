@@ -14,6 +14,134 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "how-traffic-cameras-measure-flow",
+    title: "How do traffic cameras measure traffic flow?",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-09-25",
+    excerpt:
+      "The cameras on the poles were mostly built for humans to watch, not to measure. Here is how a road's flow, speed, and density are actually pulled from a video feed, what a single still frame can and cannot tell you, and why that limit shapes what Cruze reads today.",
+    body: `A traffic camera measures flow by counting vehicles and tracking how fast they move through the scene, but the honest answer is more specific than that, because it depends entirely on whether you have one still frame or a sequence of frames over time. A single frame can tell you how packed a road is right now. It takes consecutive frames, with the same vehicles tracked from one to the next, to measure speed and true flow rate. That distinction is the whole science of reading traffic from video, and it is the reason different sensors on the same pole report very different things. This article explains the three numbers that describe any traffic stream, the sensors that measure them, what a camera specifically can and cannot extract, and how Cruze uses existing public cameras today.
+
+## The three numbers that describe any traffic stream
+
+Every way of measuring traffic is really trying to pin down three quantities, and they are tied together by one simple identity.
+
+- **Flow** (also called volume), the number of vehicles passing a point per hour. This is what most people mean by "how much traffic."
+- **Density**, the number of vehicles packed into a length of road, per mile per lane. This is how crowded the road looks in a snapshot.
+- **Speed**, how fast those vehicles are actually moving.
+
+The three are not independent. Flow equals density multiplied by space-mean speed, the relationship at the heart of traffic engineering since Bruce Greenshields first plotted it in 1935 (Greenshields, "A study of traffic capacity," Highway Research Board, 1935). The practical consequence is that you cannot fully describe a road with just one number. A road can be dense and slow (a jam) or dense and fast (heavy but free-flowing), and those are opposite situations that a single snapshot of "how many cars are in view" cannot always tell apart. Knowing which two of the three you have measured, and which one you inferred, is the difference between a real flow measurement and a guess.
+
+## The sensors, and what each one actually reads
+
+Different detectors measure different corners of that triangle. Cameras are only one option, and it helps to see them next to the alternatives.
+
+- **Inductive loop detectors.** The oldest and still the most common traffic sensor in the United States is not a camera at all. It is a loop of wire cut into the pavement that senses metal passing over it (FHWA Traffic Detector Handbook, Third Edition, 2006). A single loop reports volume (a count) and occupancy (the fraction of time a vehicle is sitting over it, a proxy for density). To get speed from loops you need two of them a fixed distance apart, a "speed trap," and you time how long a vehicle takes to cross from one to the other. One loop cannot measure speed directly; it estimates it by assuming an average vehicle length.
+- **Radar and microwave sensors.** Side-fire radar units mounted on a pole (the Wavetronix-style sensors many states now use) measure speed directly through the Doppler shift and count vehicles per lane, without cutting the pavement. They are a common modern replacement for loops.
+- **Video image processing.** This is the camera as a virtual loop. Software draws detection zones on the video image, and when pixels in a zone change as a vehicle passes, it registers a count, the same data a loop gives, but from a camera that was often already there. This approach was commercialized in the late 1980s and has been a workhorse ever since. It reads presence and volume well; it infers speed and struggles in rain, snow, glare, and darkness.
+- **Computer-vision object detection.** The modern version does not just watch a zone, it detects each vehicle as an object and, across frames, tracks it. That is what unlocks trajectories: real per-vehicle speed, lane changes, classification of cars versus trucks, and density from an actual count rather than a proxy. It is also the most demanding: it needs the frames, the compute, and careful calibration to turn pixels into feet.
+- **Probe and connected-vehicle data.** For completeness, the speed you see in a navigation app usually does not come from a camera at all. It comes from anonymized GPS pings off phones and connected cars (the kind of data behind INRIX's scorecards). That measures speed and travel time across a whole segment, but not a true count of every vehicle, and it misses anyone not carrying a reporting device.
+
+## What one still frame can and cannot tell you
+
+Here is the part that trips people up, and the part that matters most for any camera-based system. Reach for a single still image off a traffic feed and ask what it can honestly measure.
+
+From one frame you can read **density and occupancy**: how many vehicles are in view, how much of the visible road is covered, and therefore whether the scene looks like free flow or like stop-and-go. That is real, useful information about the state of the road at that instant.
+
+What one frame cannot give you is **speed or flow rate**. Speed is a change in position over time, so it requires at least two frames with the same vehicle located in both. Flow, the vehicles-per-hour number, likewise needs vehicles counted as they cross a line over an interval. A photograph freezes time, and the two most quoted traffic numbers are both defined by the passage of time. No amount of cleverness extracts a speed from a single instant.
+
+> A single still frame tells you how packed a road is right now. It takes a sequence of frames, tracking the same cars from one to the next, to tell you how fast they are moving. That gap is the whole science of measuring flow from video.
+
+This is not a pedantic point. It is exactly the kind of distinction that separates an honest capability claim from an inflated one, and it directly shapes what a camera-reading product can truthfully say it does today versus what it is building toward.
+
+## The honest limits of camera measurement
+
+Even with full video, cameras are not a magic sensor, and it is worth being straight about where they fall short.
+
+- **Occlusion.** A truck hides the cars behind it. In dense traffic, the exact moment you most want an accurate count, vehicles overlap in the image and counts get harder, not easier.
+- **Weather and light.** Rain, snow, fog, headlight glare, and night all degrade the image. This is why traffic worsens in bad weather in ways sensors also struggle to see clearly, a problem we cover in [why traffic gets worse when it rains](/insights/why-does-traffic-get-worse-in-the-rain).
+- **Calibration.** Turning pixels into feet per second requires knowing the camera's geometry. A miscalibrated view can report a plausible-looking speed that is simply wrong.
+- **A camera sees a spot, not a corridor.** One camera watches a few hundred feet. A backward-traveling stop-and-go wave, the kind explained in [why traffic happens with no accident](/insights/why-traffic-with-no-accident), can form and roll for miles between two cameras, unseen.
+
+None of this makes cameras useless. It makes them a sensor with a specific, knowable envelope, which is the only responsible way to use one.
+
+## Why measuring flow is the first step to fixing it
+
+You cannot improve what you cannot see. The whole reason to measure flow, density, and speed is that the difference between a road carrying the most cars it can and a road that has broken down into stop-and-go is a difference in these exact numbers, often just past a tipping point in density. A freeway carries its peak volume just below the density where it jams, not at it, and reading that state is how you know whether a road is about to tip.
+
+That measurement problem is also where the money is. U.S. drivers lost more than 4 billion hours and about $74 billion to congestion in 2024 (INRIX 2024 Global Traffic Scorecard), and much of that is stop-and-go that better information could help prevent rather than just endure. We put full numbers on that in [how much traffic actually costs](/insights/how-much-does-traffic-cost). And it is why the research on fixing flow, like the finding that guiding just one vehicle in twenty can damp a wave for everyone behind it, depends first on being able to see the wave forming (we cover that result in [can a few drivers fix traffic for everyone](/insights/can-a-few-drivers-fix-traffic)).
+
+## Where Cruze comes in
+
+Most of the cameras already on the poles were installed for a person in a traffic-management center to glance at, not to measure. [Cruze](/) reads existing public [traffic cameras](/cameras) and uses computer vision to read the state of a scene: how dense it is, and whether it looks like free flow or the onset of stop-and-go. That runs on the frames a public feed already provides, with no new hardware bolted to the road.
+
+We are deliberately precise about what that is today. Reading how packed a scene is from a frame is a present capability. Extracting per-vehicle speed and true flow over time, the temporal measurement that needs tracked vehicles across many frames, is the direction we are building, not a shipped number we would quote. Cruze is pre-pilot, and we make no traffic-reduction claims yet. The point of being this exact is the same reason the measurement itself has to be exact: a flow figure is only worth anything if you are honest about which of the three numbers you actually measured and which you inferred.
+
+For a [city or DOT](/for-cities), the appeal is measurement from cameras you already own, without a per-mile sensor build. For a [fleet](/for-fleets), it is the same reading turned toward the corridors where stop-and-go quietly burns fuel. And the reason none of it needs to wait on new lanes is the subject of [why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic): the bottleneck is usually information and coordination, not concrete. You can watch a phantom jam form and dissolve on our [homepage](/), and read the full physics in our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams).`,
+    tags: ["city-dot", "traffic-physics"],
+  },
+  {
+    slug: "do-navigation-apps-cause-traffic",
+    title: "Do navigation apps like Google Maps and Waze cause traffic?",
+    author: "Cruze Research",
+    publishedAt: "2026-09-18",
+    excerpt:
+      "Navigation apps hand every driver the individually fastest route, which is not the same as making the road network flow better. They are excellent at redistributing a jam and almost never able to remove one, and against a phantom wave they cannot help at all.",
+    body: `Yes and no, and the distinction is the whole point. Navigation apps do not create trips, so they do not cause congestion the way rush hour does. But by routing every driver onto whatever looks fastest right now, they move jams from one road to another, and in specific cases make total travel time worse for everyone. What they almost never do is remove a jam.
+
+## The short answer
+
+Navigation apps optimize one thing: your trip, right now. Waze, Google Maps, and Apple Maps read live speeds and hand each driver the individually fastest route. That is genuinely useful, and it is not the same as making the whole road network flow better. When millions of drivers each take the locally fastest path, traffic settles into what theory calls a user equilibrium, and a user equilibrium is provably not the arrangement that would minimize everyone's travel time together.
+
+> Navigation apps solve for your fastest route, not the road's best outcome. Those are different problems, and the gap between them is paid in everyone else's delay.
+
+## Selfish routing, and why it is not optimal
+
+The idea that individually rational route choices do not add up to an efficient network is old and well established. In 1952 the transport analyst John Glen Wardrop described the user equilibrium: traffic settles into a state where no single driver can find a faster route by switching, because every used route between two points already takes the same time. Drivers reach that state on their own. An app just gets them there faster and more completely.
+
+The trouble is that the user equilibrium is usually not the system optimum, the routing that would give the lowest total travel time across all drivers. Computer scientists Tim Roughgarden and Eva Tardos put a precise bound on the gap in "How bad is selfish routing?" (Journal of the ACM, 2002). For networks where each road's delay grows linearly with traffic, selfish routing is at most 33 percent worse than the coordinated optimum, a result known as the price of anarchy being 4/3. That number is reassuring in one sense, the damage is bounded, and damning in another: there is a real, structural cost to everyone chasing their own fastest path, and no app that optimizes per driver can close it.
+
+## Braess's paradox: when a new option makes everyone slower
+
+The strangest version of this was described by the mathematician Dietrich Braess in 1968. He showed that adding a new road to a congested network can increase travel time for every driver, even though no one is forced to use it. Each driver, acting selfishly, is drawn onto the tempting new link, and the shift leaves the whole network worse off than if the link had never been built.
+
+A navigation app is a Braess machine running in real time. It is constantly discovering the tempting shortcut, the residential street or frontage road that is momentarily faster, and pouring cars onto it until it too is saturated. The shortcut that was fast because no one used it stops being fast the moment the app sends everyone there.
+
+## What this looks like on real streets
+
+You have probably seen the local version. A highway backs up, and the app diverts a river of cars onto a parallel residential street that was never built to carry it. For a few minutes the cut-through is faster. Then it fills, the side street jams, and the people who live on the quiet road inherit a rush hour that used to stay on the freeway. Towns have responded by restricting through-traffic on residential streets during peak hours. Leonia, New Jersey, closed about 60 of its streets to non-residents during the morning and evening rush starting in January 2018, after navigation apps began routing drivers bound for the George Washington Bridge through its side streets (Lisa W. Foderaro, "Navigation Apps Are Turning Quiet Neighborhoods Into Traffic Nightmares," The New York Times, December 24, 2017). The apps did not add cars to the region. They relocated the jam onto streets that had no say in it.
+
+This is the same lesson as [induced demand and why adding lanes does not fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic): the network reorganizes around whatever new route or capacity appears, and the relief is smaller and shorter-lived than it looks.
+
+## Could an app route for the whole system instead?
+
+In principle, yes. If a single planner controlled every car, it could assign routes to minimize total travel time rather than each driver's own time, closing most of the price-of-anarchy gap. The catch is that doing so means sometimes telling a driver to take a slower route so that others gain more than that driver loses. No consumer app will do that, because a driver whose app deliberately routes them slower will switch to the app that does not. With several apps competing for the same drivers, each promising the individually fastest path, the market pushes the system back toward the selfish equilibrium, not away from it.
+
+Economists have a classic fix for the mismatch: price the congestion. Charging drivers for the delay they impose on everyone else, through tolls or congestion pricing, can in theory line up each driver's fastest choice with the system's best outcome. That works, but it is a policy lever a government pulls, not something a navigation app can do on its own. And it does nothing about the one kind of jam that forms even when every driver is already on the single best road.
+
+## Why apps are helpless against phantom jams
+
+That kind of jam is the [phantom traffic jam](/insights/phantom-traffic-jams), the stop-and-go wave that forms with no crash, no merge, and no bottleneck. We explain the mechanism in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident): dense traffic plus human reaction lag is enough, on its own, to spawn a wave that travels backward through the stream.
+
+An app cannot route around a phantom jam, for three reasons. It is not a fixed obstacle, so by the time the wave is dense enough to be detected and reported, it has already moved. Rerouting is a volume tool, not a stability tool: it sends you to a different road with the same humans and the same reaction delays, so the wave simply forms again somewhere new. And mass rerouting can seed the instability it is trying to escape, by pushing a slug of extra cars onto an alternate that then crosses its own density threshold. The jam does not disappear. It relocates.
+
+## Redistribute versus remove
+
+The honest way to describe navigation apps is that they are excellent redistribution tools and poor congestion-removal tools. Given a jam that already exists, they will often find you a faster way around it, and for a single trip that is a real benefit. What they cannot do, by design, is raise the actual capacity of the road network, because they only change where cars go, not how the stream behaves once it is dense.
+
+Congestion is expensive enough that the difference matters. In 2024 the typical U.S. driver lost 43 hours to congestion, about a full work week, at a cost of $771 in wasted time (INRIX 2024 Global Traffic Scorecard). Shuffling that delay between roads redistributes the bill. It does not shrink it.
+
+## Where Cruze is different
+
+Cruze does not start from the routing question at all. Instead of asking which road is fastest right now, it works on how the cars already on a road move together, so the stop-and-go wave never builds in the first place.
+
+It reads a corridor from existing traffic [cameras](/cameras), with no new hardware on the truck or the roadside, predicts where a wave is about to form, and gives a small share of drivers a gentle, well-timed speed cue so the gap ahead absorbs the disturbance before it grows. The research says you do not need many participants. In a University of Arizona ring-road experiment, one controlled car in a loop of about twenty was enough to damp the waves human drivers kept generating and to cut fuel use for the whole stream, not just the guided car (Stern et al., "Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments," Transportation Research Part C, 2018). We cover that result in [can a few drivers fix traffic for everyone](/insights/can-a-few-drivers-fix-traffic).
+
+That is a different lever from rerouting. An app changes which road you are on. Cruze changes how traffic flows on the road you are already on, which is the part that actually decides whether it jams. Cruze is pre-pilot and makes no traffic-reduction claims yet, but the distinction is the point: you cannot route your way out of a wave, you have to smooth it. For a [fleet](/for-fleets), the goal is smoother flow with fewer hard stops and less fuel burned rebuilding speed on congested corridors, measured on the fleet's own trucks during a pilot. For a [city or DOT](/for-cities), it is more throughput from the lanes you already own.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "do-ramp-meters-work",
     title: "Do ramp meters actually work? The on-ramp traffic light, explained",
     author: "Cruze Research",
@@ -798,7 +926,7 @@ Phantom jams sharpen the point. Even a wide, under-capacity highway will throw s
 
 Apps like Waze, Google Maps, and Apple Maps are genuinely excellent at one job: routing you around a jam that already exists. Given a fixed obstacle ahead, they will find you a faster path around it. But a phantom jam is not a fixed obstacle. It is a moving wave created by driver behavior in real time, and three things make it slip through the cracks of routing.
 
-First, by the time a wave is dense enough to be detected and reported, it is already there, and it is moving, so the "avoid this" instruction is chasing a target that has shifted by the time you act on it. Second, rerouting is a volume tool, not a stability tool: it moves cars from one road to another, but the road you get sent to has the same humans with the same reaction delays, so you can simply seed the instability somewhere new. Third, and most subtly, mass rerouting can intensify the very waves it is trying to escape by pushing a slug of extra cars onto an alternate that then crosses its own density threshold. The jam does not disappear. It relocates. We dig into this paradox in the [FAQ](/faq).
+First, by the time a wave is dense enough to be detected and reported, it is already there, and it is moving, so the "avoid this" instruction is chasing a target that has shifted by the time you act on it. Second, rerouting is a volume tool, not a stability tool: it moves cars from one road to another, but the road you get sent to has the same humans with the same reaction delays, so you can simply seed the instability somewhere new. Third, and most subtly, mass rerouting can intensify the very waves it is trying to escape by pushing a slug of extra cars onto an alternate that then crosses its own density threshold. The jam does not disappear. It relocates. We dig into this paradox, and the routing theory behind it, in [do navigation apps cause traffic?](/insights/do-navigation-apps-cause-traffic)
 
 ## Can 5% of drivers fix a traffic jam?
 
@@ -822,7 +950,7 @@ The limit, of course, is coordination. One patient driver helps locally, but a s
 
 ## Where Cruze comes in
 
-This is the exact problem [Cruze](/) is built to solve. Instead of routing one driver around a wave that already formed, Cruze works upstream of the wave itself. It reads the road from existing traffic cameras, no new hardware on the truck or the highway, predicts where a stop-and-go wave is about to form, and gives a small share of drivers a gentle, well-timed speed cue so the gap ahead absorbs the disturbance before it can grow. Keep the flow on the stable side of the threshold and the jam never builds in the first place. Same road, same cars, same number of vehicles, smoother flow.
+This is the exact problem [Cruze](/) is built to solve. Instead of routing one driver around a wave that already formed, Cruze works upstream of the wave itself. It reads the road from [existing traffic cameras](/insights/how-traffic-cameras-measure-flow), no new hardware on the truck or the highway, predicts where a stop-and-go wave is about to form, and gives a small share of drivers a gentle, well-timed speed cue so the gap ahead absorbs the disturbance before it can grow. Keep the flow on the stable side of the threshold and the jam never builds in the first place. Same road, same cars, same number of vehicles, smoother flow.
 
 It is the 5% finding turned into a product: change how a few drivers move, a few seconds early, and the whole stream behind them stops wave-jamming. For a [fleet](/for-fleets), the goal of that smoother flow is fewer hard stops and less fuel burned on congested corridors, measured on your own trucks during a pilot. For a [city or DOT](/for-cities), it is more throughput from the lanes you already own, measured from the [cameras](/cameras) already on the poles. You can watch a phantom jam form and then dissolve on our [homepage](/).
 
