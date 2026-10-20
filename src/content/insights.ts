@@ -142,6 +142,188 @@ That is a different lever from rerouting. An app changes which road you are on. 
     tags: ["fundamentals", "traffic-physics"],
   },
   {
+    slug: "how-much-fuel-does-an-idling-truck-burn",
+    title: "How much fuel does an idling truck burn? The hidden cost of going nowhere",
+    author: "Cruze Research",
+    publishedAt: "2026-08-21",
+    excerpt:
+      "A heavy truck burns about 0.8 gallons of diesel an hour doing nothing but idling. Across a fleet that quietly adds up to thousands of dollars per truck a year. Here is where the fuel actually goes, and which part of it is recoverable.",
+    body: `A heavy-duty truck at idle burns roughly 0.8 gallons of diesel per hour while producing zero miles (Argonne National Laboratory). That number looks small until you multiply it by how much of a truck's life is spent stopped: waiting to load, held in stop-and-go traffic, or resting overnight with the engine running to keep the cab warm. This article breaks down where idle fuel actually goes, puts a real dollar figure on it per truck and across the country, and is honest about which slice of that bill a flow product like Cruze can help with and which slice it cannot.
+
+## What counts as idling
+
+Idling is any time the engine is running while the truck is not moving. It falls into two very different buckets, and keeping them separate is the key to understanding the cost.
+
+- **Rest and workday idling.** The truck is parked. The engine runs to power heat, air conditioning, and cab electronics during a mandated rest break, or to keep systems live while waiting at a dock or a yard. This is the big, well-studied bucket.
+- **In-traffic idling.** The truck is stopped or crawling in congestion, at a light, or in a stop-and-go wave. The engine is doing the same wasteful thing, burning fuel to go nowhere, but in short repeated bursts across a shift rather than one long stretch.
+
+Both burn fuel at roughly the same idle rate. What differs is the cause, and therefore the fix.
+
+## The per-hour and per-year math
+
+Start with the single most-cited figure. Argonne National Laboratory estimates a heavy-duty truck consumes about 0.8 gallons of diesel for every hour it idles. The U.S. Department of Energy puts typical long-haul idling at around 1,800 hours per year per truck, burning roughly 1,500 gallons of diesel annually just at rest (U.S. Department of Energy, Alternative Fuels Data Center).
+
+At a diesel price of about 3.80 dollars a gallon, 1,500 gallons is roughly 5,700 dollars per truck per year spent producing no movement at all. That is before you count the extra engine wear: idling hours still age the engine, and many fleets treat one hour of idle as roughly equivalent to a set amount of mileage for maintenance planning.
+
+> A long-haul truck can spend around 1,800 hours a year with the engine running and the wheels still. At 0.8 gallons an hour, that is fuel you buy and never turn into a delivered mile.
+
+## The national bill
+
+Scaled across the fleet, idling is one of the largest avoidable fuel line items in trucking. Argonne estimates that rest-period idling by more than one million long-haul trucks consumes over 1 billion gallons of diesel every year in the United States, at a cost of around 3 billion dollars (Argonne National Laboratory). Counting every road vehicle, from passenger cars to heavy trucks, Argonne puts total fuel lost to idling at more than 6 billion gallons a year.
+
+That rest-period figure is separate from congestion. The American Transportation Research Institute found that highway congestion alone added 108.8 billion dollars in cost to the trucking industry in 2022 and wasted 6.4 billion gallons of diesel (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). A meaningful share of that congestion fuel is exactly the in-traffic idling and repeated brake-and-accelerate cycles that stop-and-go creates. We put the wider price of congestion in context in [how much does traffic actually cost](/insights/how-much-does-traffic-cost).
+
+## Why stop-and-go idling costs more than the idle rate suggests
+
+The 0.8-gallons-per-hour number understates the damage from in-traffic idling, because congestion does not just make a truck sit still. It makes it stop and start. A Class 8 tractor that has to brake to a halt and then accelerate a fully loaded rig back up to speed burns far more fuel per mile than one holding a steady cruise, and every one of those launches begins from an idle. So congestion charges the fleet twice: once for the fuel burned while stopped, and again for the fuel burned dragging 80,000 pounds back up to speed afterward. We break down that fuel curve in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go).
+
+The physics behind why that stop-and-go forms, often with no crash or bottleneck in sight, is the subject of our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams). The short version: in dense traffic a single tap of the brakes amplifies backward into a full stop, and every truck caught in that wave pays in idle fuel and re-acceleration fuel for a jam no one caused on purpose.
+
+## Which part of the idle bill is actually recoverable
+
+This is where honesty matters, because the two buckets have two different owners.
+
+**Rest and workday idling is a hardware and policy problem.** The proven fixes are auxiliary power units, battery or shore power at truck stops, bunk heaters, and automatic engine shutdown settings, along with anti-idling training and idle-tracking in telematics. A flow-optimization product does nothing for a truck parked overnight, and we will not pretend otherwise. If most of your idle hours are at rest, that is where the savings are, and idle-reduction technology is the well-documented answer.
+
+**In-traffic idling is a flow problem.** The fuel a truck burns stopped in a stop-and-go wave, and the fuel it burns launching out of it, is a function of how smoothly the surrounding traffic moves. That is the slice that better flow can touch. If the wave never forms, the truck does not stop, and it never pays the launch penalty.
+
+## Where Cruze fits, honestly
+
+[Cruze](/) works on the second bucket only. We read traffic flow from the [cameras already on the poles](/cameras), predict where a stop-and-go wave is about to form, and give a small share of drivers a gentle, well-timed speed cue so the wave is damped before it builds. The research basis is the 2018 University of Arizona result that guiding roughly one vehicle in twenty to hold a steadier speed can dissolve these waves for everyone behind them (Stern et al., Transportation Research Part C, 2018), which we cover in [can a few drivers fix traffic](/insights/can-a-few-drivers-fix-traffic).
+
+To be clear about our stage: Cruze is pre-pilot, and we make no idle-reduction or fuel-savings claims yet. Any per-truck benefit is modeled and would be measured against a fleet's own baseline during a pilot, not asserted here. What we can say is where the lever is. Rest-period idling is answered by idle-reduction hardware. In-traffic idling is answered by keeping the flow smooth in the first place, which is the problem we are built for.
+
+For a fleet, the practical takeaway is to split your idle hours before you shop for a fix. Pull the idle report from your telematics, separate parked idle from in-traffic idle, and match each to the right tool. If you run a fleet or a corridor and want to talk about the flow half of that bill, that is what we build for [fleets](/for-fleets) and [cities](/for-cities).`,
+    tags: ["fleet-ops", "economics"],
+  },
+  {
+    slug: "phantom-jam-vs-bottleneck",
+    title: "Phantom jam or real bottleneck? How to tell the difference",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-09-22",
+    excerpt:
+      "You are stopped dead on the freeway. Is it a crash up ahead, or a jam that formed out of nothing? The two look identical from the driver's seat, but they behave differently, and there are three quick tells that separate them, plus one reason it matters for how the road gets fixed.",
+    body: `There are two very different reasons a freeway grinds to a halt, and from the driver's seat they feel identical. One is a real bottleneck: a fixed spot where the road's capacity drops, like a crash, a lane closure, a work zone, a steep grade, or a merge that recurs at the same place every rush hour. The other is a phantom jam: stop-and-go that forms with no physical cause at all, purely from the way a dense stream of cars amplifies each other's braking. Telling them apart is easy once you know what to look for, and it matters, because the two problems are fixed in completely different ways. Here are the three tells, the physics underneath them, and why the distinction is the whole reason a company like Cruze can exist.
+
+## The short version
+
+A real bottleneck has a cause you can point to, and the head of the queue stays anchored at that spot. A phantom jam has no cause at the front, and the whole slow patch drifts backward against the direction of travel. If you crawl to the front of a jam and find a crash, a cone, or a hill, it was a bottleneck. If you reach the front and the road simply opens up with nothing there, you were just inside a phantom wave. That is the fastest field test there is.
+
+## Tell 1: is there something at the front?
+
+This is the single most reliable check. Bottlenecks are physical. When you finally reach the front of a bottleneck queue you see the reason: a fender-bender on the shoulder, a lane dropping from three to two, a police stop, a work crew, the crest of a hill where trucks slow down. The queue exists because the road can carry fewer cars per hour at that exact point than the number of cars trying to get through it.
+
+A phantom jam has no such front. You inch forward for ten minutes expecting a wreck, and then, without explanation, the cars ahead accelerate and the road is clear. Nothing happened. There was nothing to see. That eerie "wait, why were we even stopped?" moment is the signature of a phantom jam. We walk through exactly how that wall of brake lights builds from a single tap of the brakes in [why there is traffic when there's no accident](/insights/why-traffic-with-no-accident).
+
+## Tell 2: does the jam stay put, or does it travel?
+
+A bottleneck queue is anchored. Its head sits at the fixed obstruction and does not move; the tail grows upstream as more cars arrive and shrinks once demand falls below capacity. The location of the slowdown's front is pinned to the crash or the lane drop.
+
+A phantom jam moves. The whole cluster of stopped cars marches backward, upstream, against the flow of traffic, at a remarkably steady speed. In the famous 2008 experiment where researchers put cars on a circular track with no bottleneck at all, the spontaneous jam that formed drifted backward around the loop at roughly 20 km/h, about 12 mph (Sugiyama et al., "Traffic jams without bottlenecks," New Journal of Physics, 2008). The drivers kept moving forward through the jam while the jam itself moved the other way, like a standing wave that everyone passes through. We unpack that backward-marching behavior in [why traffic jams move backward](/insights/why-traffic-jams-move-backward) and the self-sustaining wave at its core in [what is a jamiton](/insights/what-is-a-jamiton).
+
+> The clean test is the front of the queue. If the front stays put, it is a bottleneck. If the whole jam is sliding backward while you drive forward through it, it is a phantom.
+
+## Tell 3: does it happen at the same place every day?
+
+Bottlenecks are creatures of habit. Because they are tied to fixed geometry, a recurring bottleneck shows up at the same interchange, the same on-ramp, the same curve, at the same time every weekday. If your commute jams at the identical half-mile every single evening, that is a structural bottleneck, not a phantom.
+
+Phantom jams are opportunistic. They form wherever traffic density happens to cross the tipping point, which can be a different stretch on different days. The one condition they all share is heavy but still-moving traffic. Below a critical density the road is stable and a stray brake tap fades out; above it, the same tap grows. That threshold, and the way throughput actually falls once you cross it, is the heart of the pillar guide, [phantom traffic jams: why traffic happens for no reason](/insights/phantom-traffic-jams).
+
+## The physics: two ways a road loses capacity
+
+Both jams trace back to the same underlying fact, that a freeway carries the most cars per hour just below the density where it breaks down, not at it. Push past that point and throughput drops. Engineers call this the capacity drop: a lane that was carrying 2,000 vehicles an hour can fall to 1,700 or 1,800 once flow breaks (Cassidy and Bertini, "Some traffic features at freeway bottlenecks," Transportation Research Part B, 1999).
+
+A bottleneck lowers that ceiling at one location. Fewer lanes, a merge, or a hill means the road at that spot simply cannot pass as many cars, so a queue forms whenever demand exceeds the local limit. The cause is geometric and permanent until you change the road or clear the incident.
+
+A phantom jam is different. There is no drop in the road's capacity anywhere. Instead, the stream of cars itself becomes unstable: at high density, human reaction time and the natural urge to over-brake mean one driver's small slowdown makes the next brake a little harder, and the next harder still, until a car near the back stops completely. The road never lost a lane. The drivers, collectively, manufactured a jam out of nothing but their own following behavior.
+
+The two also interact, which is why they can be confusing. A real bottleneck often throws off phantom-style waves: the stop-and-go you feel miles upstream of a crash is a wave that detached from the bottleneck and is now traveling back on its own. So the honest rule is about the front. A jam with an anchored, physical head is a bottleneck, even if it is shedding waves. A jam with no head at all is a pure phantom.
+
+## Why the difference decides the fix
+
+This is not a trivia distinction. It determines what actually works.
+
+If the problem is a bottleneck, you fix the location. You clear the incident, redesign the merge, meter the on-ramp so cars join in a controlled trickle instead of a capacity-breaking platoon (see [do ramp meters actually work](/insights/do-ramp-meters-work)), or, as a last resort, add capacity. Concrete and signals are the right tools when the constraint is physical.
+
+If the problem is a phantom jam, none of that helps, and this is the part most people get wrong. You cannot pour concrete to fix an instability. Widening the road does not remove the tendency of dense traffic to oscillate; it often just fills back up, which is the lesson of [why adding lanes doesn't fix traffic](/insights/why-adding-lanes-doesnt-fix-traffic). The only thing that dissolves a phantom jam is smoothing the driving behavior that creates it, damping the wave instead of amplifying it.
+
+The striking result from the traffic-wave literature is that this does not take many drivers. In a 2018 ring-road experiment, a single vehicle driving smoothly among roughly twenty was enough to damp the stop-and-go wave for the entire loop (Stern et al., Transportation Research Part C, 2018). Fewer than one car in twenty, driving steadily, changed the behavior of the whole group. We cover that finding in [can a few drivers fix traffic](/insights/can-a-few-drivers-fix-traffic).
+
+## Where Cruze fits, honestly
+
+That 2018 result is the reason Cruze exists. Phantom jams are the share of congestion that no road widening will ever remove, and they are dissolvable by a small number of well-timed, steady drivers. Cruze aims to be the software version of that steady driver: an in-cab speed advisory that keeps a driver smooth through the pulse of dense traffic, rather than a self-driving system or new roadside hardware.
+
+Telling the two jam types apart at scale is a real measurement problem, and it is the one we are working toward. The tell that separates them, whether the front of the jam holds still or marches backward, is something you can only see by watching a corridor over time, not from any single snapshot. Today Cruze reads [public traffic cameras](/cameras) one frame at a time to gauge how congested a stretch looks at that moment; turning those reads into the moving-front-versus-anchored-queue distinction described above is the direction we are building, not a capability we claim today. To be clear about our stage: Cruze is pre-pilot. Everything above is the published science and the mechanism we build on, not a measured Cruze result.
+
+The reason the distinction is worth this much attention is money and time. Congestion costs U.S. drivers an estimated $74 billion and roughly 4 billion hours a year (INRIX 2024 Global Traffic Scorecard), and the trucking industry alone about $108.8 billion and 6.4 billion gallons of wasted diesel (ATRI 2024). A meaningful slice of that is phantom stop-and-go that never needed to happen, and the fuel math of those brake-then-accelerate cycles is exactly what drains a fleet's margins, which we break down in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go). You can also see how the advisory is meant to work for [fleets](/for-fleets) and for [cities](/for-cities).
+
+## The honest takeaway
+
+Next time you are stuck, run the test. Watch whether the front of the jam stays in one place or slides backward past the mileposts, and notice what is actually there when you reach it. A crash or a lane drop means a bottleneck, and the fix lives at that spot. Nothing at all means you just rode through a phantom wave, a jam the road manufactured out of dense traffic and human reflexes, and the fix is not more asphalt. It is smoother driving, which is a problem software can help with, and the one we are building for.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
+    slug: "does-eco-driving-save-fuel",
+    title: "Does eco-driving actually save fuel? Speed smoothing for fleets, explained",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-10-13",
+    excerpt:
+      "Smoothing out hard acceleration and braking really does cut fuel use, by a few durable percent for a trained fleet. But an individual driver can only smooth their own pedal, not the stop-and-go wave coming at them. Here is what the evidence shows, and where its ceiling is.",
+    body: `Yes, but modestly and reliably rather than dramatically, and the honest version of the answer matters for a fleet deciding where to spend. Eco-driving means smoothing out the parts of driving that waste fuel: hard acceleration, hard braking, and the stop-and-go surging that comes with them. In a controlled trial of Norwegian truck drivers, training plus monthly follow-ups cut diesel use by about 5 to 9 percent, and that lines up with the physics, because aggressive, surging driving can lower a vehicle's fuel economy by 10 to 40 percent in stop-and-go traffic. A few percent of a fleet's fuel bill is real money. The catch, which most eco-driving pitches skip, is that a driver can only smooth their own inputs, not the road in front of them.
+
+## Why smooth driving burns less fuel
+
+Every time you accelerate, you spend fuel to give the vehicle kinetic energy. Every time you brake, you throw almost all of that energy away as heat in the brakes. A brake-then-accelerate cycle is a round trip that buys you nothing and bills you twice: once to build the speed, once to build it again after you scrubbed it off. Steady cruising avoids that waste and keeps the engine working in its efficient band instead of repeatedly spooling up from low revs.
+
+The effect is bigger the heavier the vehicle, because kinetic energy scales with mass. A loaded Class 8 tractor-trailer can weigh around 36,000 kilograms, so each unnecessary slowdown-and-recovery throws away a large amount of energy. We put numbers on that round trip in [the hidden cost of stop-and-go](/insights/fleet-economics-of-stop-and-go): for a Class 8 truck at highway speeds, brake-then-accelerate cycles can consume several times the fuel-per-mile of steady cruise.
+
+The cleanest public figure for how much driving style matters comes from the U.S. Department of Energy. Its fueleconomy.gov guidance states that aggressive driving, meaning speeding, rapid acceleration, and hard braking, "can lower your gas mileage by roughly 15% to 30% at highway speeds and 10% to 40% in stop-and-go traffic." Those ranges trace back to an Oak Ridge National Laboratory study led by John Thomas, published by SAE International in 2017, which built a vehicle energy model and ran driving experiments to isolate the cost of aggressive style. (Sources: U.S. DOE fueleconomy.gov, "Driving More Efficiently"; Thomas et al., "Fuel Consumption Sensitivity of Conventional and Hybrid Electric Light-Duty Gasoline Vehicles to Driving Style," SAE Int. J. Fuels Lubr., 2017.) That study measured light-duty passenger cars, not trucks, so treat it as the mechanism rather than a truck number, but the mechanism is exactly the one a heavier vehicle feels more of, not less.
+
+> A brake-then-accelerate cycle is a round trip that buys you nothing and bills you twice: once to build the speed, and once to build it again after you threw it away.
+
+## What eco-driving training actually delivers
+
+The strongest evidence that you can turn this physics into fleet savings is a randomized controlled experiment on real trucks. Pinchasik and colleagues at Norway's Institute of Transport Economics tested an eco-driving course combined with active monthly follow-ups and non-monetary incentives against a control group, using in-vehicle device data to measure the result. Drivers who got the training and the follow-ups cut diesel consumption by roughly 5 to 9 percent, and, unusually for this kind of study, the effect persisted rather than fading away. (Source: Pinchasik, Hovi, Bø, and Mjøsund, "Can active follow-ups and carrots make eco-driving stick? Findings from a controlled experiment among truck drivers in Norway," Energy Research & Social Science, volume 75, 2021.)
+
+Two honest caveats about that number. First, the sample was small, around 14 drivers at one company, so read 5 to 9 percent as a credible indicative range, not a precise fleet-wide promise. Second, the authors found the largest savings came from engine and gear management, not from any single pedal habit, which is a useful warning against over-selling "just accelerate gently" as the whole story.
+
+The result that travels best is the one about durability. The reason many eco-driving programs disappoint is not that the technique fails, it is that a one-off training day fades within weeks as drivers drift back to old habits. What made the Norwegian savings stick was the active follow-up, the monthly loop that kept the behavior in front of drivers. That is the real design lesson for a fleet: eco-driving is a sustained program, not a seminar.
+
+## Running it as a fleet program: what moves the needle
+
+The practical levers are well established and worth doing:
+
+- **Anticipate and coast.** Reading the road far enough ahead to lift off early and roll toward a stop, instead of holding speed and braking late, avoids both the braking loss and the re-acceleration that follows.
+- **Gentle acceleration and steady speed.** Smooth throttle keeps the engine efficient and avoids the surging that fuel economy punishes most.
+- **Cut avoidable idling.** A stationary engine makes zero miles per gallon, so time spent idling is pure loss on top of the moving-vehicle savings.
+- **Coach with the telematics you already have.** Most fleets already log harsh-acceleration and harsh-braking events. The value is not the dashboard, it is a regular feedback loop that turns those events into a conversation, which is the follow-up mechanism the Norwegian trial showed is what makes savings last.
+
+None of this is exotic. The hard part is sustaining it across a driver roster with real turnover, which is why the durable-effect finding matters more than any headline percentage.
+
+## The ceiling: one smooth driver cannot smooth the road
+
+Here is the limit that an honest fleet analysis has to include. A driver controls their own pedal. They do not control the brake lights that appear 200 meters ahead. When a stop-and-go wave rolls back through traffic, the slowdown is forced on every vehicle it reaches, and the brake-then-accelerate cycle that wastes the fuel is not a choice anyone made, it is the road imposing it. You cannot eco-drive your way out of a jam you are already stuck in.
+
+And a large share of that stop-and-go is not caused by crashes or bottlenecks at all. It is self-generated, the phantom waves that form out of ordinary following behavior, which we explain in the pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams) and walk through from the driver's seat in [why there is traffic when there is no accident](/insights/why-traffic-with-no-accident). Eco-driving makes a driver a smaller contributor to those waves, which genuinely helps, but it leaves the biggest fuel sink, the surging the wave forces on them, untouched.
+
+## Where Cruze fits: eco-driving the whole stream
+
+Cruze is a traffic-intelligence company that predicts stop-and-go waves and guides a small share of drivers to smooth them out. The way to think about it is eco-driving moved up a level, from the individual pedal to the flow of the whole stream.
+
+The leverage comes from a striking result in the traffic-wave literature. In a 2018 ring-road experiment led by Raphael Stern, a single smoothly controlled vehicle among roughly twenty was enough to damp the stop-and-go wave for the entire loop, which we cover in [can a few drivers fix traffic for everyone](/insights/can-a-few-drivers-fix-traffic). A smooth adaptive-cruise system can help here or, tuned wrong, can make waves worse, a tension we unpack in [does adaptive cruise control prevent or cause traffic jams](/insights/does-adaptive-cruise-control-prevent-traffic-jams). The point is that keeping a wave from forming removes the forced surging that no amount of individual eco-driving can avoid, which is where the fuel actually goes. One well-placed smooth driver protects the fuel economy of everyone behind them.
+
+For a fleet, this stacks on top of a driver program rather than replacing it: train and reinforce smooth driving for the fuel you can control, and smooth the stream for the fuel the road currently forces you to burn. The scale of the prize is why it is worth it. The American Transportation Research Institute put the cost of congestion to the U.S. trucking industry at about 108.8 billion dollars and 6.4 billion gallons of wasted diesel in its 2024 analysis (ATRI, Cost of Congestion to the Trucking Industry, 2024 update). A meaningful slice of that is stop-and-go that never needed to happen.
+
+One honesty note: Cruze is pre-pilot, so the stream-level numbers above are the published science and the mechanism, not a measured Cruze result. See how the advisory is meant to work for [fleets](/for-fleets) and for [cities](/for-cities).
+
+## The honest takeaway
+
+Eco-driving works. Smoothing your own acceleration and braking cuts fuel by a few percent, and the savings last if you reinforce them instead of treating training as a one-time event. For a fleet burning millions of gallons a year, a few durable percent is worth the program on its own. But its ceiling is the road itself: the most expensive surging is the kind the traffic forces on a driver, not the kind the driver chooses, and closing that gap means smoothing the wave, not just the pedal.`,
+    tags: ["fleet-ops", "economics"],
+  },
+  {
     slug: "do-ramp-meters-work",
     title: "Do ramp meters actually work? The on-ramp traffic light, explained",
     author: "Cruze Research",
@@ -1043,7 +1225,7 @@ The marginal-returns curve is non-linear. The first cuts in stop-and-go recover 
 
 The implication: pilot in the right places. Cruze aims to start on corridors where the stop-and-go it reads from the cameras sits in the steepest part of the curve, and to agree the measurement plan with fleet ops before the pilot starts, so everyone knows what will be counted.
 
-For the physics behind why that stop-and-go forms in the first place, see our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams).`,
+For the physics behind why that stop-and-go forms in the first place, see our pillar guide to [phantom traffic jams](/insights/phantom-traffic-jams). And for the fuel a truck burns while it is stopped rather than crawling, see [how much fuel an idling truck burns](/insights/how-much-fuel-does-an-idling-truck-burn).`,
     tags: ["fleet-ops", "economics"],
   },
   {
