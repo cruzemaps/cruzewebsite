@@ -2,7 +2,10 @@
 //
 // Cron-only (see wrangler.jsonc), no public routes.
 //   */5 * * * *  — posts to Discord when any Worker threw, hit the CPU limit,
-//                  or otherwise failed in the last check window.
+//                  or otherwise failed in the last check window. Also probes
+//                  api.cruzemaps.com (/health, /readyz) and posts when a
+//                  target goes down or recovers; state machine in apiProbe.ts,
+//                  state kept in the WATCHDOG_STATE KV namespace.
 //   0 14 * * *   — daily digest: yesterday's requests vs the free-plan cap,
 //                  failures per Worker. Doubles as a heartbeat: if the digest
 //                  stops arriving, the watchdog itself is broken.
@@ -10,10 +13,21 @@
 // Data comes from the GraphQL Analytics API, which needs a token scoped to
 // Account Analytics: Read. Both secrets are set via `wrangler secret put`.
 
+import {
+  TARGETS,
+  classify,
+  message,
+  step,
+  unreachable,
+  type ProbeResult,
+  type TargetState,
+} from "./apiProbe";
+
 interface Env {
   CF_ACCOUNT_ID: string;
   CF_API_TOKEN: string;
   DISCORD_WEBHOOK_URL: string;
+  WATCHDOG_STATE: KVNamespace;
 }
 
 interface Row {
@@ -55,19 +69,74 @@ const QUERY = `query($account: String!, $start: Time!, $end: Time!) {
   }
 }`;
 
+// api.cruzemaps.com is served through a Cloudflare Tunnel from the laptop.
+const PROBE_TIMEOUT_MS = 10_000;
+
 export default {
   async scheduled(controller: ScheduledController, env: Env): Promise<void> {
-    if (!env.CF_API_TOKEN || !env.DISCORD_WEBHOOK_URL) {
-      console.warn("watchdog idle: CF_API_TOKEN / DISCORD_WEBHOOK_URL not set");
+    if (!env.DISCORD_WEBHOOK_URL) {
+      console.warn("watchdog idle: DISCORD_WEBHOOK_URL not set");
       return;
     }
     if (controller.cron === "0 14 * * *") {
+      if (!env.CF_API_TOKEN) return console.warn("digest skipped: CF_API_TOKEN not set");
       await dailyDigest(env, controller.scheduledTime);
-    } else {
-      await errorCheck(env, controller.scheduledTime);
+      return;
     }
+    // The two checks are independent; one failing must not silence the other.
+    const results = await Promise.allSettled([
+      env.CF_API_TOKEN
+        ? errorCheck(env, controller.scheduledTime)
+        : Promise.resolve(console.warn("error check skipped: CF_API_TOKEN not set")),
+      apiProbe(env, controller.scheduledTime),
+    ]);
+    for (const r of results) if (r.status === "rejected") console.error(r.reason);
   },
 };
+
+async function apiProbe(env: Env, now: number): Promise<void> {
+  if (!env.WATCHDOG_STATE) {
+    console.warn("api probe skipped: WATCHDOG_STATE KV binding missing");
+    return;
+  }
+  await Promise.all(TARGETS.map((target) => probeTarget(env, target, now)));
+}
+
+async function probeTarget(env: Env, target: string, now: number): Promise<void> {
+  const key = `api-probe:${target}`;
+  const [prev, result] = await Promise.all([
+    env.WATCHDOG_STATE.get<TargetState>(key, "json"),
+    probe(target),
+  ]);
+  const { next, alert } = step(prev, result, now);
+  console.log(
+    `probe ${target}: HTTP ${result.status}` +
+      (result.cfCode !== null ? ` cf ${result.cfCode}` : "") +
+      (result.error ? ` (${result.error})` : "") +
+      ` -> ${next.up ? "up" : "down"} fails=${next.fails}` +
+      (alert ? ` alert=${alert}` : ""),
+  );
+  // KV writes are capped per day on the free plan; only persist a change.
+  if (next !== prev) await env.WATCHDOG_STATE.put(key, JSON.stringify(next));
+  if (alert) await discord(env, message(alert, target, prev, next, now));
+}
+
+async function probe(target: string): Promise<ProbeResult> {
+  try {
+    const res = await fetch(target, {
+      method: "GET",
+      headers: { "user-agent": "cruze-watchdog/1 (+https://cruzemaps.com)" },
+      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+      cf: { cacheTtl: 0 },
+    });
+    // Only an error page needs its body read (for the Cloudflare error code).
+    const body = res.status === 200 ? "" : (await res.text()).slice(0, 4096);
+    return classify(res.status, body);
+  } catch (err) {
+    const name = err instanceof Error ? err.name : "";
+    return unreachable(name === "TimeoutError" ? "timeout" : "fetch failed");
+  }
+}
 
 async function errorCheck(env: Env, now: number): Promise<void> {
   const end = Math.floor((now - LAG_MS) / WINDOW_MS) * WINDOW_MS;
@@ -162,11 +231,12 @@ async function invocations(env: Env, start: number, end: number): Promise<Row[]>
 }
 
 async function discord(env: Env, content: string): Promise<void> {
-  // Discord caps message content at 2000 characters.
+  // Discord caps message content at 2000 characters. No message from here
+  // may ping anyone, whatever text it carries.
   const res = await fetch(env.DISCORD_WEBHOOK_URL, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ content: content.slice(0, 2000) }),
+    body: JSON.stringify({ content: content.slice(0, 2000), allowed_mentions: { parse: [] } }),
   });
   if (!res.ok) console.error(`discord webhook failed: HTTP ${res.status}`);
 }

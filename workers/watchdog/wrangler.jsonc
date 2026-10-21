@@ -7,12 +7,16 @@
   // Cron-only: no public URL.
   "workers_dev": false,
   "triggers": {
-    // Every 5 min: error / CPU-limit check. 14:00 UTC (9am Central): daily digest.
+    // Every 5 min: error / CPU-limit check + api.cruzemaps.com probe.
+    // 14:00 UTC (9am Central): daily digest.
     "crons": ["*/5 * * * *", "0 14 * * *"]
   },
   "vars": {
     "CF_ACCOUNT_ID": "685ebf4e47ace278e464b92e6cb2e25c"
-  }
+  },
+  // Up/down state per probed target (src/apiProbe.ts). Created with
+  // `wrangler kv namespace create WATCHDOG_STATE` on the cruzemaps account.
+  "kv_namespaces": [{ "binding": "WATCHDOG_STATE", "id": "a6b86757310047428cc74a9a7eb649ca" }]
   // Secrets are delivered out-of-band, never committed:
   //   wrangler secret put CF_API_TOKEN         (Account > Account Analytics > Read)
   //   wrangler secret put DISCORD_WEBHOOK_URL
