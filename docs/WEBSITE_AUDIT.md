@@ -133,6 +133,7 @@ Use this as a comeback checklist. Pilot apply/LOI work (migration `014`, `send-p
 ### 19. Duplicate Postgres `capture_investor_lead`
 
 - Dashboard shows two function signatures — migration drift; consolidate when touching SQL
+- **Status:** Fixed. Migration 024 drops the unused four-argument overload; the site calls the five-argument one.
 
 ### 20. Build-time env vars
 
@@ -232,7 +233,7 @@ After adding routes, extend `prerender.mjs` / `seo.ts` for dynamic slugs from `c
 - [ ] Migration `20260518_014_pilot_application_enhancements.sql`
 - [ ] Edge Function `send-pilot-email` (+ `template.ts`)
 - [ ] Secrets: `RESEND_API_KEY`, `SITE_BASE_URL`, optional `PILOT_FROM_ADDRESS`
-- [ ] DB webhooks: `pilot_applications` INSERT + UPDATE → `send-pilot-email`
+- [ ] DB webhooks: `pilot_applications` INSERT + UPDATE → `send-pilot-email` (made by migration 024, no `Authorization` header; deploy the function with `--no-verify-jwt`)
 - [ ] Edge Function `capture-loi-metadata` (optional)
 - [ ] Frontend deployed from `main` with `VITE_SUPABASE_*`
 
