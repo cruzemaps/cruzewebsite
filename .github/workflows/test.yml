@@ -153,6 +153,15 @@ jobs:
           -v mig=supabase/migrations/20261022_024_pilot_email_no_key.sql
           -f supabase/tests/024_pilot_email_no_key.test.sql
 
+      - name: staff-only fleet messages and the invitation ledger (migration 025)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t025"
+          && psql -h localhost -U postgres -d t025 -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261022_025_staff_messages_invite_ledger.sql
+          -f supabase/tests/025_staff_messages_invite_ledger.test.sql
+
   edge-functions:
     # Deno unit tests for Supabase edge functions. No network calls to Discord,
     # Resend or Supabase: the handlers get fake dependencies.
@@ -171,3 +180,9 @@ jobs:
 
       - name: send-pilot-email
         run: deno test --no-lock supabase/functions/send-pilot-email/
+
+      - name: send-invitation
+        run: deno test --no-lock supabase/functions/send-invitation/
+
+      - name: capture-loi-metadata
+        run: deno test --no-lock supabase/functions/capture-loi-metadata/

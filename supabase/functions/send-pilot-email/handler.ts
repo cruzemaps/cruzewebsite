@@ -21,6 +21,10 @@
 //     confirmation is the email for "pending".
 //   - The recipient is the row's contact_email, else the applicant's profile
 //     or sign-in email, looked up by the row's user_id.
+//   - The status email carries fleet_visible_message as "Message from Cruze"
+//     only when the row has a reviewed_by, which the admin portal sets when a
+//     staff member saves the message. Applicants cannot write either column
+//     (migration 025), so text an applicant typed is never sent as ours.
 
 import { renderPilotStatusEmail, renderPilotSubmittedEmail } from "./template.ts";
 
@@ -28,7 +32,7 @@ export const TABLE = "pilot_applications";
 
 // Columns read back. Nothing else from the row is used.
 export const COLUMNS =
-  "id, user_id, company_name, contact_email, status, fleet_visible_message, created_at, reviewed_at";
+  "id, user_id, company_name, contact_email, status, fleet_visible_message, created_at, reviewed_at, reviewed_by";
 
 export const FRESH_MS = 10 * 60 * 1000;
 // created_at comes from the database clock; reviewed_at from the admin's
@@ -142,7 +146,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       companyName,
       status,
       dashboardUrl,
-      fleetMessage: row.fleet_visible_message,
+      fleetMessage: staffMessage(row),
     });
 
   const res = await deps.sendEmail(apiKey, {
@@ -157,6 +161,14 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     return json({ error: `Resend ${res.status}` }, 500);
   }
   return json({ ok: true, id: res.id ?? null, event });
+}
+
+// The staff-written message for the fleet, or null when no staff member has
+// reviewed the row.
+export function staffMessage(row: Row): string | null {
+  if (typeof row.reviewed_by !== "string" || !row.reviewed_by) return null;
+  const message = typeof row.fleet_visible_message === "string" ? row.fleet_visible_message.trim() : "";
+  return message || null;
 }
 
 export function ledgerKey(id: string, status: string): string {
