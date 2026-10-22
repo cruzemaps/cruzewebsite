@@ -30,6 +30,9 @@ function parsePathPoints(path: string): [number, number][] {
     });
 }
 
+// Parsed once and shared: both the path and the city-dot checks read it.
+const pathPoints = parsePathPoints(TEXAS_PATH);
+
 describe("TEXAS_VIEWBOX", () => {
   it("is the 400x380 box the component and all coordinates assume", () => {
     expect(TEXAS_VIEWBOX).toBe("0 0 400 380");
@@ -44,8 +47,6 @@ describe("TEXAS_VIEWBOX", () => {
 });
 
 describe("TEXAS_PATH", () => {
-  const points = parsePathPoints(TEXAS_PATH);
-
   it("is a single closed subpath (moveto ... closepath)", () => {
     expect(TEXAS_PATH.startsWith("M")).toBe(true);
     expect(TEXAS_PATH.endsWith("Z")).toBe(true);
@@ -53,21 +54,29 @@ describe("TEXAS_PATH", () => {
     expect(TEXAS_PATH.slice(1).includes("M")).toBe(false);
   });
 
+  it("uses only the M/L/Z commands the parser understands", () => {
+    // parsePathPoints splits on M/L and strips a trailing Z. A curve or
+    // shorthand command (H/V/C/S/Q/T/A) or a space-delimited coordinate from a
+    // regenerated path would parse into garbage pairs, so pin the vocabulary to
+    // absolute moveto/lineto/closepath plus numeric coordinate characters.
+    expect(TEXAS_PATH).toMatch(/^[MLZ0-9.,-]+$/);
+  });
+
   it("is a detailed outline, not a truncated stub", () => {
     // The thinned Census boundary has hundreds of vertices; a sudden collapse
     // to a handful would mean the generator or an edit dropped most of them.
-    expect(points.length).toBeGreaterThan(50);
+    expect(pathPoints.length).toBeGreaterThan(50);
   });
 
   it("has only finite numeric vertices", () => {
-    for (const [x, y] of points) {
+    for (const [x, y] of pathPoints) {
       expect(Number.isFinite(x)).toBe(true);
       expect(Number.isFinite(y)).toBe(true);
     }
   });
 
   it("keeps every vertex inside the viewBox (nothing clips off-canvas)", () => {
-    for (const [x, y] of points) {
+    for (const [x, y] of pathPoints) {
       expect(x).toBeGreaterThanOrEqual(vbMinX);
       expect(x).toBeLessThanOrEqual(vbMinX + vbWidth);
       expect(y).toBeGreaterThanOrEqual(vbMinY);
@@ -78,7 +87,6 @@ describe("TEXAS_PATH", () => {
 
 describe("TEXAS_CITY_POINTS", () => {
   const entries = Object.entries(TEXAS_CITY_POINTS);
-  const pathPoints = parsePathPoints(TEXAS_PATH);
   // Bounding box of the drawn outline - a camera dot outside this would float
   // in the whitespace around the state instead of on it.
   const xs = pathPoints.map(([x]) => x);
@@ -122,7 +130,11 @@ describe("TEXAS_CITY_POINTS", () => {
     }
   });
 
-  it("places every city dot within the outline's bounding box (on Texas)", () => {
+  // Bounding-box containment, not point-in-polygon: the hand-placed El Paso dot
+  // sits on the far-western tip just outside the thinned outline, so a strict
+  // polygon test would reject it. The bbox still catches a dot flung into the
+  // whitespace well off the state.
+  it("places every city dot within the outline's bounding box", () => {
     for (const [name, [x, y]] of entries) {
       expect(x, name).toBeGreaterThanOrEqual(bbox.minX);
       expect(x, name).toBeLessThanOrEqual(bbox.maxX);
