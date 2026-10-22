@@ -6,8 +6,8 @@
 // box clips off-canvas and a malformed path breaks the border silently - none
 // of which the type-checker or the delta-sweep can see. These tests pin that
 // shared space: a well-formed closed path, every vertex inside the viewBox, and
-// every city dot inside both the viewBox and the outline's own bounding box
-// (so a dot lands on Texas, not in the surrounding whitespace). The data is
+// every city dot inside the viewBox and on (or within 1px of) the outline, so a
+// dot lands on Texas rather than in the surrounding whitespace. The data is
 // static on purpose (no network), so these invariants hold at build time.
 import { describe, expect, it } from "vitest";
 import { TEXAS_CITY_POINTS, TEXAS_PATH, TEXAS_VIEWBOX } from "./texasOutline";
@@ -32,6 +32,36 @@ function parsePathPoints(path: string): [number, number][] {
 
 // Parsed once and shared: both the path and the city-dot checks read it.
 const pathPoints = parsePathPoints(TEXAS_PATH);
+
+// Even-odd ray cast: is [px, py] strictly inside the closed outline?
+function pointInPolygon([px, py]: [number, number], poly: [number, number][]) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    const crosses =
+      yi > py !== yj > py &&
+      px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+// Shortest distance from [px, py] to the polygon's edges, so a dot sitting on a
+// thin boundary tip (El Paso) still counts as "on the outline".
+function distanceToOutline([px, py]: [number, number], poly: [number, number][]) {
+  let min = Infinity;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [x1, y1] = poly[j];
+    const [x2, y2] = poly[i];
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len2 = dx * dx + dy * dy;
+    const t = len2 ? Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / len2)) : 0;
+    min = Math.min(min, Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)));
+  }
+  return min;
+}
 
 describe("TEXAS_VIEWBOX", () => {
   it("is the 400x380 box the component and all coordinates assume", () => {
@@ -87,16 +117,10 @@ describe("TEXAS_PATH", () => {
 
 describe("TEXAS_CITY_POINTS", () => {
   const entries = Object.entries(TEXAS_CITY_POINTS);
-  // Bounding box of the drawn outline - a camera dot outside this would float
-  // in the whitespace around the state instead of on it.
-  const xs = pathPoints.map(([x]) => x);
-  const ys = pathPoints.map(([, y]) => y);
-  const bbox = {
-    minX: Math.min(...xs),
-    maxX: Math.max(...xs),
-    minY: Math.min(...ys),
-    maxY: Math.max(...ys),
-  };
+  // El Paso's dot sits on the far-western tip, ~0.3px outside the thinned
+  // outline, so allow a 1px skin; an off-state dot (e.g. the Gulf or New
+  // Mexico) is tens of px away and still fails.
+  const EDGE_TOLERANCE_PX = 1;
 
   it("covers the Texas metros the camera map plots", () => {
     const names = Object.keys(TEXAS_CITY_POINTS);
@@ -130,16 +154,12 @@ describe("TEXAS_CITY_POINTS", () => {
     }
   });
 
-  // Bounding-box containment, not point-in-polygon: the hand-placed El Paso dot
-  // sits on the far-western tip just outside the thinned outline, so a strict
-  // polygon test would reject it. The bbox still catches a dot flung into the
-  // whitespace well off the state.
-  it("places every city dot within the outline's bounding box", () => {
-    for (const [name, [x, y]] of entries) {
-      expect(x, name).toBeGreaterThanOrEqual(bbox.minX);
-      expect(x, name).toBeLessThanOrEqual(bbox.maxX);
-      expect(y, name).toBeGreaterThanOrEqual(bbox.minY);
-      expect(y, name).toBeLessThanOrEqual(bbox.maxY);
+  it("places every city dot on the Texas outline (inside, or within 1px)", () => {
+    for (const [name, point] of entries) {
+      const onState =
+        pointInPolygon(point, pathPoints) ||
+        distanceToOutline(point, pathPoints) <= EDGE_TOLERANCE_PX;
+      expect(onState, `${name} dot is off the state outline`).toBe(true);
     }
   });
 
