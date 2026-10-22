@@ -22,28 +22,18 @@ Cruze isn't just a map; it's a co-pilot for the collective road.
 
 CI runs gitleaks on every pull request and weekly (`.github/workflows/gitleaks.yml`). To stop a leak before it leaves your machine, turn on the pre-commit hook once per clone with `git config core.hooksPath .githooks` (needs `brew install gitleaks`).
 
-## CI runs locally while GitHub Actions is paused
+## CI
 
-GitHub Actions minutes for the cruzemaps account ran out, so the `ci`,
-`Test`, `Secret Scan (gitleaks)` and `Lighthouse CI` workflows are disabled
-on GitHub (since 2026-10-18). `Deploy to GitHub Pages` stays on. The
-workflow files are unchanged so they can be turned back on later. Until
-then, CI is `scripts/ci-local.sh`, run on the Mac:
+This repo is public, so GitHub Actions minutes are free and every workflow runs on GitHub: `ci` (lint and type-check), `Test`, `Secret Scan (gitleaks)` and `Lighthouse CI` on each pull request, and `Deploy to GitHub Pages` on each push to main. Never disable `Deploy to GitHub Pages`. A merge to main also goes live on cruzemaps.com through Cloudflare Workers Builds.
+
+`scripts/ci-local.sh` runs the same jobs on a Mac when you want a run before pushing:
 
 ```bash
-scripts/ci-local.sh --comment <PR number>
+scripts/ci-local.sh                  # test HEAD
+scripts/ci-local.sh --comment <PR>   # test a PR's current head and post the summary on it
 ```
 
-It checks out the PR's current head in a temporary worktree, runs every job
-the workflows would start for that PR (lint and type-check, unit tests, the
-production bundle check, the SQL tests on a throwaway Postgres container,
-the edge-function Deno tests, gitleaks and Lighthouse with the local
-Chrome), prints PASS, FAIL or SKIPPED with the reason and time for each job,
-and posts the summary as a PR comment. That comment is the record that CI
-passed: merge only when the newest one is for the PR's current head and
-says PASS. `scripts/ci-local.sh` alone tests HEAD, and `--list` shows the
-plan. A full run takes about 4 minutes once the caches are warm. The header
-of the script lists what it needs and the differences from GitHub's runners.
+It checks out the commit in a temporary worktree, runs every job the workflows would start (lint and type-check, unit tests, the production bundle check, the SQL tests on a throwaway Postgres container, the edge-function Deno tests, gitleaks and Lighthouse with the local Chrome), and prints PASS, FAIL or SKIPPED with the reason and time for each job. `--list` shows the plan. A full run takes about 4 minutes once the caches are warm. The header of the script lists what it needs and the differences from GitHub's runners.
 
 ---
 *Cruze - Driving the Future of Traffic Management.*
