@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Agent rules and this repo's gates: @AGENTS.md
+
 ## Commands
 
 Package manager: **npm is the source of truth.** `package-lock.json` is committed; `bun.lock` is gitignored (it drifted whenever someone ran `npm install`, and Cloudflare Pages' `bun install --frozen-lockfile` caught the drift — a recurring failure mode). Use `npm` for installs that need to be reproducible. Bun is fine locally if you want install speed; just don't commit `bun.lock`. CF Pages build command should be `npm ci --legacy-peer-deps && npm run build`.
