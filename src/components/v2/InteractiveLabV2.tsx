@@ -336,7 +336,7 @@ const InteractiveLabV2 = () => {
         recSpeed: 'AWAITING ROI SELECTION',
         congestionWidth: '0%',
         severity: 'clear' as Severity,
-        logs: [] as any[]
+        logs: [] as { id: number; type: string; speed: string; conf: string; time: string }[]
     });
 
     // Hold previous v_now across ticks so the displayed speed EMAs smoothly
