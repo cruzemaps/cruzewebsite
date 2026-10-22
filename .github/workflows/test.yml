@@ -51,11 +51,13 @@ jobs:
 
   db:
     # SQL tests for security-critical RPCs, against a throwaway Postgres with a
-    # stub of the Supabase auth schema. Never touches a real project.
+    # stub of the Supabase auth schema. Never touches a real project. Postgres
+    # 17 is the version the live project runs; the 023 test compares
+    # definitions as Postgres 17 prints them.
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_PASSWORD: postgres
         ports:
@@ -119,6 +121,18 @@ jobs:
           && psql -h localhost -U postgres -d t022 -v ON_ERROR_STOP=1
           -v mig=supabase/migrations/20261022_022_invites_and_profiles.sql
           -f supabase/tests/022_invites_and_profiles.test.sql
+
+      - name: restate the live database state (migration 023)
+        # Builds the database from supabase-schema.sql and every migration,
+        # then holds it to the live catalog. 013 and 021 print their expected
+        # fresh-database errors.
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t023"
+          && psql -h localhost -U postgres -d t023 -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261022_023_restate_live_state.sql
+          -f supabase/tests/023_restate_live_state.test.sql
 
   edge-functions:
     # Deno unit tests for Supabase edge functions. No network calls to Discord
