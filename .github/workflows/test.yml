@@ -1,10 +1,11 @@
 name: Test
 
 # Hard gate: type-check + the Vitest unit suite must pass on every PR and on
-# pushes to main, plus a production-build bundle check, the SQL tests in
-# supabase/tests and the Deno tests for edge functions. The unit suite is
-# pure-logic over src/lib (no DOM), so it is fast and deterministic. The
-# production build stays gated separately by deploy.yml.
+# pushes to main, plus a production-build bundle check, a check that no
+# migration holds a JWT-shaped string, the SQL tests in supabase/tests and the
+# Deno tests for edge functions. The unit suite is pure-logic over src/lib (no
+# DOM), so it is fast and deterministic. The production build stays gated
+# separately by deploy.yml.
 on:
   push:
     branches: [main]
@@ -23,6 +24,12 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+
+      - name: No JWT-shaped string in supabase/migrations
+        # A Supabase key pasted in from a live trigger or webhook definition
+        # (migration 024 took the last one out of the database). Reports file
+        # and line only, never the match.
+        run: node --test scripts/no-jwt-in-migrations.test.mjs
 
       - name: Install dependencies
         # Matches deploy.yml: react-simple-maps@1.x peer-pins react@^16 while the
@@ -134,9 +141,21 @@ jobs:
           -v mig=supabase/migrations/20261022_023_restate_live_state.sql
           -f supabase/tests/023_restate_live_state.test.sql
 
+      - name: pilot emails without the legacy key (migration 024)
+        # Builds the database like the 023 test, adds the two send-pilot-email
+        # webhooks with a JWT-shaped stand-in for the key, then applies 024.
+        # 013 and 021 print their expected fresh-database errors.
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t024"
+          && psql -h localhost -U postgres -d t024 -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261022_024_pilot_email_no_key.sql
+          -f supabase/tests/024_pilot_email_no_key.test.sql
+
   edge-functions:
-    # Deno unit tests for Supabase edge functions. No network calls to Discord
-    # or Supabase: the handlers get fake dependencies.
+    # Deno unit tests for Supabase edge functions. No network calls to Discord,
+    # Resend or Supabase: the handlers get fake dependencies.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -149,3 +168,6 @@ jobs:
 
       - name: notify-discord
         run: deno test --no-lock supabase/functions/notify-discord/
+
+      - name: send-pilot-email
+        run: deno test --no-lock supabase/functions/send-pilot-email/

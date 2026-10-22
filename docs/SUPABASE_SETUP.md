@@ -49,10 +49,16 @@ Dashboard → **Database** → **Replication** → toggle on for:
 
 ## 5. Pilot application emails (fleet apply flow)
 
-Deploy the `send-pilot-email` Edge Function and wire **Database Webhooks**:
+Deploy the `send-pilot-email` Edge Function with JWT verification off, then run migration **`20261022_024_pilot_email_no_key.sql`**, which creates its ledger table and its two **Database Webhooks**:
 
-1. `pilot_applications` **INSERT** → `send-pilot-email` (confirmation to `contact_email` or profile email)
-2. `pilot_applications` **UPDATE** → `send-pilot-email` (status change; includes `fleet_visible_message` when set)
+1. `pilot_applications` **INSERT** → `send-pilot-email` (confirmation to `contact_email`, else the applicant's account email)
+2. `pilot_applications` **UPDATE** → `send-pilot-email` (email for the new status; includes `fleet_visible_message` when set)
+
+```bash
+supabase functions deploy send-pilot-email --project-ref <PROJECT_REF> --no-verify-jwt --use-api
+```
+
+The webhooks send no `Authorization` header. Don't add one in the dashboard: a header there is stored in plain text in the trigger definition. The function needs no key from the caller, because it trusts only the row id in the payload, reads the row back with the service role, and sends each application at most one email per status.
 
 Secrets: `RESEND_API_KEY`, optional `PILOT_FROM_ADDRESS`, `SITE_BASE_URL`.
 

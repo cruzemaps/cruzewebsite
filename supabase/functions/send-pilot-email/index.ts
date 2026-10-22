@@ -1,134 +1,78 @@
-// Supabase Edge Function — transactional emails for fleet pilot applications.
+// Supabase Edge Function: transactional emails for fleet pilot applications.
 //
-// Wire Database Webhooks:
-//   1. pilot_applications INSERT  → confirmation email
-//   2. pilot_applications UPDATE  → status-change email (when status column changes)
+// Called by two database webhook triggers on pilot_applications (migration
+// 024), with no auth header, so deploy with --no-verify-jwt:
+//   1. pilot_email_on_insert          INSERT  confirmation email
+//   2. pilot_email_on_status_update   UPDATE  email for the new status
 //
-// Secrets: RESEND_API_KEY, PILOT_FROM_ADDRESS (optional), SITE_BASE_URL (optional)
+// The payload is not trusted beyond type, table and record.id: the row is read
+// back from the database with the service role and the email is built from
+// that. Each application gets at most one email per status. Rules live in
+// handler.ts; tests in handler.test.ts; the email copy in template.ts.
+//
+// Secrets (Supabase dashboard, Edge Function Secrets):
+//   - RESEND_API_KEY        (without it the function sends nothing)
+//   - PILOT_FROM_ADDRESS    (optional; default Cruzemaps <hello@cruzemaps.com>)
+//   - SITE_BASE_URL         (optional; default https://cruzemaps.com)
+//   - SUPABASE_URL and the key are injected by Supabase: a secret key from
+//     SUPABASE_SECRET_KEY or SUPABASE_SECRET_KEYS when present, else
+//     SUPABASE_SERVICE_ROLE_KEY (see serviceKey in handler.ts).
+//
+// Needs public.pilot_email_notifications_sent from migration 024. Without it
+// the function sends nothing (it cannot record the email, so it fails closed).
+//
+// Deploy from the repo root:
+//   supabase functions deploy send-pilot-email --project-ref zodrljxcwqkjiipobrhs --no-verify-jwt --use-api
 
-// @ts-nocheck
+// @ts-nocheck: Deno runtime, not Node. The repo's tsconfig doesn't load this file.
 
 import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { renderPilotSubmittedEmail, renderPilotStatusEmail } from "./template.ts";
+import { COLUMNS, handle, serviceKey, TABLE } from "./handler.ts";
 
-interface PilotRow {
-  id: string;
-  user_id: string;
-  company_name: string | null;
-  contact_email: string | null;
-  status: string;
-  fleet_visible_message: string | null;
-}
+const url = Deno.env.get("SUPABASE_URL");
+const key = serviceKey((name) => Deno.env.get(name));
+const db = url && key ? createClient(url, key, { auth: { persistSession: false } }) : null;
 
-interface WebhookPayload {
-  type: "INSERT" | "UPDATE" | "DELETE";
-  table: string;
-  record: PilotRow;
-  old_record: PilotRow | null;
-}
+serve((req) =>
+  handle(req, {
+    env: (name) => Deno.env.get(name),
+    now: () => new Date(),
 
-serve(async (req) => {
-  if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
-
-  const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-  const FROM =
-    Deno.env.get("PILOT_FROM_ADDRESS") || "Cruzemaps <hello@cruzemaps.com>";
-  const BASE = Deno.env.get("SITE_BASE_URL") || "https://cruzemaps.com";
-
-  if (!RESEND_API_KEY) {
-    return json({ skipped: "RESEND_API_KEY not configured" });
-  }
-
-  let payload: WebhookPayload;
-  try {
-    payload = await req.json();
-  } catch {
-    return json({ error: "Invalid JSON" }, 400);
-  }
-
-  if (payload.table !== "pilot_applications") {
-    return json({ skipped: `table ${payload.table}` });
-  }
-
-  const row = payload.record;
-  const email = await resolveRecipientEmail(row);
-  if (!email) {
-    return json({ skipped: "no recipient email" });
-  }
-
-  const dashboardUrl = `${BASE}/fleet-dashboard`;
-  let mail: { subject: string; html: string; text: string };
-
-  if (payload.type === "INSERT") {
-    mail = renderPilotSubmittedEmail({
-      email,
-      companyName: row.company_name || "your fleet",
-      dashboardUrl,
-    });
-  } else if (payload.type === "UPDATE") {
-    const oldStatus = payload.old_record?.status;
-    if (!oldStatus || oldStatus === row.status) {
-      return json({ skipped: "status unchanged" });
-    }
-    mail = renderPilotStatusEmail({
-      email,
-      companyName: row.company_name || "your fleet",
-      status: row.status,
-      dashboardUrl,
-      fleetMessage: row.fleet_visible_message,
-    });
-  } else {
-    return json({ skipped: "not insert/update" });
-  }
-
-  const resendRes = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json",
+    async loadRow(id) {
+      if (!db) return { row: null, error: "Supabase service credentials missing" };
+      const { data, error } = await db.from(TABLE).select(COLUMNS).eq("id", id).maybeSingle();
+      if (error) return { row: null, error: error.message };
+      return { row: data };
     },
-    body: JSON.stringify({
-      from: FROM,
-      to: [email],
-      subject: mail.subject,
-      html: mail.html,
-      text: mail.text,
-    }),
-  });
 
-  if (!resendRes.ok) {
-    const errBody = await resendRes.text();
-    console.error("Resend error:", errBody);
-    return json({ error: errBody.slice(0, 500) }, 500);
-  }
+    async lookupEmail(userId) {
+      if (!db) return { email: null, error: "Supabase service credentials missing" };
+      const { data: profile, error } = await db.from("profiles").select("email").eq("id", userId).maybeSingle();
+      if (error) return { email: null, error: error.message };
+      if (profile?.email) return { email: profile.email };
+      const { data: auth } = await db.auth.admin.getUserById(userId);
+      return { email: auth?.user?.email ?? null };
+    },
 
-  const result = await resendRes.json();
-  return json({ ok: true, id: result.id, event: payload.type });
-});
+    async claim(key) {
+      if (!db) return "error";
+      const { error } = await db.from("pilot_email_notifications_sent").insert({ key });
+      if (!error) return "claimed";
+      if (error.code === "23505") return "duplicate";
+      console.error(`send-pilot-email: claim ${key} failed: ${error.message}`);
+      return "error";
+    },
 
-async function resolveRecipientEmail(row: PilotRow): Promise<string | null> {
-  if (row.contact_email?.trim()) return row.contact_email.trim();
-
-  const url = Deno.env.get("SUPABASE_URL");
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !key || !row.user_id) return null;
-
-  const supabase = createClient(url, key);
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("id", row.user_id)
-    .maybeSingle();
-  if (profile?.email) return profile.email;
-
-  const { data: authUser } = await supabase.auth.admin.getUserById(row.user_id);
-  return authUser?.user?.email ?? null;
-}
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+    async sendEmail(apiKey, email) {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(email),
+      });
+      if (!res.ok) return { ok: false, status: res.status, text: await res.text() };
+      const body = await res.json().catch(() => ({}));
+      return { ok: true, status: res.status, id: body?.id, text: "" };
+    },
+  })
+);
