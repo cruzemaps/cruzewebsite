@@ -75,7 +75,7 @@ When changing auth, dashboard data fetching, or `ProtectedRoute`, preserve the d
 
 ### Cloudflare Workers (separate deployables)
 
-Three standalone Workers live in [workers/](workers/), each with its own `wrangler.jsonc` — deploy with `npx wrangler deploy --config workers/<name>/wrangler.jsonc`; runbooks in [docs/CLOUDFLARE_RUNBOOK.md](docs/CLOUDFLARE_RUNBOOK.md) / [docs/CLOUDFLARE_SETUP.md](docs/CLOUDFLARE_SETUP.md):
+Three standalone Workers live in [workers/](workers/), each with its own `wrangler.jsonc` — deploy each from its own folder, because each has its own package.json and none pins `account_id`: `cd workers/<name> && npm ci && CLOUDFLARE_ACCOUNT_ID=685ebf4e47ace278e464b92e6cb2e25c npx wrangler deploy`; runbooks in [docs/CLOUDFLARE_RUNBOOK.md](docs/CLOUDFLARE_RUNBOOK.md) / [docs/CLOUDFLARE_SETUP.md](docs/CLOUDFLARE_SETUP.md):
 
 - **`workers/frame-analyze`** → `analyze.cruzemaps.com` — Claude vision on traffic-cam frames (details under "SEO & content" below). Guarded by native Cloudflare rate limits (`RL_PER_IP` 8/min, `RL_GLOBAL` 240/min) because the upstream Anthropic call costs money — keep the limiters when touching the config.
 - **`workers/og-image`** → `og.cruzemaps.com` — dynamic OG image generation (`workers-og` / satori, `nodejs_compat`). Only `GET /` renders (scanner paths 404 before the renderer) and renders are edge-cached: a render is ~90ms CPU against the free plan's 10ms budget, which is what tripped the Oct 2026 CPU-limit emails. In workers-og every text-bearing `<div>` needs `display: flex`.
