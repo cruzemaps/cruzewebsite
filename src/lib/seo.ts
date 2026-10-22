@@ -235,9 +235,60 @@ export const ROUTES: RouteMeta[] = [
     path: "/terms",
     title: "Terms of Service | Cruze",
     description:
-      "The terms that govern your use of the Cruze driver app. Cruze provides driver advisories; the driver is solely responsible for operating the vehicle and obeying all traffic laws at all times.",
+      "The terms that govern your use of the Cruze website, pilot program, and apps. Cruze provides advisories; the driver is solely responsible for operating the vehicle and obeying all traffic laws at all times.",
     changefreq: "yearly",
     priority: 0.4,
+  },
+  {
+    path: "/cookies",
+    title: "Cookie Notice | Cruze",
+    description:
+      "The cookies and browser storage the Cruze website uses, the third parties involved, and how to accept or decline non-essential analytics cookies.",
+    changefreq: "yearly",
+    priority: 0.3,
+  },
+  {
+    path: "/accessibility",
+    title: "Accessibility Statement | Cruze",
+    description:
+      "Cruze's commitment to an accessible website, the WCAG 2.1 AA standard we work toward, known limitations, and how to report an accessibility barrier.",
+    changefreq: "yearly",
+    priority: 0.3,
+  },
+  {
+    path: "/acceptable-use",
+    title: "Acceptable Use Policy | Cruze",
+    description:
+      "The rules for using the Cruze website, pilot program, and dashboards: prohibited conduct, security and integrity rules, and the driver-safety expectation.",
+    changefreq: "yearly",
+    priority: 0.3,
+  },
+  {
+    path: "/disclosures",
+    title: "Disclosures | Cruze",
+    description:
+      "Important disclosures: forward-looking statements, no investment advice, no guarantee of traffic or savings results, and the driver-safety note that routing is advisory.",
+    changefreq: "yearly",
+    priority: 0.3,
+  },
+  {
+    // Clearly-marked DPA template for business/fleet customers. noindex: it is a
+    // template to attach to a signed agreement, not a marketing page.
+    path: "/dpa",
+    title: "Data Processing Addendum (Template) | Cruze",
+    description:
+      "A template Data Processing Addendum for Cruze business and fleet customers, covering roles, processing scope, subprocessors, security, and data subject requests.",
+    noindex: true,
+    changefreq: "yearly",
+    priority: 0.2,
+  },
+  {
+    path: "/security",
+    title: "Security & Responsible Disclosure | Cruze",
+    description:
+      "How to report a security vulnerability to Cruze, our responsible-disclosure safe harbor, scope, and a summary of our security practices.",
+    changefreq: "yearly",
+    priority: 0.3,
   },
   {
     // Protected fleet manager dashboard (driver safety/efficiency scores).

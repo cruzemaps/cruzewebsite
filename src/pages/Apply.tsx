@@ -18,7 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -409,6 +409,25 @@ export default function Apply() {
                       My initials ({initials}) are applied as my electronic signature, timestamped {signedDate}.
                     </span>
                   </label>
+
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    By checking the box you consent to sign and do business electronically under the US
+                    ESIGN Act and UETA, and you intend your initials and timestamp to be your signature.
+                    A copy of your signed LOI stays available from your dashboard. You can request a paper
+                    copy, or withdraw consent to electronic records, by emailing{" "}
+                    <a href="mailto:support@cruzemaps.com" className="text-brand-cyan hover:underline">
+                      support@cruzemaps.com
+                    </a>
+                    . See our{" "}
+                    <Link to="/terms" target="_blank" className="text-brand-cyan hover:underline">
+                      Terms
+                    </Link>{" "}
+                    and{" "}
+                    <Link to="/privacy" target="_blank" className="text-brand-cyan hover:underline">
+                      Privacy Policy
+                    </Link>
+                    . We record signing metadata (including your IP address) to evidence the signature.
+                  </p>
                 </div>
 
                 <Button
@@ -421,6 +440,16 @@ export default function Apply() {
                 </Button>
                 <p className="text-xs text-white/40 text-center">
                   No printing, no scanning. A copy of your signed LOI is available from your dashboard.
+                </p>
+                <p className="text-xs text-white/40 text-center leading-relaxed">
+                  By giving your phone number and submitting, you agree that Cruze may contact you by
+                  phone, text, and email about your application and the pilot. This consent is not a
+                  condition of any purchase or service. Message and data rates may apply. Reply STOP to
+                  stop texts, or email{" "}
+                  <a href="mailto:info@cruzemaps.com" className="text-brand-cyan hover:underline">
+                    info@cruzemaps.com
+                  </a>{" "}
+                  to opt out of calls.
                 </p>
               </CardContent>
             </Card>

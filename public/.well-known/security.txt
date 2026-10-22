@@ -1,0 +1,9 @@
+# Cruze (cruzemaps.com) security contact, per RFC 9116.
+# Human-readable policy: https://cruzemaps.com/security
+
+Contact: mailto:info@cruzemaps.com
+Contact: https://cruzemaps.com/security
+Expires: 2027-10-22T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://cruzemaps.com/.well-known/security.txt
+Policy: https://cruzemaps.com/security

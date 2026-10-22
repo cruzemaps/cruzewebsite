@@ -67,8 +67,20 @@ function Footer() {
           <FooterLink to="/login">Sign In</FooterLink>
         </FooterColumn>
       </div>
-      <div className="border-t border-white/5 py-6 text-center text-xs text-white/70">
-        © {new Date().getFullYear()} Cruzemaps. Driving the future of traffic management.
+      <div className="border-t border-white/5 py-6 px-6">
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-white/50 mb-3">
+          <FooterLink to="/privacy">Privacy</FooterLink>
+          <FooterLink to="/terms">Terms</FooterLink>
+          <FooterLink to="/cookies">Cookies</FooterLink>
+          <FooterLink to="/acceptable-use">Acceptable Use</FooterLink>
+          <FooterLink to="/accessibility">Accessibility</FooterLink>
+          <FooterLink to="/security">Security</FooterLink>
+          <FooterLink to="/disclosures">Disclosures</FooterLink>
+          <FooterLink to="/privacy#do-not-sell">Do Not Sell or Share My Personal Information</FooterLink>
+        </div>
+        <div className="text-center text-xs text-white/70">
+          © {new Date().getFullYear()} Cruzemaps. Driving the future of traffic management.
+        </div>
       </div>
     </footer>
   );

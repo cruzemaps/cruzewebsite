@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import NavbarV2 from "@/components/v2/NavbarV2";
 import InvestorPitchSections from "@/components/v2/InvestorPitchSections";
 import SEO from "@/components/SEO";
@@ -152,7 +153,33 @@ export default function Investors() {
       )}
 
       {tier === "dataroom" && <DataroomSection />}
+
+      <InvestorDisclaimer />
     </div>
+  );
+}
+
+// Always-visible notice at the foot of the investor page. States plainly that
+// the materials are not an offer or investment advice and that figures are
+// forward-looking estimates, not guarantees. Full text at /disclosures.
+function InvestorDisclaimer() {
+  return (
+    <section className="border-t border-white/5 bg-[#070A10]">
+      <div className="container mx-auto px-6 py-10 max-w-4xl">
+        <p className="text-[11px] uppercase tracking-widest text-white/40 mb-3">Important disclosures</p>
+        <p className="text-xs text-white/50 leading-relaxed">
+          Nothing on this page or in the dataroom is an offer to sell or a solicitation to buy any
+          security, and nothing here is investment, legal, or financial advice. These materials are
+          confidential and for information only. They contain forward-looking statements and estimates
+          about an early-stage, pre-revenue company; actual results may differ materially, and no result
+          is guaranteed. Read the full{" "}
+          <Link to="/disclosures" className="text-brand-cyan hover:underline">
+            Disclosures
+          </Link>
+          .
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -340,10 +367,18 @@ function DataroomSection() {
       animate={{ opacity: 1, y: 0 }}
       className="py-24 container mx-auto px-6 max-w-4xl"
     >
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-3">
         <Lock size={20} className="text-emerald-400" />
         <h2 className="font-display text-2xl font-bold">Dataroom</h2>
       </div>
+      <p className="text-xs text-white/50 leading-relaxed mb-6">
+        Confidential and for information only. Not an offer or investment advice; figures are
+        forward-looking estimates, not guarantees. See the{" "}
+        <Link to="/disclosures" className="text-brand-cyan hover:underline">
+          Disclosures
+        </Link>
+        .
+      </p>
       <div className="grid md:grid-cols-2 gap-3">
         {items.map((item) => (
           <a
