@@ -27,10 +27,9 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: ESLint
-        # Surface lint findings without blocking during rollout (~49
-        # pre-existing errors). Flip `continue-on-error` off once clean.
+        # Hard gate: lint reports 0 errors, so a new error fails the job.
+        # Warnings still pass.
         run: npm run lint
-        continue-on-error: true
 
       - name: Type-check
         # Hard gate: `tsc --noEmit` is clean today, so this blocks any new

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, ArrowUpRight } from "lucide-react";
 import { LIVE_DOT_CAMERAS } from "@/lib/featureFlags";
+import { legalTokens } from "./legalTokens";
 
 /**
  * Shared shell for the static legal + support pages (/privacy, /support,
@@ -11,20 +12,10 @@ import { LIVE_DOT_CAMERAS } from "@/lib/featureFlags";
  * the App Store / Play Store reviewers land on an on-brand, readable document.
  */
 
-const bg = "#0B0D11";
-const bg2 = "#0F1218";
-const text = "#F2F3F5";
-const muted = "#9AA0A8";
-const line = "rgba(255,255,255,0.10)";
-const accent = "#E8590C";
-
-const display = "'Space Grotesk', ui-sans-serif, system-ui, sans-serif";
-const body = "'Inter Tight', ui-sans-serif, system-ui, sans-serif";
+const { bg, bg2, text, muted, line, accent, display, body } = legalTokens;
 
 // Shows live DOT imagery, so only linked while LIVE_DOT_CAMERAS is on.
 const CAMERA_MAP_URL = "https://cruze-camera-visualization.vercel.app";
-
-export const legalTokens = { bg, bg2, text, muted, line, accent, display, body };
 
 function useFonts() {
   useEffect(() => {

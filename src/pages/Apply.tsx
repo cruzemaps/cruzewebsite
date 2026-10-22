@@ -124,7 +124,7 @@ export default function Apply() {
       const restored = await loadWizardDraft(user?.id, user?.email ?? undefined);
       if (cancelled) return;
       setData(restored);
-      if (user && isNonEmpty(restored.contactName) && isNonEmpty(restored.companyName)) {
+      if (user?.id && isNonEmpty(restored.contactName) && isNonEmpty(restored.companyName)) {
         toast.success("We restored your answers. Check the box and submit to finish.");
       }
     })();

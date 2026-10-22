@@ -83,6 +83,15 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
     const [debug, setDebug] = useState<{ total: number; passing: number; topClass: string; topScore: number }>({
         total: 0, passing: 0, topClass: "—", topScore: 0,
     });
+    // The parent's callbacks, read through refs so a new function identity
+    // (an inline onReady, say) never restarts the model load or the
+    // detection loop.
+    const onReadyRef = useRef(onReady);
+    const onDetectionsRef = useRef(onDetections);
+    useEffect(() => {
+        onReadyRef.current = onReady;
+        onDetectionsRef.current = onDetections;
+    });
 
     // While loading, update a 0.5s heartbeat so the elapsed-seconds display
     // ticks live. Stops once status flips to ready or error.
@@ -146,7 +155,7 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                 modelRef.current = model;
                 console.info(`[YoloOverlay] Model ready in ${Date.now() - loadStartRef.current}ms`);
                 setStatus("ready");
-                onReady?.();
+                onReadyRef.current?.();
             } catch (err) {
                 if (!cancelled) {
                     console.error("[YoloOverlay] Model load failed:", err);
@@ -216,7 +225,7 @@ export default function YoloOverlay({ getVideo, enabled, roiPoints = [], roiActi
                         conf: p.score,
                     }));
                 setBoxes(next);
-                onDetections?.(next);
+                onDetectionsRef.current?.(next);
                 // Update the visible debug stats so the user can see exactly
                 // what the model returned without opening DevTools. Useful
                 // for tuning SCORE_FLOOR against the live feed.

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -119,7 +119,7 @@ export default function PilotsTab({
     setBulkConfirmStatus(null);
   };
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (isDemo) {
       setApps(DEMO_APPS);
@@ -146,11 +146,11 @@ export default function PilotsTab({
       }
     }
     setLoading(false);
-  };
+  }, [isDemo]);
 
   useEffect(() => {
     load();
-  }, [isDemo]);
+  }, [load]);
 
   useEffect(() => {
     if (drillDownToken > 0 && drillDownStatusFilter) {

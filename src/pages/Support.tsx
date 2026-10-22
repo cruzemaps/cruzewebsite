@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
-import LegalLayout, { legalTokens as t } from "@/components/legal/LegalLayout";
+import LegalLayout from "@/components/legal/LegalLayout";
+import { legalTokens as t } from "@/components/legal/legalTokens";
 
 /**
  * Support page for the Cruze driver app. App Store and Google Play both require

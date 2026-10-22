@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -69,7 +69,7 @@ export default function MessagesTab({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [handlerEmails, setHandlerEmails] = useState<Record<string, string>>({});
 
-  const lookUpHandlers = async (rows: ContactMessage[]) => {
+  const lookUpHandlers = useCallback(async (rows: ContactMessage[]) => {
     const ids = Array.from(new Set(rows.map((m) => m.handled_by).filter(Boolean)));
     if (ids.length === 0) return;
     const { data } = await supabase.from("profiles").select("id, email").in("id", ids);
@@ -80,9 +80,9 @@ export default function MessagesTab({
         return next;
       });
     }
-  };
+  }, []);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (isDemo) {
       setMessages(DEMO_MESSAGES);
@@ -108,11 +108,11 @@ export default function MessagesTab({
     setMessages(rows);
     setLoading(false);
     lookUpHandlers(rows);
-  };
+  }, [isDemo, lookUpHandlers]);
 
   useEffect(() => {
     load();
-  }, [isDemo]);
+  }, [load]);
 
   useEffect(() => {
     if (drillDownToken > 0) {
