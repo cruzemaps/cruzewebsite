@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./hooks/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AnalyticsListener } from "./components/AnalyticsListener";
+import ConsentBanner from "./components/ConsentBanner";
 import V3 from "./pages/V3";
 import { Loader2 } from "lucide-react";
 
@@ -46,6 +47,12 @@ const PrivacyDrives = lazy(() => import("./pages/PrivacyDrives"));
 const TermsDrives = lazy(() => import("./pages/TermsDrives"));
 const Support = lazy(() => import("./pages/Support"));
 const Terms = lazy(() => import("./pages/Terms"));
+const Cookies = lazy(() => import("./pages/Cookies"));
+const Accessibility = lazy(() => import("./pages/Accessibility"));
+const AcceptableUse = lazy(() => import("./pages/AcceptableUse"));
+const Disclosures = lazy(() => import("./pages/Disclosures"));
+const DPA = lazy(() => import("./pages/DPA"));
+const Security = lazy(() => import("./pages/Security"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
@@ -71,6 +78,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AnalyticsListener />
+          <ConsentBanner />
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               {/* Public marketing */}
@@ -106,6 +114,12 @@ const App = () => (
               <Route path="/terms-drives" element={<TermsDrives />} />
               <Route path="/support" element={<Support />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/cookies" element={<Cookies />} />
+              <Route path="/accessibility" element={<Accessibility />} />
+              <Route path="/acceptable-use" element={<AcceptableUse />} />
+              <Route path="/disclosures" element={<Disclosures />} />
+              <Route path="/dpa" element={<DPA />} />
+              <Route path="/security" element={<Security />} />
 
               {/* Auth */}
               <Route path="/login" element={<Login />} />

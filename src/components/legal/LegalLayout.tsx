@@ -90,7 +90,7 @@ function Footer() {
   const cols = [
     { h: "Product", links: [["For fleets", "/for-fleets"], ["For cities & DOTs", "/for-cities"], ["Route planner", "/route-planner"], [LIVE_DOT_CAMERAS ? "Live cameras" : "Camera map", "/cameras"]] },
     { h: "Company", links: [["Insights", "/insights"], ["Investors", "/investors"], ["Press", "/press"], ["FAQ", "/faq"]] },
-    { h: "Legal & support", links: [["Support", "/support"], ["Privacy policy", "/privacy"], ["Terms of service", "/terms"]] },
+    { h: "Legal & support", links: [["Support", "/support"], ["Privacy policy", "/privacy"], ["Terms of service", "/terms"], ["Cookie Notice", "/cookies"], ["Acceptable use", "/acceptable-use"], ["Accessibility", "/accessibility"], ["Security", "/security"], ["Disclosures", "/disclosures"], ["Do Not Sell or Share My Personal Information", "/privacy#do-not-sell"]] },
   ];
   return (
     <footer className="border-t" style={{ borderColor: line, background: bg }}>
