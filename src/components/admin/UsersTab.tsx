@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -123,7 +123,7 @@ export default function UsersTab({
     window.open(impersonationUrl(u.id), "_blank", "noopener");
   };
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (isDemo) {
       setUsers(DEMO_USERS);
@@ -142,11 +142,11 @@ export default function UsersTab({
     if (error) toast.error(error.message);
     setUsers((data as Profile[]) || []);
     setLoading(false);
-  };
+  }, [isDemo]);
 
   useEffect(() => {
     load();
-  }, [isDemo]);
+  }, [load]);
 
   useEffect(() => {
     if (drillDownToken > 0 && drillDownStatusFilter) {

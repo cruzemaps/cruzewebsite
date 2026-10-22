@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,7 +40,7 @@ export default function InvitationsTab({
   const [copied, setCopied] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (isDemo) {
       setInvites(DEMO_INVITES);
@@ -54,11 +54,11 @@ export default function InvitationsTab({
     if (error) toast.error(error.message);
     setInvites((data as Invite[]) || []);
     setLoading(false);
-  };
+  }, [isDemo]);
 
   useEffect(() => {
     load();
-  }, [isDemo]);
+  }, [load]);
 
   useEffect(() => {
     if (drillDownToken > 0) {

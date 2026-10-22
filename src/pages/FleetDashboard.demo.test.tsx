@@ -29,7 +29,8 @@ vi.mock("@/lib/supabase", () => ({
 }));
 vi.mock("@/lib/analytics", () => ({ identifyUser: vi.fn(), resetAnalytics: vi.fn(), track: vi.fn() }));
 
-import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import FleetDashboard from "./FleetDashboard";
 
 afterEach(() => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -156,7 +156,7 @@ function UsersSection({ isDemo }: { isDemo: boolean }) {
   // Audit #24: shadcn Dialog instead of native prompt/confirm.
   const [restoreTarget, setRestoreTarget] = useState<ArchivedUser | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (isDemo) {
       setItems([{ id: "u-demo", email: "old@example.com", first_name: "Old", last_name: "User", role: "fleet_owner", status: "archived", last_active_at: null }]);
@@ -166,9 +166,9 @@ function UsersSection({ isDemo }: { isDemo: boolean }) {
     const { data } = await supabase.from("profiles").select("id, email, first_name, last_name, role, status, last_active_at").eq("status", "archived").order("last_active_at", { ascending: false });
     setItems((data as ArchivedUser[]) || []);
     setLoading(false);
-  };
+  }, [isDemo]);
 
-  useEffect(() => { load(); }, [isDemo]);
+  useEffect(() => { load(); }, [load]);
 
   const submitRestore = async (reason: string) => {
     const u = restoreTarget;
@@ -249,7 +249,7 @@ function PilotsSection({ isDemo }: { isDemo: boolean }) {
   const [confirmDelete, setConfirmDelete] = useState<ArchivedPilot | null>(null);
   const [restoreTarget, setRestoreTarget] = useState<ArchivedPilot | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (isDemo) {
       setItems([{ id: "p-demo", user_id: "u1", company_name: "Old Logistics", fleet_size: "100", truck_size: "Class 8", status: "archived", created_at: "2026-01-01T00:00:00Z" }]);
@@ -259,9 +259,9 @@ function PilotsSection({ isDemo }: { isDemo: boolean }) {
     const { data } = await supabase.from("pilot_applications").select("*").eq("status", "archived").order("created_at", { ascending: false });
     setItems((data as ArchivedPilot[]) || []);
     setLoading(false);
-  };
+  }, [isDemo]);
 
-  useEffect(() => { load(); }, [isDemo]);
+  useEffect(() => { load(); }, [load]);
 
   const submitRestore = async () => {
     const p = restoreTarget;
@@ -341,7 +341,7 @@ function InvitesSection({ isDemo }: { isDemo: boolean }) {
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<ArchivedInvite | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (isDemo) {
       setItems([{ id: "i-demo", email: "old@invite.com", role: "fleet_owner", expires_at: "2025-01-01T00:00:00Z", accepted_at: null, created_at: "2024-12-01T00:00:00Z" }]);
@@ -356,9 +356,9 @@ function InvitesSection({ isDemo }: { isDemo: boolean }) {
       .order("created_at", { ascending: false });
     setItems((data as ArchivedInvite[]) || []);
     setLoading(false);
-  };
+  }, [isDemo]);
 
-  useEffect(() => { load(); }, [isDemo]);
+  useEffect(() => { load(); }, [load]);
 
   return (
     <SectionWrap loading={loading} count={items.length} emptyText="No accepted or expired invitations.">
@@ -416,7 +416,7 @@ function LOIsSection({ isDemo }: { isDemo: boolean }) {
   const [confirmDelete, setConfirmDelete] = useState<ArchivedLOI | null>(null);
   const [restoreTarget, setRestoreTarget] = useState<ArchivedLOI | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (isDemo) {
       setItems([{ id: "loi-demo", user_id: "u1", participant_name: "Test Signer", participant_company: "Old Co", fleet_size: "100", signed_at: "2026-01-01T00:00:00Z", archived_at: "2026-02-01T00:00:00Z", archive_reason: "Customer requested withdrawal" }]);
@@ -426,9 +426,9 @@ function LOIsSection({ isDemo }: { isDemo: boolean }) {
     const { data } = await supabase.from("loi_signatures").select("id, user_id, participant_name, participant_company, fleet_size, signed_at, archived_at, archive_reason").not("archived_at", "is", null).order("archived_at", { ascending: false });
     setItems((data as ArchivedLOI[]) || []);
     setLoading(false);
-  };
+  }, [isDemo]);
 
-  useEffect(() => { load(); }, [isDemo]);
+  useEffect(() => { load(); }, [load]);
 
   const submitRestore = async (reason: string) => {
     const l = restoreTarget;
