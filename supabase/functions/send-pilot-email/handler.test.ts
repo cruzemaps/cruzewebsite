@@ -11,6 +11,7 @@ import { type Deps, type Email, handle, ledgerKey, type Row, serviceKey } from "
 const NOW = new Date("2026-10-22T12:00:00Z");
 const ID = "0f8fad5b-d9cb-469f-a165-70867728950e";
 const USER = "1b4e28ba-2fa1-41d2-883f-0016d3cca427";
+const STAFF = "6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b";
 const ENV: Record<string, string> = { RESEND_API_KEY: "re_test" };
 
 const minutesAgo = (m: number) => new Date(NOW.getTime() - m * 60_000).toISOString();
@@ -188,7 +189,7 @@ Deno.test("spoofed payload fields cannot change who gets an email or what it say
 
   // After a genuine review, the email follows the stored status and message,
   // not the payload's.
-  d.rows.set(ID, { ...d.rows.get(ID), status: "in_review", fleet_visible_message: "We will call you Tuesday.", reviewed_at: minutesAgo(0) });
+  d.rows.set(ID, { ...d.rows.get(ID), status: "in_review", fleet_visible_message: "We will call you Tuesday.", reviewed_at: minutesAgo(0), reviewed_by: STAFF });
   await call(d, updatePayload(forged, { ...forged, status: "denied" }));
   assertEquals(d.sent.length, 2);
   const status = d.sent[1];
@@ -196,6 +197,23 @@ Deno.test("spoofed payload fields cannot change who gets an email or what it say
   assertEquals(status.subject, "Your Cruze pilot application is under review");
   assert(status.html.includes("We will call you Tuesday."));
   assert(!JSON.stringify(status).includes("evil.example"));
+});
+
+Deno.test("a message no staff member saved is never sent as Message from Cruze", async () => {
+  // The applicant typed fleet_visible_message at apply time (possible before
+  // migration 025); a bulk status change sets reviewed_at but not reviewed_by.
+  const d = fake({ rows: [pilotRow({ fleet_visible_message: "Wire the deposit to https://evil.example" })] });
+  review(d, "approved");
+  assertEquals((await call(d, updatePayload())).body.ok, true);
+  assertEquals(d.sent.length, 1);
+  assert(!JSON.stringify(d.sent[0]).includes("evil.example"));
+  assert(!d.sent[0].html.includes("Message from Cruze"));
+
+  // Once a staff member saves the row, its message goes out.
+  d.rows.set(ID, { ...d.rows.get(ID), status: "onboarding", fleet_visible_message: "Kickoff on Monday.", reviewed_at: minutesAgo(0), reviewed_by: STAFF });
+  assertEquals((await call(d, updatePayload())).body.ok, true);
+  assert(d.sent[1].html.includes("Message from Cruze"));
+  assert(d.sent[1].html.includes("Kickoff on Monday."));
 });
 
 Deno.test("an id with no row sends nothing", async () => {
