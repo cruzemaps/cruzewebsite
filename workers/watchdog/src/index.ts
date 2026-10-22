@@ -1,14 +1,19 @@
 // Cloudflare Worker: account-wide watchdog for the Cruze Workers.
 //
-// Cron-only (see wrangler.jsonc), no public routes.
+// Crons (see wrangler.jsonc):
 //   */5 * * * *  — posts to Discord when any Worker threw, hit the CPU limit,
 //                  or otherwise failed in the last check window. Also probes
 //                  api.cruzemaps.com (/health, /readyz) and posts when a
 //                  target goes down or recovers; state machine in apiProbe.ts,
-//                  state kept in the WATCHDOG_STATE KV namespace.
+//                  state kept in the WATCHDOG_STATE KV namespace. Then checks
+//                  the public pages and updates the status page's record
+//                  (status.ts), in the same namespace.
 //   0 14 * * *   — daily digest: yesterday's requests vs the free-plan cap,
 //                  failures per Worker. Doubles as a heartbeat: if the digest
 //                  stops arriving, the watchdog itself is broken.
+//
+// One public route, status.cruzemaps.com: GET / (HTML) and /status.json, read
+// from KV only, so a visitor never triggers a probe.
 //
 // Data comes from the GraphQL Analytics API, which needs a token scoped to
 // Account Analytics: Read. Both secrets are set via `wrangler secret put`.
@@ -22,6 +27,16 @@ import {
   type ProbeResult,
   type TargetState,
 } from "./apiProbe";
+import {
+  PAGE_CHECKS,
+  STATUS_KEY,
+  advance,
+  observe,
+  pageUp,
+  respond,
+  type PageId,
+  type StatusRecord,
+} from "./status";
 
 interface Env {
   CF_ACCOUNT_ID: string;
@@ -71,8 +86,17 @@ const QUERY = `query($account: String!, $start: Time!, $end: Time!) {
 
 // api.cruzemaps.com is served through a Cloudflare Tunnel from the laptop.
 const PROBE_TIMEOUT_MS = 10_000;
+// A failed page check is retried once after this pause before it counts.
+const PAGE_RETRY_MS = 5_000;
+const USER_AGENT = "cruze-watchdog/1 (+https://cruzemaps.com)";
 
 export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const { pathname } = new URL(request.url);
+    const record = env.WATCHDOG_STATE ? await env.WATCHDOG_STATE.get<StatusRecord>(STATUS_KEY, "json") : null;
+    return respond(request.method, pathname, record, Date.now());
+  },
+
   async scheduled(controller: ScheduledController, env: Env): Promise<void> {
     if (!env.DISCORD_WEBHOOK_URL) {
       console.warn("watchdog idle: DISCORD_WEBHOOK_URL not set");
@@ -88,21 +112,24 @@ export default {
       env.CF_API_TOKEN
         ? errorCheck(env, controller.scheduledTime)
         : Promise.resolve(console.warn("error check skipped: CF_API_TOKEN not set")),
-      apiProbe(env, controller.scheduledTime),
+      apiProbe(env, controller.scheduledTime).then((targets) =>
+        statusCheck(env, targets, controller.scheduledTime),
+      ),
     ]);
     for (const r of results) if (r.status === "rejected") console.error(r.reason);
   },
 };
 
-async function apiProbe(env: Env, now: number): Promise<void> {
+async function apiProbe(env: Env, now: number): Promise<Map<string, TargetState>> {
   if (!env.WATCHDOG_STATE) {
     console.warn("api probe skipped: WATCHDOG_STATE KV binding missing");
-    return;
+    return new Map();
   }
-  await Promise.all(TARGETS.map((target) => probeTarget(env, target, now)));
+  const states = await Promise.all(TARGETS.map((target) => probeTarget(env, target, now)));
+  return new Map(TARGETS.map((target, i) => [target, states[i]]));
 }
 
-async function probeTarget(env: Env, target: string, now: number): Promise<void> {
+async function probeTarget(env: Env, target: string, now: number): Promise<TargetState> {
   const key = `api-probe:${target}`;
   const [prev, result] = await Promise.all([
     env.WATCHDOG_STATE.get<TargetState>(key, "json"),
@@ -119,13 +146,55 @@ async function probeTarget(env: Env, target: string, now: number): Promise<void>
   // KV writes are capped per day on the free plan; only persist a change.
   if (next !== prev) await env.WATCHDOG_STATE.put(key, JSON.stringify(next));
   if (alert) await discord(env, message(alert, target, prev, next, now));
+  return next;
+}
+
+// Status page: the four page checks plus the API probe's target states. KV is
+// written only on a state change or a heartbeat (status.ts advance).
+async function statusCheck(env: Env, targets: Map<string, TargetState>, now: number): Promise<void> {
+  if (!env.WATCHDOG_STATE) return;
+  const ids = Object.keys(PAGE_CHECKS) as PageId[];
+  const [prev, ups] = await Promise.all([
+    env.WATCHDOG_STATE.get<StatusRecord>(STATUS_KEY, "json"),
+    Promise.all(ids.map((id) => checkPage(id))),
+  ]);
+  const pages = Object.fromEntries(ids.map((id, i) => [id, ups[i]])) as Record<PageId, boolean>;
+  const { next, write } = advance(prev, observe(pages, targets), now);
+  if (write) await env.WATCHDOG_STATE.put(STATUS_KEY, JSON.stringify(next));
+}
+
+async function checkPage(id: PageId): Promise<boolean> {
+  const { url, login } = PAGE_CHECKS[id];
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, PAGE_RETRY_MS));
+    let seen: string;
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        redirect: "manual",
+        headers: { "user-agent": USER_AGENT },
+        signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+        cf: { cacheTtl: 0 },
+      });
+      await res.body?.cancel();
+      if (pageUp(login, res.status, res.headers.get("location"))) {
+        console.log(`status ${id}: HTTP ${res.status} -> up`);
+        return true;
+      }
+      seen = `HTTP ${res.status}`;
+    } catch (err) {
+      seen = err instanceof Error && err.name === "TimeoutError" ? "timeout" : "fetch failed";
+    }
+    console.log(`status ${id}: ${seen} (attempt ${attempt})`);
+  }
+  return false;
 }
 
 async function probe(target: string): Promise<ProbeResult> {
   try {
     const res = await fetch(target, {
       method: "GET",
-      headers: { "user-agent": "cruze-watchdog/1 (+https://cruzemaps.com)" },
+      headers: { "user-agent": USER_AGENT },
       signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
       cf: { cacheTtl: 0 },
     });
