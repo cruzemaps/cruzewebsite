@@ -102,6 +102,15 @@ jobs:
           -v mig=supabase/migrations/20261018_020_contact_messages_inbox.sql
           -f supabase/tests/020_contact_messages_inbox.test.sql
 
+      - name: no PUBLIC execute on SECURITY DEFINER functions (migration 021)
+        env:
+          PGPASSWORD: postgres
+        run: >
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "create database t021"
+          && psql -h localhost -U postgres -d t021 -v ON_ERROR_STOP=1
+          -v mig=supabase/migrations/20261022_021_revoke_public_execute.sql
+          -f supabase/tests/021_revoke_public_execute.test.sql
+
   edge-functions:
     # Deno unit tests for Supabase edge functions. No network calls to Discord
     # or Supabase: the handlers get fake dependencies.
