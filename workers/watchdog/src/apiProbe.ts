@@ -17,7 +17,17 @@ export const QUIET_MS = 30 * 60_000;
 export const TARGETS = [
   "https://api.cruzemaps.com/health",
   "https://api.cruzemaps.com/readyz",
+  // The client portal's background jobs (cruzemaps/REA infra/workers/jobs-tick):
+  // 200 while a tick succeeded in the last 15 minutes, 503 otherwise.
+  "https://cruze-jobs-tick.cruzemaps.workers.dev/health",
 ] as const;
+
+/** What a target is, in plain words, for the Discord message. */
+export function subject(target: string): string {
+  const host = new URL(target).host;
+  if (host === "cruze-jobs-tick.cruzemaps.workers.dev") return "Portal background jobs (jobs-tick Worker)";
+  return "API";
+}
 
 export interface ProbeResult {
   /** HTTP status, or 0 when the request itself failed (timeout, DNS, TLS). */
@@ -135,18 +145,18 @@ export function message(alert: Exclude<Alert, null>, target: string, prev: Targe
   switch (alert) {
     case "down":
       return (
-        `:rotating_light: **API down** \`${path}\`: ${describe(next.last)}. ` +
+        `:rotating_light: **${subject(target)} down** \`${path}\`: ${describe(next.last)}. ` +
         `Failing since ${clock(next.since)} UTC (${next.fails} probes in a row). <${target}>`
       );
     case "still":
       return (
-        `:rotating_light: **API still down** \`${path}\`: ${describe(next.last)}. ` +
+        `:rotating_light: **${subject(target)} still down** \`${path}\`: ${describe(next.last)}. ` +
         `Down for ${formatDuration(now - next.since)} (since ${clock(next.since)} UTC). <${target}>`
       );
     case "recovered": {
       const downSince = prev?.since ?? now;
       return (
-        `:white_check_mark: **API recovered** \`${path}\`: HTTP 200 after ` +
+        `:white_check_mark: **${subject(target)} recovered** \`${path}\`: HTTP 200 after ` +
         `${formatDuration(now - downSince)} down (since ${clock(downSince)} UTC). <${target}>`
       );
     }

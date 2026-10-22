@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  TARGETS,
+  subject,
   QUIET_MS,
   classify,
   formatDuration,
@@ -153,5 +155,28 @@ describe("formatDuration", () => {
     expect(formatDuration(125 * 60_000)).toBe("2h 5m");
     expect(formatDuration(26 * 3_600_000)).toBe("1d 2h");
     expect(formatDuration(48 * 3_600_000)).toBe("2d");
+  });
+});
+
+describe("jobs-tick target", () => {
+  const JOBS = "https://cruze-jobs-tick.cruzemaps.workers.dev/health";
+  it("is probed on the same schedule as the API", () => {
+    expect(TARGETS).toContain(JOBS);
+  });
+  it("names the portal's background jobs, and the API stays the API", () => {
+    expect(subject(JOBS)).toBe("Portal background jobs (jobs-tick Worker)");
+    expect(subject("https://api.cruzemaps.com/readyz")).toBe("API");
+  });
+  it("alerts after two failed probes with that name and the HTTP status", () => {
+    const down = classify(503, '{"status":"down","lastError":"timeout"}');
+    const t0 = Date.UTC(2026, 9, 22, 5, 0);
+    const a = step(null, down, t0);
+    expect(a.alert).toBeNull();
+    const b = step(a.next, down, t0 + 300_000);
+    expect(b.alert).toBe("down");
+    const text = message("down", JOBS, a.next, b.next, t0 + 300_000);
+    expect(text).toContain("Portal background jobs (jobs-tick Worker) down");
+    expect(text).toContain("HTTP 503");
+    expect(text).not.toContain("1033");
   });
 });
