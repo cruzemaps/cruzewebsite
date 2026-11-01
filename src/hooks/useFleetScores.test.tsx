@@ -125,7 +125,7 @@ describe("useFleetScores: SSO exchange degrades quietly to manual fallback", () 
     expect(result.current.error).toBeNull();
   });
 
-  it("attempts the exchange once per Supabase token, then retries for a new one", async () => {
+  it("does not re-exchange on a benign re-render, but retries for a new token", async () => {
     // First token: exchange fails (503) -> needs_auth, token stays null.
     fetchMock.mockResolvedValue(jsonResponse({ error: "sso-not-configured" }, 503));
 
@@ -137,9 +137,11 @@ describe("useFleetScores: SSO exchange degrades quietly to manual fallback", () 
     await waitFor(() => expect(result.current.status).toBe("needs_auth"));
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    // Same token re-rendered: the guard must not fire a second exchange.
+    // Re-rendering with the same Supabase token must not fire a second exchange
+    // (covers the effect-level dedup; the exchangeAttemptedFor ref backstops the
+    // token-flip case this harness can't reach without StrictMode).
     rerender({ jwt: "jwt-a" });
-    await Promise.resolve();
+    await new Promise((r) => setTimeout(r, 0));
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     // A different Supabase token must retry the exchange.
@@ -240,9 +242,12 @@ describe("useFleetScores: manual login / token path", () => {
     act(() => result.current.logout());
     await waitFor(() => expect(result.current.status).toBe("needs_auth"));
 
+    // Resolve the stale fetch and fully drain its continuation (fetch -> .json()
+    // -> the reqId check) via a macrotask tick, so this asserts the request-id
+    // guard rather than a microtask-timing artifact.
     await act(async () => {
       resolveFetch(jsonResponse(DRIVERS_PAYLOAD));
-      await Promise.resolve();
+      await new Promise((r) => setTimeout(r, 0));
     });
 
     expect(result.current.status).toBe("needs_auth");
