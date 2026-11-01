@@ -152,6 +152,11 @@ export function useFleetScores(
   }, []);
 
   const fetchScores = useCallback(async () => {
+    // Bump the request id first so any earlier in-flight fetch is superseded
+    // even when this invocation early-returns (e.g. logout() clears the token),
+    // and re-runs this effect, which must invalidate a scores fetch still in
+    // flight so its late response can't overwrite state back to "ready".
+    const reqId = ++reqIdRef.current;
     if (!CRUZE_API_URL) {
       setStatus("error");
       setError(BACKEND_DISABLED_MSG);
@@ -161,7 +166,6 @@ export function useFleetScores(
       setStatus("needs_auth");
       return;
     }
-    const reqId = ++reqIdRef.current;
     setStatus("loading");
     setError(null);
     try {
