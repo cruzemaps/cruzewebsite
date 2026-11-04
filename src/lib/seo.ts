@@ -318,9 +318,15 @@ export function resolveOgImage(image: string | undefined): string {
 }
 
 export function findRouteMeta(pathname: string): RouteMeta | undefined {
+  // Normalize a trailing slash ("/for-fleets/" is the same page as
+  // "/for-fleets") once, so both branches below agree on it. "/" is left as-is.
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   // exact match first
-  const exact = ROUTES.find((r) => r.path === pathname);
+  const exact = ROUTES.find((r) => r.path === path);
   if (exact) return exact;
   // prefix match for nested routes (e.g. /insights/[slug], /cities/[slug]).
-  return ROUTES.find((r) => r.path !== "/" && pathname.startsWith(r.path));
+  // Match only on a path-segment boundary so a sibling path never inherits a
+  // route's metadata: "/privacy-drives/x" must resolve to "/privacy-drives",
+  // not to the earlier "/privacy" entry, and "/login-help" must stay unknown.
+  return ROUTES.find((r) => r.path !== "/" && path.startsWith(`${r.path}/`));
 }

@@ -63,6 +63,33 @@ describe("findRouteMeta", () => {
     // /apply is an exact route; it must not resolve to some shorter prefix.
     expect(findRouteMeta("/apply")?.path).toBe("/apply");
   });
+
+  it("only prefix-matches on a path-segment boundary", () => {
+    // A sibling path that merely shares a string prefix is NOT a nested route
+    // and must not inherit the shorter route's metadata. "/login-help" shares
+    // "/login" as a string prefix but is a different path, so it is unknown.
+    expect(findRouteMeta("/login-help")).toBeUndefined();
+    expect(findRouteMeta("/for-fleets-xyz")).toBeUndefined();
+    expect(findRouteMeta("/v2x")).toBeUndefined();
+  });
+
+  it("resolves a nested slug to its own parent, not an earlier string prefix", () => {
+    // "/privacy" sits before "/privacy-drives" in ROUTES. A nested path under
+    // the longer route must resolve to "/privacy-drives", not leak the earlier
+    // "/privacy" entry via a boundary-less startsWith.
+    expect(findRouteMeta("/privacy-drives/section-3")?.path).toBe(
+      "/privacy-drives"
+    );
+    // noindex internal routes keep matching their own nested paths.
+    expect(findRouteMeta("/lab/frame-42")?.path).toBe("/lab");
+    expect(findRouteMeta("/lab/frame-42")?.noindex).toBe(true);
+  });
+
+  it("treats a trailing slash on an exact route as that route", () => {
+    // "/for-fleets/" is the same page as "/for-fleets"; the boundary match
+    // accepts the trailing slash rather than returning undefined.
+    expect(findRouteMeta("/for-fleets/")?.path).toBe("/for-fleets");
+  });
 });
 
 describe("ROUTES invariants", () => {
