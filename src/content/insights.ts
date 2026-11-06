@@ -14,6 +14,61 @@ export type Insight = {
 
 export const INSIGHTS: Insight[] = [
   {
+    slug: "the-experiment-that-proved-phantom-traffic-jams",
+    title: "The experiment that proved phantom traffic jams: Sugiyama's ring road",
+    author: "Anudeep Bonagiri",
+    authorTitle: "Co-founder & CEO, Cruze",
+    publishedAt: "2026-11-06",
+    excerpt:
+      "In 2008, physicists put 22 cars on a circular track with no obstacles and watched a traffic jam form out of nothing. Here is how that experiment was run, why it settled a decades-old question, and how two later experiments turned the finding into a fix.",
+    body: `The experiment that proved phantom traffic jams was run in 2008 by a team led by Yuki Sugiyama: 22 cars on a 230-meter circular track, every driver asked to hold one steady speed. With no bottleneck of any kind, a stop-and-go jam still formed on its own and traveled backward around the loop. This article tells the full story of that experiment, why it was decisive, and how two later experiments built on it.
+
+For decades, the idea of a [phantom traffic jam](/insights/phantom-traffic-jams), a jam with no crash, no merge, and no obstacle behind it, lived mostly in simulations and equations. Traffic models predicted that congestion could emerge from driver behavior alone, but a model is not proof. You can always argue that a real jam had some hidden trigger the model left out: a slow truck, a bad merge, a distracted driver. Settling it needed an experiment that removed every possible cause and showed a jam forming anyway.
+
+## The setup: a loop, 22 cars, one instruction
+
+Sugiyama's team built the cleanest possible test. They marked out a single-lane circular track about 230 meters around, put 22 vehicles on it evenly spaced, and gave every driver the same single instruction: drive at a steady speed of roughly 30 km/h and keep a comfortable distance from the car ahead (Sugiyama et al., "Traffic jams without bottlenecks," New Journal of Physics, 2008).
+
+A circular track is the key design choice. On a closed loop there is no on-ramp, no lane drop, no intersection, and no end to reach. The density of cars is fixed and identical everywhere. If a jam appears, it cannot be blamed on anything in the road, because there is nothing in the road. The only variable left in the whole system is how the drivers follow one another.
+
+## What happened
+
+For a short while, it worked. The cars rolled around the loop at a roughly even speed and even spacing, exactly as asked.
+
+Then it fell apart. Within minutes, a small cluster of braking appeared somewhere on the loop, and that cluster grew into a full stop-and-go wave that began traveling backward around the track, against the direction the cars were driving. Some cars came to a complete halt while others a little ahead were still rolling freely. Nothing had changed on the track. The jam had assembled itself purely out of the interaction between drivers, and once formed, it persisted and drifted upstream while the cars kept passing forward through it.
+
+> With no bottleneck anywhere on the loop, a jam still formed and marched backward through the cars. The only thing left to cause it was the way humans follow one another.
+
+## Why the result was decisive
+
+The power of the experiment is in what it ruled out. Because the track was a closed loop with identical instructions and even spacing, the result isolated a single cause. There was no slow vehicle, no geometry, no signal, and no destination. The jam could only have come from human following behavior and the way a small slowdown amplifies as it passes from one driver to the next.
+
+The authors framed the conclusion precisely: a bottleneck is only a trigger, not the essential origin of a jam. Congestion is a collective phenomenon of the traffic stream itself, closer to a phase transition in physics than to a simple blockage. Pack cars densely enough and the free-flowing state becomes unstable, so any tiny disturbance grows instead of fading. We unpack that backward-marching behavior in [why traffic jams move backward](/insights/why-traffic-jams-move-backward), and the self-sustaining wave at its core in [what is a jamiton](/insights/what-is-a-jamiton).
+
+## The 2013 follow-up: finding the density threshold
+
+The 2008 experiment proved a jam can form from nothing at a given density. A natural next question is whether there is a tipping point: a density below which the flow stays smooth and above which it breaks down.
+
+A later experiment by Tadaki and colleagues answered that directly. On an indoor 100-meter circuit at the Nagoya Dome, with car positions tracked by a laser scanner, the team ran many sessions at different numbers of cars (Tadaki et al., "Phase transition in traffic jam experiment on a circuit," New Journal of Physics, 2013). At low density the free flow held. At high density, jams formed as they had in 2008. In between was a metastable region where the flow could go either way. The team estimated a critical density for the transition, and reported that it was consistent with what is observed on real expressways. That is the experimental backbone for a point we make throughout this cluster: density, not the raw number of cars, is the trigger.
+
+## The 2018 inverse: dissolving the wave
+
+If human following behavior builds the wave, can changing a few drivers' behavior take it apart? A University of Arizona-led team ran the inverse of Sugiyama's experiment to find out. On the same kind of ring of human-driven cars, they placed one vehicle under automated control, programmed to hold a steadier speed (Stern et al., "Dissipation of stop-and-go waves via control of autonomous vehicles: field experiments," Transportation Research Part C, 2018).
+
+Guiding roughly one car in twenty, about 5 percent of the ring, was enough to damp the stop-and-go waves the human drivers kept generating, and to cut total fuel use for every car on the track, not just the controlled one. The experiment that created a jam from nothing had a mirror image: a jam dissolved by smoothing a small share of the traffic. We cover that finding in [can a few drivers fix traffic for everyone](/insights/can-a-few-drivers-fix-traffic).
+
+## What the experiment does and does not prove
+
+It is worth being precise about the limits, because overclaiming from a clean lab result is easy. A ring road is not a highway. It has fixed density, no entries or exits, no lane changes, and a small number of cooperating drivers who know they are in a study. Real corridors have all of those complications at once. What the ring-road experiments establish is the mechanism: that stop-and-go congestion can be generated and dissolved by following behavior alone, independent of any bottleneck. They do not, by themselves, measure how much of the congestion on a specific real road is phantom versus bottleneck-driven. That is a separate measurement, and telling the two apart on a real corridor is its own problem, which we cover in [phantom jam or real bottleneck](/insights/phantom-jam-vs-bottleneck).
+
+## Where Cruze comes in
+
+The through-line from Sugiyama to Stern is the whole thesis behind [Cruze](/): if a wave is built by how a few drivers behave, it can be unbuilt the same way, without new lanes or a replaced fleet. Cruze reads a corridor from [existing traffic cameras](/insights/how-traffic-cameras-measure-flow), with no new hardware on the truck or the roadside, aiming to spot where a wave is forming and give a small share of drivers a gentle, well-timed speed cue so the gap ahead absorbs the disturbance before it grows. It is the 5 percent finding pointed at a real road instead of a test track.
+
+We are deliberate about what that is today. Cruze is pre-pilot and makes no traffic-reduction claims yet. The ring-road experiments are published science, not Cruze results, and the benefit of smoothing a real corridor is something a pilot has to measure on real trucks and real cameras, not something we would quote in advance. What the experiments give us is the reason to try: for a [fleet](/for-fleets), the target is fewer hard stops and less fuel rebuilt after every needless halt; for a [city or DOT](/for-cities), it is more throughput from the lanes already built, read from the [cameras](/cameras) already on the poles. The jam that formed on a bare loop in 2008 is the same jam you sit in on the interstate, and it was never about the road being full.`,
+    tags: ["fundamentals", "traffic-physics"],
+  },
+  {
     slug: "how-traffic-cameras-measure-flow",
     title: "How do traffic cameras measure traffic flow?",
     author: "Anudeep Bonagiri",
@@ -1066,7 +1121,7 @@ For a short while it worked. Then it fell apart. Within minutes a cluster of bra
 
 > A jam can form on a road that is nowhere near full. The trigger is not too many cars. It is how a small slowdown amplifies as it passes from one driver to the next.
 
-The result was decisive because it removed every other explanation. With a closed loop and identical instructions, the only variable left was human following behavior, and that alone was enough to manufacture a jam from a smoothly flowing ring of traffic. We go deeper on the setup and what it tells us in [Phantom traffic jams, explained](/insights/phantom-traffic-jams-explained).
+The result was decisive because it removed every other explanation. With a closed loop and identical instructions, the only variable left was human following behavior, and that alone was enough to manufacture a jam from a smoothly flowing ring of traffic. We tell the full story of that experiment, and the two later experiments that built on it, in [the experiment that proved phantom traffic jams](/insights/the-experiment-that-proved-phantom-traffic-jams), and go deeper on the setup in [Phantom traffic jams, explained](/insights/phantom-traffic-jams-explained).
 
 ## The physics: how one tap of the brakes becomes a mile of stopped cars
 
